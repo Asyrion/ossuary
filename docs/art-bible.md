@@ -168,11 +168,19 @@ clearly win (the proof's wall faces were good; its floor tiles repeated, their j
 ### 4.9 Floor 1 in the game, step A (built 2026-10-19)
 
 Floor 1's colours and its fill light are in its look (data/floors.json: `floor`, `wall`, `torch`, `urn`, `light`
-with `fill` 1.45), and its `grade` (shadow `#273352`, amount 0.5, lift 0.09) leans the pixel look's darks toward slate
+with `fill` 1.45), and its `grade` (shadow `#273352`, amount 0.5, lift 0.03) leans the pixel look's darks toward slate
 blue (docs/architecture.md, Pixel look). Measured in the middle of each room: mean lightness 29 to 42 % (8 to 20 %
 before), near black 1 to 6 % in most rooms, shadows at about 230 to 260 degrees and lights at about 20 to 25. **The owner
 accepted it as it stands (2026-10-19)**, to be tuned again after the asset rounds; dark rooms stay as they are for now
 (35 % near black, above 4.3's 15 %).
+
+### 4.10 Floor 1 in the game, steps B and C (built 2026-10-19)
+
+Step B: the grade inks the outlines in the shadow's blue (`ink` 1, `gap` 0.08) and floor 1's kit wears its own
+materials (`materials` in its look, docs/architecture.md, Pixel look). Step C: plain rooms are strewn from the floor's
+`scatter` (bones, pebbles, verdigris, cobwebs on the north wall, stains, one relic), clear of doors and the start's
+middle; the walls carry moss and more niches. The six relics are Tripo models (docs/assets.md, asset log), cut to under
+3,500 triangles as closed hulls with their colour baked (`tools/art/`). **The owner accepted B and C (2026-10-19).**
 
 ## 5. The reference pictures
 
