@@ -319,7 +319,7 @@ test("the room kit's doors, gates, niches and pilasters: built in code, one mesh
   expect(kit.locked).toBe(true);
   expect(kit.shut.every(Boolean)).toBe(true);
   await page.screenshot({ path: 'test-results/room-kit-doors.png' });
-  expect(kit.calls).toBeLessThan(62); // (each door and each wall's dressing in a call or two; the room draws in 56)
+  expect(kit.calls).toBeLessThan(68); // (each door and each wall's dressing in a call or two; the room draws in 62, its floor's scatter, merged, among them)
   expect(errors).toEqual([]);
 });
 

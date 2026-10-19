@@ -422,6 +422,7 @@ export function dressTheme(room: Room) {
     plain = !theme && (room.type === 'normal' || room.type === 'start') && room.look.scatter;
   const scatter = theme?.scatter ?? (plain ? room.look.scatter : undefined);
   if (!scatter) return;
+  const still = new THREE.Group();
   const R = mulberry(room.plan.seed ^ 0x7e3e),
     t = room.template,
     free: { c: number; r: number }[] = [];
@@ -463,22 +464,35 @@ export function dressTheme(room: Room) {
           : from[Math.floor(R() * from.length)];
       free.splice(free.indexOf(pick), 1);
       const o = DRESS[kind](R, room.look);
-      o.userData.scatter = kind;
       o.position.x += room.bounds.minX + pick.c + 0.5 + (R() - 0.5) * 0.3 - room.cx;
       o.position.z += room.bounds.minZ + pick.r + 0.5 + (R() - 0.5) * 0.3 - room.cz;
-      room.group.add(o);
+      (STILL.has(kind) ? still : room.group).add(o);
+      (room.strewn ??= {})[kind] = (room.strewn[kind] ?? 0) + 1;
     }
   }
+  // the pieces that never move drawn together: a room strewn with bones and pebbles costs a call or two, not dozens
+  mergeStill(still);
+  room.group.add(still);
 }
+/** The scatter kinds with nothing moving in them (merged into one mesh a material); candles, embers, lamps, ropes and
+    the like keep their own, for their flames and sway. */
+const STILL = new Set<ScatterKind>([
+  'bones',
+  'pebbles',
+  'moss',
+  'verdigris',
+  'stains',
+  'webs',
+  'pages',
+  'leaves',
+  'rime',
+  'coins',
+  'flowers',
+]);
 
 /** What a room's scatter put down, by kind (the dev menu's readout, tests). */
 export function scatterOf(room: Room) {
-  const out: Partial<Record<ScatterKind, number>> = {};
-  for (const o of room.group.children) {
-    const k = o.userData.scatter as ScatterKind | undefined;
-    if (k) out[k] = (out[k] ?? 0) + 1;
-  }
-  return out;
+  return { ...room.strewn };
 }
 
 /* ---------- twists ---------- */

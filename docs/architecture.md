@@ -208,9 +208,9 @@ Pure `src/world/themeData.ts` (`themedLook`, `validateThemes`). A template's `th
 (`themed.json`); floors draw them by `themeChance` and `themes`. `src/world/themes.ts` scatters dressing
 (`dressTheme`) and runs the twists; tuning `CFG.themes`. `?theme=ossuary` makes every fight one theme's.
 
-A floor's look may carry its own `scatter` (floor 1: bones, pebbles, candles, verdigris, cobwebs, stains): a plain
+A floor's look may carry its own `scatter` (floor 1: bones, pebbles, verdigris, cobwebs, stains): a plain
 fight or the start is strewn with it, each kind's count varied a room (`CFG.themes.plainSpread`); never on other room
-types. Cobwebs (`webs`) keep to a wall. A floor's `wall.dress.fill` is the chance a spot between pilasters holds a
+types. Cobwebs (`webs`) keep to a wall. The kinds with nothing moving in them are merged into one mesh a material (`STILL`); the room's counts are `room.strewn`. A floor's `wall.dress.fill` is the chance a spot between pilasters holds a
 niche. Dev: `__game.scatterHere`; the Look tab's readout under Objects here.
 
 Twists: sleepers (`asleep` foes wake when hit or approached); rising bones; scroll heaps break to pages; cave-in on
