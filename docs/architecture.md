@@ -655,6 +655,11 @@ The fine layer (`FINE`, layer 1) is drawn into its own target at `CFG.pixelLook.
 and laid over the window after the blow-up (`drawFine`): coin faces and the made Vigil figures only. The blow-up
 stays free of it (software renderers pay for every shader line).
 
+The floor's grade (`grade` in a floor's look, data/floors.json; `setGrade`, called by `applyFloorLook`): the shade
+pass and the fine layer lean the darks toward the floor's shadow colour and lift black toward it (art bible 4.2). A
+floor without one is drawn as it is; the dawn outside clears it. The floor's `light.fill` scales the fill and the
+moonlight (`lightState.fill`). Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
+
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
 artifact icons (`toIcon`). Dev: `__game.pixelLook`, `setPixelLook({ lines, outline, bands })`, `pixelRows`,

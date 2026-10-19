@@ -25,11 +25,12 @@
     "look": {
       "name": "crypt",
       "kit": {"wall": {"bricks": 3, "ashlar": 2, "bones": 1}, "floor": {"flags": 3, "cobbles": 2, "graves": 1}, "torch": {"bracket": 3, "candelabra": 2, "skull": 1}, "brazier": {"tripod": 2, "font": 1, "basket": 1}},
-      "floor": {"base": [72, 66, 58], "mortar": "#17120e", "stain": "38,54,30", "decor": "bones", "bones": 5},
-      "wall": {"brick": [76, 68, 60], "mortar": "#1e1813", "stains": "none", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 3, "bones": 2, "urn": 1, "empty": 1}}},
-      "torch": {"flame": "#ffc36a", "light": "#ff9a3c", "intensity": 1.0, "wax": "#f0e2c6"},
-      "urn": {"clay": "#8a5436", "band": "#4a2618"},
-      "light": {"sky": "#8a7ea0", "ground": "#1d150f", "moon": "#aab6d8"}
+      "floor": {"base": [126, 100, 74], "mortar": "#2a2430", "stain": "58,104,88", "decor": "bones", "bones": 5},
+      "wall": {"brick": [106, 90, 82], "mortar": "#28222e", "stains": "none", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 3, "bones": 2, "urn": 1, "empty": 1}}},
+      "torch": {"flame": "#ffd27a", "light": "#ffa04a", "intensity": 1.0, "wax": "#f2e2c0"},
+      "urn": {"clay": "#9a6440", "band": "#33384d"},
+      "light": {"sky": "#a6aac2", "ground": "#343448", "moon": "#b8c4e8", "fill": 1.45},
+      "grade": {"shadow": "#273352", "amount": 0.5, "lift": 0.09}
     }
   },
   {

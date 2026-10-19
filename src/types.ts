@@ -86,8 +86,11 @@ export interface FloorLook {
       string,
     ];
   };
-  /** Hemisphere sky and ground colours, and the moonlight. */
-  light: { sky: string; ground: string; moon: string };
+  /** Hemisphere sky and ground colours, and the moonlight; `fill` scales the fill and the moonlight (1 when absent). */
+  light: { sky: string; ground: string; moon: string; fill?: number };
+  /** The pixel look's grade for this floor (docs/art-bible.md 4.2): the darks leaned toward `shadow` by `amount`, and
+      black lifted to it by `lift`. None, no grade. */
+  grade?: { shadow: string; amount: number; lift: number };
   /** The floor's pottery: an urn's clay and its painted bands (the room kit's urns). */
   urn: { clay: string; band: string };
   /** The room kit's kinds of wall, floor, wall light and brazier, weighted (world/kitData.ts). */
