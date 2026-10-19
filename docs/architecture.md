@@ -212,7 +212,10 @@ A floor's look may carry its own `scatter` (floor 1: bones, pebbles, verdigris, 
 fight or the start is strewn with it, each kind's count varied a room (`CFG.themes.plainSpread`); never on other room
 types. Cobwebs (`webs`) keep to a wall. The kinds with nothing moving in them are merged into one mesh a material (`STILL`); the room's counts are `room.strewn`. A floor's `wall.dress.fill` is the chance a spot between pilasters holds a
 niche. The `relics` kind strews made models (data/assets.json `props`, ids in `PROP_SLOTS`: a grave marker, a coffin
-lid, a fallen candelabrum, an angel's head, a skull pile, a broken urn; `relicLook`); none while assets are off. Dev:
+lid, a fallen candelabrum, an angel's head, a skull pile, a broken urn; `relicLook`), one to a tile whose eight
+neighbours are free, none in the start, two in a room two different ones; none while assets are off. The standing ones
+(`CFG.themes.relicBlock`) block as breakable rocks (`standRelic`: a collider from the model's footprint, `relicFit`, its
+tile `rock` until it breaks). Dev:
 `__game.scatterHere`, `relicsHere()`; the Look tab's readout under Objects here, and Relics here.
 
 Twists: sleepers (`asleep` foes wake when hit or approached); rising bones; scroll heaps break to pages; cave-in on

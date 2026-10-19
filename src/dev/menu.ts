@@ -69,7 +69,7 @@ import { assetList, assetsOn, setAssetsOn, wallTile } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
 import { lightLevels } from '../render/lights';
-import { RELICS, relicLook, scatterOf } from '../world/themes';
+import { RELICS, relicLook, standRelic, scatterOf } from '../world/themes';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from './effectOptions';
@@ -358,6 +358,7 @@ export function relicsHere() {
       o = relicLook(id, () => 0.5);
     o.position.set(q.x - room.cx, 0, q.z - room.cz);
     room.group.add(o);
+    standRelic(room, o); // (the standing ones block, and break to a blast)
   });
 }
 

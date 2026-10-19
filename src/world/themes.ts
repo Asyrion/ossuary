@@ -513,6 +513,7 @@ export function dressTheme(room: Room) {
       o.position.x += room.bounds.minX + pick.c + 0.5 + (R() - 0.5) * 0.3 - room.cx;
       o.position.z += room.bounds.minZ + pick.r + 0.5 + (R() - 0.5) * 0.3 - room.cz;
       (STILL.has(kind) ? still : room.group).add(o);
+      if (kind === 'relics') standRelic(room, o, pick);
       (room.strewn ??= {})[kind] = (room.strewn[kind] ?? 0) + 1;
     }
   }
@@ -522,9 +523,33 @@ export function dressTheme(room: Room) {
 }
 export const RELICS = ['grave_marker', 'coffin_lid', 'fallen_candelabrum', 'angel_head', 'skull_pile', 'broken_urn'];
 const FACING = new Set(['grave_marker', 'angel_head', 'skull_pile']);
+/** A relic put down in the room (its group's child, placed): one that stands (`CFG.themes.relicBlock`) blocks like a
+    rock and breaks like one, to a glyph's blast or Mason's Chisel (world/rooms.ts `hitRock`); its tile stops being floor
+    meanwhile. A relic whose model isn't in blocks nothing. */
+export function standRelic(room: Room, o: THREE.Object3D, tile?: { c: number; r: number }) {
+  const id = o.userData.relic as string | undefined;
+  if (!id || !C.relicBlock.includes(id)) return;
+  room.group.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(o);
+  if (box.isEmpty()) return;
+  const size = box.getSize(new THREE.Vector3()),
+    mid = box.getCenter(new THREE.Vector3());
+  room.rocks.push({
+    x: mid.x,
+    z: mid.z,
+    hx: (size.x / 2) * C.relicFit,
+    hz: (size.z / 2) * C.relicFit,
+    hp: CFG.artifacts.rockHp,
+    breakable: true,
+    mesh: o,
+    ...(tile && { tile }),
+  });
+  if (tile) room.template.tiles[tile.r][tile.c] = 'rock';
+}
 /** A relic's made model, turned (those with a face toward the camera); an empty group while the models aren't in. */
 export function relicLook(id: string, R: () => number) {
   const o = modelFor('props', id) ?? new THREE.Group();
+  o.userData.relic = id;
   o.rotation.y = FACING.has(id) ? (R() - 0.5) * 0.5 : R() * Math.PI * 2;
   return o;
 }
@@ -542,7 +567,6 @@ const STILL = new Set<ScatterKind>([
   'rime',
   'coins',
   'flowers',
-  'relics',
 ]);
 
 /** What a room's scatter put down, by kind (the dev menu's readout, tests). */

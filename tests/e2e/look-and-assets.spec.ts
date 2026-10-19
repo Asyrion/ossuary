@@ -359,3 +359,105 @@ test("a plain room's scatter: on floor 1 a fight's room is strewn from the floor
   expect(s2).toEqual({});
   expect(two).toEqual([]);
 });
+
+test("floor 1's relics: the standing ones (grave marker, angel's head, skull pile, broken urn) block like a rock and break to a glyph's blast; the flat ones are walked over", async ({
+  page,
+}) => {
+  type Rock = {
+    x: number;
+    z: number;
+    hx: number;
+    hz: number;
+    breakable: boolean;
+    mesh?: { userData: { relic?: string } };
+  };
+  type GR = {
+    warp(i: number): void;
+    relicsHere(): void;
+    blast(x: number, z: number): void;
+    sim(t: number): void;
+    current: { rocks: Rock[] };
+  };
+  const errors = await start(page, '?room=crypt_a&variant=quiet&seed=RELIC2');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GR }).__game;
+    g.warp(1);
+    const before = g.current.rocks.length;
+    g.relicsHere();
+    const mine = g.current.rocks.slice(before);
+    const placed = {
+      ids: mine.map((k) => k.mesh?.userData.relic ?? '').sort(),
+      sized: mine.every((k) => k.breakable && k.hx > 0.08 && k.hz > 0.08 && k.hx < 0.6 && k.hz < 0.6),
+    };
+    for (const k of mine) {
+      g.blast(k.x, k.z);
+      g.sim(0.1);
+    }
+    return { placed, left: mine.filter((k) => g.current.rocks.includes(k)).length }; // (a blast may break the room's own too)
+  });
+  expect(r.placed.ids).toEqual(['angel_head', 'broken_urn', 'grave_marker', 'skull_pile']);
+  expect(r.placed.sized).toBe(true);
+  expect(r.left).toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test("floor 1's standing relics never cut a room in two: on several seeds, every room's floor is as joined up with them as without", async ({
+  page,
+}) => {
+  type Rm = {
+    template: { tiles: string[][] };
+    rocks: { tile?: { c: number; r: number }; mesh?: { userData: { relic?: string } } }[];
+  };
+  let relics = 0;
+  for (const seed of ['RELICS1', 'RELICS2', 'RELICS3', 'RELICS4']) {
+    const errors = await start(page, `?seed=${seed}`);
+    const r = await page.evaluate(() => {
+      const g = (window as unknown as { __game: { rooms(): Rm[] } }).__game;
+      // the pieces of a room's floor (four ways round), with its relics' tiles counted as floor or not
+      const parts = (tiles: string[][], open: (c: number, r: number) => boolean) => {
+        const seen = new Set<string>();
+        let n = 0;
+        tiles.forEach((row, r) =>
+          row.forEach((_, c) => {
+            if (!open(c, r) || seen.has(`${c},${r}`)) return;
+            n++;
+            const todo = [[c, r]];
+            seen.add(`${c},${r}`);
+            while (todo.length) {
+              const [x, y] = todo.pop()!;
+              for (const [dx, dy] of [
+                [1, 0],
+                [-1, 0],
+                [0, 1],
+                [0, -1],
+              ]) {
+                const k = `${x + dx},${y + dy}`;
+                if (!seen.has(k) && open(x + dx, y + dy)) {
+                  seen.add(k);
+                  todo.push([x + dx, y + dy]);
+                }
+              }
+            }
+          }),
+        );
+        return n;
+      };
+      let relics = 0;
+      const cut: number[] = [];
+      g.rooms().forEach((room, i) => {
+        const mine = new Set(
+          room.rocks.filter((k) => k.mesh?.userData.relic && k.tile).map((k) => `${k.tile!.c},${k.tile!.r}`),
+        );
+        relics += mine.size;
+        const t = room.template.tiles,
+          floor = (c: number, r: number) => t[r]?.[c] === 'floor';
+        if (parts(t, (c, r) => floor(c, r) || mine.has(`${c},${r}`)) !== parts(t, floor)) cut.push(i);
+      });
+      return { relics, cut };
+    });
+    relics += r.relics;
+    expect(r.cut, seed).toEqual([]);
+    expect(errors).toEqual([]);
+  }
+  expect(relics).toBeGreaterThan(3); // (the check saw some)
+});
