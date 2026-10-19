@@ -7,3 +7,4 @@ asset-previews/
 audio-previews/
 creature-previews/
 *.devboard.tmp
+__pycache__/
