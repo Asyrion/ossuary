@@ -212,6 +212,15 @@ Mantis's lit blade edges; **the owner chose to leave them so (2026-10-20)**, dar
 From the room inspection: the light's top step stays short of white (`top`), its turns tint rather than replace, and
 the outline is near black on every floor.
 
+### 4.15 Floor 1's spells, steps F1 and F2 (2026-10-20)
+
+F1 surveyed every spell and the cantrip in a room of floor 1. F2 gave six spells solid parts made in Tripo (the Glacial
+Wall's ice, the Living Wall's hedge, Grasp of the Grave's hands, the Thorn Snare's thorns, Judgement's sword, the
+Lantern of Vigil) and three their circles as pixel art from Tripo pictures (the Pyre Seal, Consecrate, the Ferryman's
+obol; `tools/art/sigil.py`): a real alphabet's runes in a picture are replaced by the Wardens' glyphs. From F1: small
+things two game pixels thick at least (shards, lightning), each school's colour drawn rather than added where added
+light came out white, and a pillar of light under 0.6 over a foe. **The owner accepted F2 (2026-10-20).**
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
