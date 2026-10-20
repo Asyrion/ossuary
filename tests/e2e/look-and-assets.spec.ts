@@ -235,7 +235,7 @@ test('coin faces: the obols wear a coin face, drawn on the fine layer, in the ro
 test('the pixel look: at the texel from the start, the fine grid from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the spell effect options, without errors', async ({
   page,
 }) => {
-  type Look = { lines: 0 | 'texel' | 'fine'; outline: boolean; bands: boolean; ramps: boolean };
+  type Look = { lines: 0 | 'texel' | 'fine'; outline: boolean; bands: boolean };
   type GP = {
     sim(sec: number, draw?: boolean): void;
     pixelLook: Look;
@@ -263,7 +263,7 @@ test('the pixel look: at the texel from the start, the fine grid from the URL, d
       return { look: g.pixelLook, rows: g.pixelRows, pixel: [...types] };
     });
   })();
-  expect(texel.look).toEqual({ lines: 'texel', outline: true, bands: false, ramps: true });
+  expect(texel.look).toEqual({ lines: 'texel', outline: true, bands: false });
   expect(texel.rows).toBeGreaterThan(400);
   expect(texel.rows).toBeLessThan(440);
   expect(texel.pixel).toEqual(['MeshToonMaterial']); // (the mage's colours baked, a few of them, light in bands)
@@ -285,7 +285,7 @@ test('the pixel look: at the texel from the start, the fine grid from the URL, d
     return out;
   });
   expect(r[0].look.lines).toBe('fine');
-  expect(r[1].look).toEqual({ lines: 'fine', outline: true, bands: true, ramps: true });
+  expect(r[1].look).toEqual({ lines: 'fine', outline: true, bands: true });
   expect(r[2].look.lines).toBe('texel');
   expect(r[3].look.lines).toBe(0);
   // (the scene, the actors' mask from their stamp, its shading at the grid's size, then the blow-up to the window)
