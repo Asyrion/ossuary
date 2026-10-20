@@ -1098,6 +1098,42 @@ export function tollFx(color: number) {
   };
 }
 
+/* ---------- a soul flying home ---------- */
+
+interface Soul {
+  g: THREE.Group;
+  from: P3;
+  to: () => P3;
+  t: number;
+}
+const souls: Soul[] = [];
+/** A spark of a soul in `color` flying from `from` to where `to` says (the mage, as it moves), in an arc, over
+    CFG.spellFx.soul seconds; a small ring flares where it arrives (Soul Harvest's stacks coming home). */
+export function soulFx(from: P3, to: () => P3, color: number) {
+  const g = new THREE.Group(),
+    c = new THREE.Mesh(octa(), basicMat(whiter(color, 0.5)));
+  c.scale.set(0.06, 0.09, 0.06);
+  g.add(c, glow(color, 0.55, 0.8));
+  g.position.set(from.x, from.y, from.z);
+  scene.add(g);
+  souls.push({ g, from, to, t: 0 });
+}
+function stepSoul(s: Soul, dt: number) {
+  s.t += dt;
+  const k = Math.min(1, s.t / CFG.spellFx.soul),
+    e = k * k * (3 - 2 * k),
+    b = s.to();
+  s.g.position.set(
+    s.from.x + (b.x - s.from.x) * e,
+    s.from.y + (b.y - s.from.y) * e + Math.sin(k * Math.PI) * 0.8,
+    s.from.z + (b.z - s.from.z) * e,
+  );
+  s.g.children[0].rotation.y += dt * 9;
+  if (k < 1) return false;
+  ringFx(b.x, b.y, b.z, (s.g.children[1] as THREE.Sprite).material.color.getHex(), 0.1, 0.4, CFG.spellFx.flash);
+  return true;
+}
+
 /* ---------- every step ---------- */
 
 /** Every step: rings grow and fade, lightning flickers and goes, the lance fades; what's done goes back to its pool. */
@@ -1113,6 +1149,12 @@ export function updateSpellFx(dt: number) {
       idleStrikes.push(strikes.splice(i, 1)[0]);
     }
   for (const l of lances) if (l.on) stepLance(l, dt);
+  for (let i = souls.length - 1; i >= 0; i--)
+    if (stepSoul(souls[i], dt)) {
+      scene.remove(souls[i].g);
+      disposeTree(souls[i].g);
+      souls.splice(i, 1);
+    }
 }
 /** The mage leaves the room, or a new floor: nothing left showing (all of it back in its pool). */
 export function hideSpellFx() {
@@ -1130,6 +1172,11 @@ export function hideSpellFx() {
     l.on = false;
     l.root.visible = false;
   }
+  for (const s of souls) {
+    scene.remove(s.g);
+    disposeTree(s.g);
+  }
+  souls.length = 0;
 }
 /** What shows now (for the tests): the lance, and how many rings and bolts of lightning. */
 export const fxShowing = () => ({

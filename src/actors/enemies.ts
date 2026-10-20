@@ -245,7 +245,8 @@ export function updateEnemies(dt: number) {
       // a foe in code: its telegraph glows in its school's light, and it swells; a hit squashes it
       if (e.tele && e.flash <= 0) {
         const c = teleColor(e);
-        for (const m of e.mats) m.emissive.lerp(c, e.tele * 0.75);
+        const k = e.tele * CFG.pixelLook.tele * (0.55 + 0.45 * Math.sin(e.t * CFG.pixelLook.telePulse * Math.PI * 2));
+        for (const m of e.mats) m.emissive.lerp(c, k);
       }
       poseFoe(e);
     }

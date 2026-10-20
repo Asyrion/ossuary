@@ -792,6 +792,10 @@ export const CFG = {
     // (even to the eye), the top one at `top` of white's (in the same terms), its darks turned toward the floor's shadow
     // colour by `cool` and its lights toward the rim's warm colour by `warm` (art bible 4.2)
     actors: { rim: '#ffd9a6', rimAmount: 0.4, steps: 5, top: 0.9, cool: 0.3, warm: 0.22 },
+    // how far a foe's telegraph lights it in its school's colour at its height, pulsing `telePulse` times a second (a
+    // steady glow washed a dark foe out to a flat shape)
+    tele: 0.28,
+    telePulse: 6,
   },
   // alchemy (items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
@@ -949,6 +953,7 @@ export const CFG = {
     impact: 0.22,
     strike: 0.22,
     chain: 0.3,
+    soul: 0.55, // (Soul Harvest's sparks flying home)
     crackle: 0.25,
     ring: 0.3,
     flash: 0.3,
