@@ -679,11 +679,10 @@ drawn, their solid meshes stamp the stencil where they pass the depth test (`sta
 depth and stencil), one draw call however many actors there are. The shade pass draws a closed outline one pixel
 outside every actor seen and a rim of warm light on its top and left edge where it is three pixels thick or more
 (`CFG.pixelLook.actors`: the rim's colour and amount; art bible 4.4 and 4.5). Their glows and shadows stamp nothing.
-Dev: the Look tab's "Actors' outline and rim" (`setPixelLook({ actors })`), until the owner chooses.
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
-artifact icons (`toIcon`). Dev: `__game.pixelLook`, `setPixelLook({ lines, outline, bands, actors })`, `pixelRows`,
+artifact icons (`toIcon`). Dev: `__game.pixelLook`, `setPixelLook({ lines, outline, bands, ramps })`, `pixelRows`,
 `renderInfo()` (draw calls, triangles, geometries, textures); Look tab; `DEV.fps` frame readout (`dev/frameInfo.ts`).
 
 ### Room kit
