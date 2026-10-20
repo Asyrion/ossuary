@@ -204,6 +204,14 @@ The light on an actor falls in five steps even to the eye; its darks turn 30 % t
 lights 22 % toward the rim's warm amber (4.2), each material keeping its own colour (`CFG.pixelLook.actors`: `steps`,
 `cool`, `warm`). Like E1 it is done in the shade pass, at no draw call. **The owner accepted it (2026-10-20).**
 
+### 4.14 The actors, step E3: reading floor 1's foes (2026-10-20)
+
+All eleven of floor 1's foes read in a lit room. The Helm Hermit, the Urn Mimic and the Grimoire Mimic hide on purpose. In
+a dark room the Quill Kraken and the Mantis Knight, black bodies, are carried only by their outline, rim and the
+Mantis's lit blade edges; **the owner chose to leave them so (2026-10-20)**, dark rooms being darker by design (4.3).
+From the room inspection: the light's top step stays short of white (`top`), its turns tint rather than replace, and
+the outline is near black on every floor.
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
