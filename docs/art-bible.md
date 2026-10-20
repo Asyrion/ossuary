@@ -190,6 +190,14 @@ Wall faces; the pictures in `docs/art/walls/`). The code still draws its stains,
 **The owner chose the made faces for all three (2026-10-19).** The other floors keep the kit's drawn walls until their
 own pass. Floor tiles stay drawn (4.8).
 
+### 4.12 The actors, step E1: outline and rim (built 2026-10-19)
+
+The mage, the foes and the bosses get the closed outline of 4.4 (one pixel outside the silhouette, all round, in its
+colour darkened toward the floor's shadow) and the rim of 4.5 (a warm edge on the top and left where the actor is three
+pixels thick or more, `CFG.pixelLook.actors`). Built in the pixel look, not in the models: the actors stamp the stencil
+as they are drawn, for one draw call more a frame (docs/architecture.md, Pixel look). **The owner accepted it
+(2026-10-20).**
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
