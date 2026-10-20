@@ -413,7 +413,11 @@ slotted spell so runes apply everywhere. `shapes.ts`: `CAST` maps each shape to 
 | `lantern`, `harvest` | Lantern of Vigil, Soul Harvest | Granted by freed townspeople |
 
 Looks: `spellFx.ts` (`boltLook`, `animateBolt`, `impactFx`, pooled `ringFx`/`strikeFx`, `lanceFx`, `sealFx`,
-`iceColumn`, `mantleFx`; `hideSpellFx`; tuning `CFG.spellFx`) built from `render/arcane.ts`. `docs/effects.md` is the
+`iceColumn`, `mantleFx`; `hideSpellFx`; tuning `CFG.spellFx`) built from `render/arcane.ts`. Their solid parts are
+made models where they are in (`made`: data/assets.json `props`, ids in `PROP_SLOTS`: the Glacial Wall's ice, the Living
+Wall's hedge, Grasp of the Grave's hands, the Thorn Snare's thorns, Judgement's sword, the Lantern of Vigil), else built
+in code; the Pyre Seal, Consecrate and the Ferryman's obol draw circles of pixel art (`sigil`, `sigilTex`:
+`public/assets/textures/spells/<id>.png`, made by `tools/art/sigil.py`), lit in the spell's colour. `docs/effects.md` is the
 style guide; `dev/effectOptions.ts` is the looping effect gallery (`__game.effectOptions(ids?)`).
 To add one: a spell of a known shape is an entry in `data/spells.json` (the dev menu lists it). A new shape is a
 function in `CAST`, params in `SHAPE_PARAMS`, a look in `spellFx.ts`. A new school needs a `SCHOOL_LIGHT` entry, a

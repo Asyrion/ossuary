@@ -582,8 +582,15 @@ const wall: Cast = (def, dir) => {
     boxes: Box[] = [],
     wood = def.school === 'verdant';
   for (const p of spots) {
-    const c = wood ? woodColumn(p.x, p.z, 0.75 + Math.random() * 0.4) : iceColumn(p.x, p.z, 0.8 + Math.random() * 0.45);
-    c.rotation.set((Math.random() - 0.5) * 0.16, Math.random() * Math.PI * 2, (Math.random() - 0.5) * 0.16);
+    const c = wood
+      ? woodColumn(p.x, p.z, 0.75 + Math.random() * 0.4, p.k % 2 === 0)
+      : iceColumn(p.x, p.z, 0.8 + Math.random() * 0.45);
+    // (a hedge runs along the wall; a pillar of ice stands any way round)
+    c.rotation.set(
+      (Math.random() - 0.5) * 0.16,
+      wood ? Math.atan2(-pz, px) + (Math.random() - 0.5) * 0.2 : Math.random() * Math.PI * 2,
+      (Math.random() - 0.5) * 0.16,
+    );
     c.userData.delay = p.k * CFG.spellFx.wallStagger;
     c.scale.y = 0.01;
     g.add(c);
@@ -1250,7 +1257,7 @@ function updateLantern(dt: number, now: number) {
     range: P.range + 0.5,
     speed: P.speed,
     color: hex(l.def.color),
-    scale: 0.5,
+    scale: 0.8, // (the lantern's shot: half a cantrip's was lost in flight)
     status: l.def.status,
   });
   Sfx.at(x, z).lanternShot();

@@ -67,6 +67,13 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   angel_head: 'large-prop',
   skull_pile: 'large-prop',
   broken_urn: 'large-prop',
+  // the solid parts of spells (magic/spellFx.ts): made models only, no placeholder; the spells draw their own without them
+  ice_column: 'prop',
+  bone_hand: 'prop',
+  thorn_vines: 'prop',
+  thorn_hedge: 'prop',
+  judgement_sword: 'prop',
+  vigil_lantern: 'prop',
 };
 export const MANIFEST: Manifest = {
   props: raw.props,

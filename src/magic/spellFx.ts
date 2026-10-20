@@ -18,6 +18,7 @@ import { CFG } from '../config';
 import type { Vec2 } from '../types';
 import { scene } from '../render/renderer';
 import { basicMat, disposeTree, glow, markShared, mergeStill } from '../render/materials';
+import { modelFor } from '../assets/models';
 import {
   SCHOOL_LIGHT,
   box,
@@ -80,6 +81,38 @@ const runeGeo = () => keep('fx.rune', () => oneGeometry((g) => rune(g, 0xffffff,
 /** Added light in `color`, kept for everything of that `use` and colour. */
 const shineOf = (use: string, color: number, opacity: number) =>
   keep(`fx.${use}.${color}`, () => shine(color, opacity));
+/** A circle of magic drawn as pixel art (public/assets/textures/spells/<id>.png, made by tools/art/sigil.py from a
+    made picture: white lines, the rest clear), sampled sharp; loaded once and kept. */
+const sigilTex = (id: string) =>
+  keep(`fx.sigil.${id}`, () => {
+    const t = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}assets/textures/spells/${id}.png`);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.magFilter = t.minFilter = THREE.NearestFilter;
+    t.generateMipmaps = false;
+    return t;
+  });
+/** The sigil `id` as a disc `radius` round, lying on the floor in added light of `color` (its material, to fade). */
+function sigil(parent: THREE.Object3D, id: string, radius: number, color: number) {
+  const mat = new THREE.MeshBasicMaterial({
+    map: sigilTex(id),
+    color,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const m = new THREE.Mesh(
+    keep('fx.sigilDisc', () => new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2)),
+    mat,
+  );
+  m.scale.setScalar(radius);
+  m.position.y = 0.02;
+  parent.add(m);
+  return { m, mat };
+}
+/** A spell's made part (data/assets.json `props`: the ice, the bone hands, the thorns, the sword, the lantern; Tripo
+    models worn as pixel art), or null while it isn't in: the spell then builds its own from code. */
+const made = (id: string) => modelFor('props', id);
 /** `c` taken towards white (a colour made white-hot). */
 const whiter = (c: number, k = 0.6) => new THREE.Color(c).lerp(new THREE.Color(0xffffff), k).getHex();
 /** Turn `o` (a flat thing facing +Z, in a parent turned by `yaw` about Y) to the camera, spun about itself by `spin`. */
@@ -95,10 +128,11 @@ function faceCamera(o: THREE.Object3D, yaw: number, spin: number) {
     spell's shard (Rime Shards, Shatter): a splinter of ice with a frost trail. Pointing along +Z, where it flies. */
 export function boltLook(color: number, scale: number, shard: boolean): { core: THREE.Mesh; extras: THREE.Object3D[] } {
   if (shard) {
-    const core = new THREE.Mesh(octa(), basicMat(0xe8f8ff));
-    core.scale.set(0.06 * scale, 0.06 * scale, 0.26 * scale);
-    const trail = new THREE.Mesh(cube(), shineOf('trail', color, 0.55));
-    trail.scale.set(0.045 * scale, 0.045 * scale, 0.45 * scale);
+    // (ice-blue, not white, and two game pixels thick: a white splinter a pixel wide was lost on the floor)
+    const core = new THREE.Mesh(octa(), basicMat(0xa8dcff));
+    core.scale.set(0.085 * scale, 0.085 * scale, 0.3 * scale);
+    const trail = new THREE.Mesh(cube(), shineOf('trail', color, 0.6));
+    trail.scale.set(0.06 * scale, 0.06 * scale, 0.5 * scale);
     trail.position.z = -0.3 * scale;
     return { core, extras: [trail] };
   }
@@ -205,7 +239,7 @@ export function strikeFx(a: P3, b: P3, color: number, life: number = CFG.spellFx
   let s = i >= 0 ? idleStrikes.splice(i, 1)[0] : undefined;
   if (!s) {
     const root = new THREE.Group(),
-      bolt = lightningBolt(root, color, thin ? 5 : 8, thin ? 0.02 : 0.032);
+      bolt = lightningBolt(root, color, thin ? 5 : 8, thin ? 0.02 : 0.045); // (two game pixels: one flickered away)
     const ends = [0, 1].map(() => {
       const e = glow(color, thin ? 0.3 : 0.55, 0.85);
       root.add(e);
@@ -376,29 +410,7 @@ export function sealFx(x: number, z: number, radius: number, color: number) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   scene.add(g);
-  const lineMat = shine(color, 0),
-    circ = circle(g, color, radius, lineMat);
-  mergeStill(circ);
-  const ring = runeRing(g, color, radius * 1.08, [0, 0.03, 0], 8),
-    ringMat = (ring.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial;
-  mergeStill(ring);
-  const star = new THREE.Group();
-  star.position.y = 0.02;
-  g.add(star);
-  for (const off of [0, Math.PI])
-    for (let i = 0; i < 3; i++) {
-      const a = off + (i / 3) * Math.PI * 2,
-        b = a + (Math.PI * 2) / 3,
-        r = radius * 0.72;
-      part(
-        star,
-        box(0.03, 0.004, r * Math.sqrt(3)),
-        lineMat,
-        [((Math.cos(a) + Math.cos(b)) / 2) * r, 0, ((Math.sin(a) + Math.sin(b)) / 2) * r],
-        { rot: [0, -((a + b) / 2), 0] },
-      );
-    }
-  mergeStill(star);
+  const { m: seal, mat: sealMat } = sigil(g, 'pyre_seal', radius * 1.08, color);
   const flameMat = shine(color, 0.8),
     flameCore = lit(0xffe0a0, 0.95);
   const flames = Array.from({ length: 10 }, (_, i) => {
@@ -432,13 +444,9 @@ export function sealFx(x: number, z: number, radius: number, color: number) {
     charge(k: number, t: number) {
       const d = Math.min(1, k * 1.6),
         s = d * d * (3 - 2 * d);
-      circ.scale.setScalar(0.3 + 0.7 * s);
-      lineMat.opacity = (0.3 + 0.55 * k) * s + Math.sin(t * 30) * 0.08 * k;
-      ring.scale.setScalar(Math.max(0.01, s));
-      ringMat.opacity = 0.8 * s;
-      ring.rotation.y = -t * (0.6 + 2.5 * k);
-      star.scale.setScalar(Math.max(0.01, s));
-      star.rotation.y = t * (0.9 + 3 * k);
+      seal.scale.setScalar(radius * 1.08 * Math.max(0.01, 0.3 + 0.7 * s));
+      sealMat.opacity = (0.6 + 0.4 * k) * s + Math.sin(t * 30) * 0.08 * k;
+      seal.rotation.y = -t * (0.6 + 2.5 * k);
       heat.material.opacity = 0.25 * k;
     },
     erupt() {
@@ -459,12 +467,9 @@ export function sealFx(x: number, z: number, radius: number, color: number) {
       pillar.visible = p < 1;
       pillar.scale.set(1 - p * 0.4, Math.min(1, erupted / C.rise), 1 - p * 0.4);
       pillarMat.opacity = 0.45 * (1 - p);
-      lineMat.opacity = fade * (0.45 + Math.sin(t * 13) * 0.08);
-      ringMat.opacity = 0.8 * Math.max(0, 1 - erupted / C.star);
-      star.visible = erupted < C.star;
+      sealMat.opacity = fade * (0.8 + Math.sin(t * 13) * 0.1);
       heat.material.opacity = 0.5 * (1 - p * 0.5) * fade;
-      ring.rotation.y = -t * 0.6;
-      circ.rotation.y = t * 0.2;
+      seal.rotation.y = -t * 0.6;
     },
     drop() {
       scene.remove(g);
@@ -480,6 +485,21 @@ export function sealFx(x: number, z: number, radius: number, color: number) {
 export function iceColumn(x: number, z: number, h: number) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
+  const model = made('ice_column');
+  if (model) {
+    // (the made column, a unit tall, h tall here; tinted a deeper blue than its pale ice, which washed out on the floor)
+    model.scale.y = h;
+    model.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.MeshToonMaterial | undefined;
+      if (m && !m.userData.iced) {
+        m.color.setHex(0x8cc4ff);
+        m.userData.iced = true;
+      }
+    });
+    g.add(model);
+    g.add(frostPatch());
+    return g;
+  }
   const ice = keep('fx.ice', () =>
     std(0xbfe6ff, { transparent: true, opacity: 0.82, emissive: 0x1e5a8a, roughness: 0.2 }),
   );
@@ -502,13 +522,17 @@ export function iceColumn(x: number, z: number, h: number) {
   glint.scale.set(0.06, 0.15, 0.06);
   glint.position.set(0, h * 0.55, 0.13);
   g.add(glint);
+  g.add(frostPatch());
+  return g;
+}
+/** The patch of frost at a pillar's foot. */
+function frostPatch() {
   const frost = new THREE.Mesh(
     keep('fx.frostPatch', () => new THREE.CircleGeometry(0.34, 12).rotateX(-Math.PI / 2)),
     keep('fx.frost', () => shine(SCHOOL_LIGHT.frost, 0.35)),
   );
   frost.position.y = 0.02;
-  g.add(frost);
-  return g;
+  return frost;
 }
 
 /* ---------- the Static Mantle ---------- */
@@ -519,12 +543,12 @@ export function mantleFx(color: number) {
   const g = new THREE.Group(),
     c = 0.7,
     R = 0.55,
-    ringMat = shine(color, 0.6);
+    ringMat = lit(color, 0.85); // (drawn, not added: added yellow over the lit floor came out white)
   scene.add(g);
   const rings = [0, 1, 2].map(() =>
     part(
       g,
-      keep('fx.mantleRing', () => new THREE.TorusGeometry(R, 0.016, 4, 36)),
+      keep('fx.mantleRing', () => new THREE.TorusGeometry(R, 0.024, 4, 36)),
       ringMat,
       [0, c, 0],
     ),
@@ -545,7 +569,7 @@ export function mantleFx(color: number) {
       rings[0].rotation.set(0, t * 2, 0);
       rings[1].rotation.set(1.1 + t * 1.5, 0, 0);
       rings[2].rotation.set(0, t * 1.2, 1.1 + t);
-      ringMat.opacity = 0.6 * fade;
+      ringMat.opacity = 0.85 * fade;
       core.material.opacity = (0.3 + Math.abs(Math.sin(t * 9)) * 0.2) * fade;
       const f = Math.floor(t * 14);
       jumps.forEach((j, i) => {
@@ -571,12 +595,7 @@ export function consecrateFx(x: number, z: number, radius: number, color: number
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   scene.add(g);
-  const lineMat = shine(color, 0.5),
-    circ = circle(g, color, radius, lineMat);
-  mergeStill(circ);
-  const ring = runeRing(g, color, radius * 0.8, [0, 0.03, 0], 6),
-    ringMat = (ring.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial;
-  mergeStill(ring);
+  const { m: holy, mat: holyMat } = sigil(g, 'consecrate', radius, color);
   const fill = new THREE.Mesh(
     keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)),
     shine(color, 0.12),
@@ -598,10 +617,8 @@ export function consecrateFx(x: number, z: number, radius: number, color: number
     });
   return {
     update(t: number, fade: number) {
-      lineMat.opacity = (0.45 + Math.sin(t * 4) * 0.08) * fade;
-      ringMat.opacity = 0.8 * fade;
-      ring.rotation.y = t * 0.7;
-      circ.rotation.y = -t * 0.2;
+      holyMat.opacity = (0.85 + Math.sin(t * 4) * 0.1) * fade;
+      holy.rotation.y = t * 0.3;
       fill.material.opacity = 0.12 * fade;
       warm.material.opacity = 0.3 * fade;
       motes.forEach((m, i) => {
@@ -627,14 +644,22 @@ export function smiteFx(color: number, radius: number) {
   const markMat = shine(color, 0.7),
     mark = circle(g, color, radius, markMat);
   mergeStill(mark);
-  const beamMat = shine(whiter(color, 0.4), 0.55),
+  // (the pillar's light stays under 0.6 all told, so it lights the foe rather than whiting it out: docs/effects.md)
+  const beamMat = shine(whiter(color, 0.4), 0.22),
     beam = part(g, new THREE.CylinderGeometry(radius * 0.55, radius * 0.55, 4, 14, 1, true), beamMat, [0, 2, 0]);
-  const coreMat = shine(0xffffff, 0.6),
+  const coreMat = shine(0xffffff, 0.16),
     core = part(g, new THREE.CylinderGeometry(radius * 0.2, radius * 0.2, 4, 10, 1, true), coreMat, [0, 2, 0]);
   const halo = glow(color, radius * 3.2, 0);
   halo.position.y = 0.6;
   g.add(halo);
   beam.visible = core.visible = false;
+  // the made sword, falling point first out of the light and driven into the floor at the foe's feet
+  const sword = made('judgement_sword');
+  if (sword) {
+    sword.visible = false;
+    sword.position.z = radius * 0.45; // (just before the foe, toward the camera, so the foe doesn't hide it)
+    g.add(sword);
+  }
   return {
     mark(x: number, z: number, k: number, t: number) {
       g.position.set(x, 0, z);
@@ -644,13 +669,19 @@ export function smiteFx(color: number, radius: number) {
     },
     fall() {
       beam.visible = core.visible = true;
+      if (sword) sword.visible = true;
     },
     fade(k: number) {
+      if (sword) {
+        const drop = Math.min(1, k / 0.12); // (it falls in the first eighth of the light's life, then stands)
+        sword.position.y = 2.6 * (1 - drop * drop) - 0.25 * drop;
+        sword.scale.setScalar(Math.max(0.01, 1 - Math.max(0, (k - 0.75) / 0.25)));
+      }
       beam.scale.set(1 - k * 0.7, 1, 1 - k * 0.7);
       core.scale.set(1 - k * 0.7, 1, 1 - k * 0.7);
-      beamMat.opacity = 0.55 * (1 - k);
-      coreMat.opacity = 0.6 * (1 - k);
-      halo.material.opacity = 0.7 * (1 - k);
+      beamMat.opacity = 0.22 * (1 - k);
+      coreMat.opacity = 0.16 * (1 - k);
+      halo.material.opacity = 0.3 * (1 - k);
       markMat.opacity = 0.8 * (1 - k);
       mark.scale.setScalar(1 + k * 0.6);
     },
@@ -695,6 +726,37 @@ export function wardFx(count: number, color: number) {
 export function vigilLanternFx(color: number) {
   const g = new THREE.Group();
   scene.add(g);
+  const model = made('vigil_lantern'); // (the made lantern of wrought iron; else one built in code)
+  if (model) {
+    model.scale.setScalar(1.4);
+    model.position.y = -0.22;
+    g.add(model);
+  } else ironLantern(g);
+  const flameMat = lit(whiter(color, 0.5)),
+    flame = part(g, octa(), flameMat, [0, model ? -0.04 : 0, 0]);
+  flame.scale.set(0.045, 0.08, 0.045);
+  const halo = glow(color, 0.9, 0.8);
+  g.add(halo);
+  let flare = 0;
+  return {
+    place(x: number, y: number, z: number, t: number) {
+      g.position.set(x, y, z);
+      g.rotation.z = Math.sin(t * 2.3) * 0.12;
+      flame.rotation.y = t * 3;
+      flare = Math.max(0, flare - 0.05);
+      halo.scale.setScalar(0.9 + flare * 0.7 + Math.sin(t * 9) * 0.05);
+    },
+    flare() {
+      flare = 1;
+    },
+    drop() {
+      scene.remove(g);
+      disposeTree(g);
+    },
+  };
+}
+/** A small iron lantern built in code (while the made one isn't in). */
+function ironLantern(g: THREE.Group) {
   const iron = std(0x2a2620, { metalness: 0.6, roughness: 0.5 });
   part(
     g,
@@ -723,28 +785,6 @@ export function vigilLanternFx(color: number) {
     iron,
     [0, 0.21, 0],
   );
-  const flameMat = lit(whiter(color, 0.5)),
-    flame = part(g, octa(), flameMat, [0, 0, 0]);
-  flame.scale.set(0.045, 0.08, 0.045);
-  const halo = glow(color, 0.9, 0.8);
-  g.add(halo);
-  let flare = 0;
-  return {
-    place(x: number, y: number, z: number, t: number) {
-      g.position.set(x, y, z);
-      g.rotation.z = Math.sin(t * 2.3) * 0.12;
-      flame.rotation.y = t * 3;
-      flare = Math.max(0, flare - 0.05);
-      halo.scale.setScalar(0.9 + flare * 0.7 + Math.sin(t * 9) * 0.05);
-    },
-    flare() {
-      flare = 1;
-    },
-    drop() {
-      scene.remove(g);
-      disposeTree(g);
-    },
-  };
 }
 
 /** Grasp of the Grave at (x, z): a ring of shadow on the floor and dark hands rising out of it, violet at the fingertips;
@@ -777,6 +817,13 @@ export function graspFx(x: number, z: number, radius: number, color: number) {
     h.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
     h.rotation.y = -a;
     g.add(h);
+    const bone = made('bone_hand'); // (the made hand of bone, clawing up; else one built in code)
+    if (bone) {
+      bone.rotation.y = a + Math.PI / 2 + (i % 2 ? 0.4 : -0.4);
+      bone.scale.setScalar(1.7); // (half a unit made was some ten pixels: lost in the pool's dark)
+      h.add(bone);
+      return h;
+    }
     part(
       h,
       keep('fx.palm', () => new THREE.CylinderGeometry(0.07, 0.09, 0.28, 6).translate(0, 0.14, 0)),
@@ -845,6 +892,13 @@ export function thornFx(x: number, z: number, radius: number, color: number) {
     v.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
     v.rotation.y = -a;
     g.add(v);
+    const thorns = made('thorn_vines'); // (the made cluster of thorny tendrils; else vines built in code)
+    if (thorns) {
+      thorns.rotation.y = i * 2.1;
+      thorns.scale.setScalar(1.5 + (i % 3) * 0.2);
+      v.add(thorns);
+      return v;
+    }
     const lean = ((i % 3) - 1) * 0.35;
     part(
       v,
@@ -893,15 +947,15 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
   scene.add(g);
   const haze = new THREE.Mesh(
     keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)),
-    shine(0xe8e070, 0.14),
+    shine(0x8ac840, 0.16), // (green-gold, the Verdant's: a cream haze read as Hallow)
   );
   haze.scale.setScalar(radius);
   haze.position.y = 0.012;
   g.add(haze);
-  const lineMat = shine(color, 0.4),
+  const lineMat = lit(SCHOOL_LIGHT.verdant, 0.7),
     circ = circle(g, color, radius, lineMat);
   mergeStill(circ);
-  const warm = glow(0xe8e070, radius * 2.4, 0.28);
+  const warm = glow(0xa8d850, radius * 2.4, 0.28);
   warm.position.y = 0.5;
   g.add(warm);
   const grainMat = lit(0xf0e890),
@@ -916,7 +970,7 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
   });
   return {
     update(t: number, fade: number) {
-      lineMat.opacity = 0.35 * fade;
+      lineMat.opacity = 0.7 * fade;
       haze.material.opacity = (0.12 + Math.sin(t * 3) * 0.03) * fade;
       warm.material.opacity = 0.28 * fade;
       circ.rotation.y = t * 0.25;
@@ -938,9 +992,27 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
 
 /** A trunk of living wood for the Living Wall at (x, z), `h` tall: bark round a paler heart, roots spread at its foot and
     leaves bursting from its crown (iceColumn's way). */
-export function woodColumn(x: number, z: number, h: number) {
+export function woodColumn(x: number, z: number, h: number, hedge = true) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
+  const model = made('thorn_hedge');
+  if (model) {
+    // (the made hedge: a length of woven thorn two of the wall's spots long, on every other spot, turned along the
+    // wall by the caller; the spots between keep only their moss)
+    if (hedge) {
+      model.scale.set(0.6, h / 0.75, 1); // (its length cut to two spots, its height the trunk's)
+      model.traverse((o) => {
+        const m = (o as THREE.Mesh).material as THREE.MeshToonMaterial | undefined;
+        if (m && !m.userData.living) {
+          m.color.setHex(0xa8d878); // (its grey weave tinted living green, the Verdant's)
+          m.userData.living = true;
+        }
+      });
+      g.add(model);
+    }
+    g.add(mossPatch());
+    return g;
+  }
   const bark = keep('fx.bark', () => std(0x5a3e24, { roughness: 0.95 })),
     leaf = keep('fx.leafMat', () => std(0x5aa83a, { emissive: 0x1a4a10, roughness: 0.8 }));
   const trunk = new THREE.Mesh(
@@ -978,32 +1050,45 @@ export function woodColumn(x: number, z: number, h: number) {
   bud.scale.set(0.04, 0.07, 0.04);
   bud.position.set(0.08, h * 0.6, 0.15);
   g.add(bud);
+  g.add(mossPatch());
+  return g;
+}
+/** The patch of moss at a trunk's foot. */
+function mossPatch() {
   const moss = new THREE.Mesh(
     keep('fx.frostPatch', () => new THREE.CircleGeometry(0.34, 12).rotateX(-Math.PI / 2)),
     keep('fx.moss', () => shine(SCHOOL_LIGHT.verdant, 0.3)),
   );
   moss.position.y = 0.02;
-  g.add(moss);
-  return g;
+  return moss;
 }
 
 /** The Ferryman's Toll: a coin of shadow with a violet rim turning over the foe it marks; `at` moves it, `drop` takes it. */
 export function tollFx(color: number) {
   const g = new THREE.Group();
   scene.add(g);
+  // the obol's face (an oar over a boat's prow, tools/art/sigil.py) drawn in its light over a disc of shadow, turned to the
+  // camera, a game pixel a texel
   const coin = new THREE.Group();
   g.add(coin);
-  part(coin, new THREE.CylinderGeometry(0.16, 0.16, 0.03, 16), std(0x100a18, { emissive: 0x0c0418 }), [0, 0, 0], {
-    rot: [Math.PI / 2, 0, 0],
-  });
-  part(coin, new THREE.TorusGeometry(0.16, 0.018, 4, 20), lit(color), [0, 0, 0]);
-  part(coin, new THREE.BoxGeometry(0.06, 0.06, 0.04), lit(whiter(color, 0.3)), [0, 0, 0]); // (the square hole of an old obol, lit)
+  part(
+    coin,
+    keep('fx.coinBack', () => new THREE.CircleGeometry(0.47, 20)),
+    lit(0x100a18),
+    [0, 0, -0.01],
+  );
+  part(
+    coin,
+    keep('fx.coinFace', () => new THREE.PlaneGeometry(1, 1)),
+    new THREE.MeshBasicMaterial({ map: sigilTex('ferrymans_toll'), color, transparent: true, depthWrite: false }),
+    [0, 0, 0],
+  );
   const aura = glow(color, 0.8, 0.5);
   g.add(aura);
   return {
     at(x: number, y: number, z: number, t: number) {
       g.position.set(x, y, z);
-      coin.rotation.y = t * 3;
+      faceCamera(coin, 0, Math.sin(t * 2) * 0.25);
       aura.material.opacity = 0.4 + Math.sin(t * 5) * 0.1;
     },
     drop() {

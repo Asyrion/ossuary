@@ -45,7 +45,7 @@
     "text": "Six motes of light circle you, breaking the shots they meet and searing the foes they touch",
     "lore": "Pilgrims walking the crypts at night carried candles that would not go out, and the dark learned to keep its distance. A mage can carry the flames without the candles." },
   { "id": "hex_bolt", "name": "Hex Bolt", "school": "umbral", "shape": "bolt", "mana": 14, "cooldown": 1.8,
-    "damage": 7, "status": { "hex": 2 }, "params": { "range": 7.5, "speed": 6, "scale": 1.3 },
+    "damage": 7, "status": { "hex": 2 }, "params": { "range": 7.5, "speed": 6, "scale": 1.8 },
     "tags": ["projectile"], "color": "#a266ff", "icon": "hexbolt",
     "text": "A slow dark bolt that hexes what it strikes: every blow on a hexed foe gives you back mana",
     "lore": "The dead remember what they were owed. A bolt of their grudge clings to whatever it strikes, and every blow that follows it draws back a little of what was taken." },
