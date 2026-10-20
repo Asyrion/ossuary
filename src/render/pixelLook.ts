@@ -238,6 +238,7 @@ const shade = new THREE.ShaderMaterial({
     rimColor: { value: new THREE.Color().setHex(parseInt(P.actors.rim.slice(1), 16), THREE.LinearSRGBColorSpace) },
     rim: { value: P.actors.rimAmount },
     rampSteps: { value: P.actors.steps },
+    rampTop: { value: P.actors.top },
     cool: { value: P.actors.cool },
     warm: { value: P.actors.warm },
     grid: { value: new THREE.Vector2() },
@@ -254,18 +255,20 @@ const shade = new THREE.ShaderMaterial({
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 grid;
     uniform float outline; uniform float bands; uniform float gap; uniform float dark; uniform float steps; uniform float range;
     uniform float actors; uniform vec3 rimColor; uniform float rim;
-    uniform float rampSteps; uniform float cool; uniform float warm;
+    uniform float rampSteps; uniform float rampTop; uniform float cool; uniform float warm;
     ${GRADE_GLSL}
     const vec3 LUM = vec3(0.299, 0.587, 0.114);
     // an actor's light on its own ramp: in a few steps even to the eye, the hue kept, then its darks turned toward the
     // floor's shadow colour (where the floor has one) and its lights toward the warm light, each at its own lightness
     vec3 ramp(vec3 c) {
-      float l = dot(c, LUM), q = max(floor(sqrt(l) * rampSteps + 0.5), 1.0) / rampSteps;
+      // (the top step short of white, as the art bible's ramps are: a pale face or blond hair keeps its colour)
+      float l = dot(c, LUM), q = min(max(floor(sqrt(l) * rampSteps + 0.5), 1.0) / rampSteps, rampTop);
       c *= min(q * q / max(l, 1e-4), 4.0);
       l = q * q;
-      vec3 dim = gradeShadow * (l / max(dot(gradeShadow, LUM), 1e-3)), lit = rimColor * (l / dot(rimColor, LUM));
+      // (tinted, not replaced: an orange stays orange, a pale face doesn't turn to cream)
+      vec3 dim = c * gradeShadow / max(dot(gradeShadow, LUM), 1e-3), lit = c * rimColor / dot(rimColor, LUM);
       c = mix(c, dim, cool * (1.0 - smoothstep(0.08, 0.4, l)) * step(1e-3, gradeAmount));
-      return mix(c, lit, warm * smoothstep(0.45, 0.85, l));
+      return mix(c, min(lit, vec3(1.0)), warm * smoothstep(0.45, 0.85, l));
     }
     ivec2 at(ivec2 p) { return clamp(p, ivec2(0), ivec2(grid) - 1); }
     float depthAt(ivec2 p) { return texelFetch(tDepth, at(p), 0).r * range; }
@@ -282,7 +285,8 @@ const shade = new THREE.ShaderMaterial({
         for (int i = 0; i < 4; i++) if (!me || actorAt(n[i])) farther = max(farther, depthAt(n[i]) - d);
         if (farther > gap) col = ink(col * pow(1.0 - dark, 1.0 / 2.2)); // (as dark as 1 - dark in linear light)
         // the actor's closed outline, outside it all round: a pixel beside one, whatever lies there, in its colour darkened
-        if (!me) for (int i = 0; i < 4; i++) if (actorAt(n[i])) { col = ink(texelFetch(tColor, at(n[i]), 0).rgb * pow(1.0 - dark, 1.0 / 2.2)); break; }
+        // (near black on every floor, tinted toward the floor's shadow and a little toward the actor, art bible 4.4)
+        if (!me) for (int i = 0; i < 4; i++) if (actorAt(n[i])) { col = gradeShadow * 0.35 + texelFetch(tColor, at(n[i]), 0).rgb * 0.12; break; }
       }
       gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
       if (me) gl_FragColor.rgb = ramp(gl_FragColor.rgb);
@@ -291,9 +295,10 @@ const shade = new THREE.ShaderMaterial({
         float q = max(floor(s * steps + 0.5), 1.0) / steps;
         gl_FragColor.rgb *= min(q * q / max(l, 1e-4), 4.0);
       }
-      // the rim: an actor's top and left edge caught in a warm light from above and the left (where it is three pixels
-      // thick or more: a leg or a horn stays its own colour inside its outline)
-      if (me && ((!actorAt(n[1]) && actorAt(n[3]) && actorAt(p - ivec2(0, 2))) || (!actorAt(n[0]) && actorAt(n[2]) && actorAt(p + ivec2(2, 0))))) gl_FragColor.rgb = mix(gl_FragColor.rgb, max(gl_FragColor.rgb, rimColor), rim);
+      // the rim: an actor's top and left edge caught in a warm light from above and the left (where it is four pixels
+      // thick or more: a leg, even one lying on the diagonal, or a horn stays its own colour inside its outline)
+      if (me && ((!actorAt(n[1]) && actorAt(n[3]) && actorAt(p - ivec2(0, 2)) && actorAt(p - ivec2(0, 3))) ||
+                 (!actorAt(n[0]) && actorAt(n[2]) && actorAt(p + ivec2(2, 0)) && actorAt(p + ivec2(3, 0))))) gl_FragColor.rgb = mix(gl_FragColor.rgb, max(gl_FragColor.rgb, rimColor), rim);
     }`,
 });
 const blit = new THREE.ShaderMaterial({

@@ -677,7 +677,7 @@ The actors (`markActor`: the mage's root in `actors/hero.ts`, every foe and boss
 drawn, their solid meshes stamp the stencil where they pass the depth test (`stamp`, set on each mesh's
 `onBeforeRender`), and one pass over the grid turns the stamp into a mask (`drawActors`, a target sharing the grid's
 depth and stencil), one draw call however many actors there are. The shade pass draws a closed outline one pixel
-outside every actor seen and a rim of warm light on its top and left edge where it is three pixels thick or more
+outside every actor seen and a rim of warm light on its top and left edge where it is four pixels thick or more
 (`CFG.pixelLook.actors`: the rim's colour and amount; art bible 4.4 and 4.5). Their glows and shadows stamp nothing.
 The light on an actor falls in `steps` steps even to the eye, its darks turned toward the floor's shadow colour (`cool`)
 and its lights toward the rim's warm colour (`warm`; `ramp` in the shade pass, art bible 4.2).
