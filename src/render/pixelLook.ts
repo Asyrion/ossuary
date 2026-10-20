@@ -27,7 +27,7 @@ export interface PixelLook {
   /** the grid: 'texel', 'fine', or 0 for off */ lines: Lines;
   outline: boolean;
   bands: boolean;
-  /** the actors' outline and rim (the dev menu compares them, art bible 4.4) */ actors: boolean;
+  /** the actors' light in steps on their own ramps (the dev menu compares it, art bible 4.2) */ ramps: boolean;
 }
 const P = CFG.pixelLook,
   KEY = 'ossuary.look',
@@ -120,7 +120,7 @@ function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: num
 /** Every grid the dev menu offers, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine'];
 const offered = (l: unknown): l is Lines => LINES.includes(l as Lines);
-let look: PixelLook = { lines: P.start, outline: true, bands: false, actors: true };
+let look: PixelLook = { lines: P.start, outline: true, bands: false, ramps: true };
 try {
   // (a choice is kept with the default it was made against: when the default changes, the new one shows once)
   const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as (Partial<PixelLook> & { start?: Lines }) | null;
@@ -129,7 +129,7 @@ try {
       lines: offered(v.lines) ? v.lines : P.start,
       outline: v.outline !== false,
       bands: !!v.bands,
-      actors: v.actors !== false,
+      ramps: v.ramps !== false,
     };
 } catch {
   /* no storage: the default */
@@ -239,6 +239,10 @@ const shade = new THREE.ShaderMaterial({
     actors: { value: 0 },
     rimColor: { value: new THREE.Color().setHex(parseInt(P.actors.rim.slice(1), 16), THREE.LinearSRGBColorSpace) },
     rim: { value: P.actors.rimAmount },
+    ramps: { value: 1 },
+    rampSteps: { value: P.actors.steps },
+    cool: { value: P.actors.cool },
+    warm: { value: P.actors.warm },
     grid: { value: new THREE.Vector2() },
     outline: { value: 0 },
     bands: { value: 0 },
@@ -253,7 +257,19 @@ const shade = new THREE.ShaderMaterial({
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 grid;
     uniform float outline; uniform float bands; uniform float gap; uniform float dark; uniform float steps; uniform float range;
     uniform float actors; uniform vec3 rimColor; uniform float rim;
+    uniform float ramps; uniform float rampSteps; uniform float cool; uniform float warm;
     ${GRADE_GLSL}
+    const vec3 LUM = vec3(0.299, 0.587, 0.114);
+    // an actor's light on its own ramp: in a few steps even to the eye, the hue kept, then its darks turned toward the
+    // floor's shadow colour (where the floor has one) and its lights toward the warm light, each at its own lightness
+    vec3 ramp(vec3 c) {
+      float l = dot(c, LUM), q = max(floor(sqrt(l) * rampSteps + 0.5), 1.0) / rampSteps;
+      c *= min(q * q / max(l, 1e-4), 4.0);
+      l = q * q;
+      vec3 dim = gradeShadow * (l / max(dot(gradeShadow, LUM), 1e-3)), lit = rimColor * (l / dot(rimColor, LUM));
+      c = mix(c, dim, cool * (1.0 - smoothstep(0.08, 0.4, l)) * step(1e-3, gradeAmount));
+      return mix(c, lit, warm * smoothstep(0.45, 0.85, l));
+    }
     ivec2 at(ivec2 p) { return clamp(p, ivec2(0), ivec2(grid) - 1); }
     float depthAt(ivec2 p) { return texelFetch(tDepth, at(p), 0).r * range; }
     // an actor seen there (its stamp, turned into the mask)
@@ -272,6 +288,7 @@ const shade = new THREE.ShaderMaterial({
         if (!me) for (int i = 0; i < 4; i++) if (actorAt(n[i])) { col = ink(texelFetch(tColor, at(n[i]), 0).rgb * pow(1.0 - dark, 1.0 / 2.2)); break; }
       }
       gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
+      if (me && ramps > 0.5) gl_FragColor.rgb = ramp(gl_FragColor.rgb);
       if (bands > 0.5) { // light in a few steps, the hue kept: steps even to the eye (finer in the dark), never black
         float l = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114)), s = sqrt(l);
         float q = max(floor(s * steps + 0.5), 1.0) / steps;
@@ -625,7 +642,7 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   camera.top = (gh * py * camera.zoom) / 2;
   camera.bottom = -camera.top;
   camera.updateProjectionMatrix();
-  const actorsDrawn = look.actors && tagActors(scene);
+  const actorsDrawn = tagActors(scene);
   stamping = actorsDrawn;
   renderer.setRenderTarget(target);
   renderer.render(scene, camera);
@@ -641,6 +658,7 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   s.tDepth.value = target!.depthTexture;
   s.tMask.value = actorsDrawn ? mask!.texture : target!.texture;
   s.actors.value = actorsDrawn ? 1 : 0;
+  s.ramps.value = look.ramps ? 1 : 0;
   (s.grid.value as THREE.Vector2).set(gw, gh);
   s.outline.value = look.outline ? 1 : 0;
   s.bands.value = look.bands ? 1 : 0;
