@@ -30,6 +30,11 @@ interface Patch {
   t: number;
   life: number;
   by?: string;
+  /** How it lies (looks only): stretched and turned, so a trail of them reads as spilt, not as a laid strip. */ look: {
+    sx: number;
+    sz: number;
+    turn: number;
+  };
 }
 const patches: Patch[] = [];
 const MAX = 48; // (of each kind)
@@ -71,10 +76,36 @@ function edgeTex() {
   return (edgeKept = new THREE.CanvasTexture(c));
 }
 const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null, blackice: null };
+const NO_LOOK = { sx: 1, sz: 1, turn: 0 };
+/** A splat of ink: a disc whose edge swells and dips in lobes, with three drops thrown off it. */
+function splatGeometry() {
+  const shape = new THREE.Shape(),
+    n = 22;
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2,
+      r = 0.82 + Math.sin(a * 5) * 0.1 + Math.sin(a * 3 + 1) * 0.08;
+    if (i === 0) shape.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  const drops = [
+    [1.08, 0.2, 0.09],
+    [-0.5, 1.0, 0.07],
+    [-0.75, -0.9, 0.08],
+  ].map(([x, y, r]) => new THREE.CircleGeometry(r, 6).translate(x, y, 0));
+  const body = new THREE.ShapeGeometry(shape),
+    uv = body.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) + 1) / 2, (uv.getY(i) + 1) / 2); // (its edge fades as a disc's)
+  return mergeGeometries([body, ...drops]).rotateX(-Math.PI / 2);
+}
 function meshOf(kind: GroundKind) {
   const had = meshes[kind];
   if (had) return had;
-  const geo = kind === 'web' ? webGeometry() : new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2);
+  const geo =
+    kind === 'web'
+      ? webGeometry()
+      : kind === 'ink'
+        ? splatGeometry()
+        : new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2);
   // (ink and rime fade at their edges, so neither reads as a hole in the floor: ink a glossy violet sheen, never a pit's
   // black; rime a faint frost-blue that overlapping patches don't stack into a white plank)
   const mat =
@@ -132,7 +163,12 @@ export function layGround(
 ) {
   const mine = patches.filter((p) => p.kind === kind);
   if (mine.length >= MAX) patches.splice(patches.indexOf(mine[0]), 1);
-  patches.push({ room, kind, x, z, r, t: time, life: time, by });
+  // (the look's jitter is visual only: what it slows stays the circle of radius r)
+  const look =
+    kind === 'ink'
+      ? { sx: 0.75 + Math.random() * 0.5, sz: 0.7 + Math.random() * 0.5, turn: Math.random() * 6.3 }
+      : NO_LOOK;
+  patches.push({ room, kind, x, z, r, t: time, life: time, by, look });
 }
 /** How fast one can walk at (x, z) in the current room: slower through webs and ink (1: not at all). `who`, a foe's kind
    : its own kind's patches don't hold it. */
@@ -263,6 +299,8 @@ export function fallOn(room: Room, x: number, z: number, dur: number, land: (x: 
 
 const m4 = new THREE.Matrix4(),
   q0 = new THREE.Quaternion(),
+  q1 = new THREE.Quaternion(),
+  UP = new THREE.Vector3(0, 1, 0),
   v3 = new THREE.Vector3(),
   s3 = new THREE.Vector3();
 /** Every step: patches fade and go; lobs fly and land. */
@@ -283,8 +321,8 @@ export function updateGround(dt: number) {
         i,
         m4.compose(
           v3.set(p.x, kind === 'web' ? 0.03 : kind === 'rime' ? 0.025 : kind === 'blackice' ? 0.022 : 0.02, p.z),
-          q0,
-          s3.set(p.r * k, 1, p.r * k),
+          p.look.turn ? q1.setFromAxisAngle(UP, p.look.turn) : q0,
+          s3.set(p.r * k * p.look.sx, 1, p.r * k * p.look.sz),
         ),
       );
     });

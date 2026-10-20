@@ -417,7 +417,10 @@ Looks: `spellFx.ts` (`boltLook`, `animateBolt`, `impactFx`, pooled `ringFx`/`str
 made models where they are in (`made`: data/assets.json `props`, ids in `PROP_SLOTS`: the Glacial Wall's ice, the Living
 Wall's hedge, Grasp of the Grave's hands, the Thorn Snare's thorns, Judgement's sword, the Lantern of Vigil), else built
 in code; the Pyre Seal, Consecrate and the Ferryman's obol draw circles of pixel art (`sigil`, `sigilTex`:
-`public/assets/textures/spells/<id>.png`, made by `tools/art/sigil.py`), lit in the spell's colour. `docs/effects.md` is the
+`public/assets/textures/spells/<id>.png`, made by `tools/art/sigil.py`), lit in the spell's colour. A foe's shot (`spawnShot`, combat/projectiles.ts) is a hot core in a sheath of its school's light ringed in dark, so
+it reads as danger and never as the mage's; a foe's telegraph pulses in its school's light (`CFG.pixelLook.tele`,
+`telePulse`); the Warden's warning is a circle of runes on the floor turning faster as it winds up (actors/bosses.ts);
+Soul Harvest's stacks fly home as sparks (`soulFx`). `docs/effects.md` is the
 style guide; `dev/effectOptions.ts` is the looping effect gallery (`__game.effectOptions(ids?)`).
 To add one: a spell of a known shape is an entry in `data/spells.json` (the dev menu lists it). A new shape is a
 function in `CAST`, params in `SHAPE_PARAMS`, a look in `spellFx.ts`. A new school needs a `SCHOOL_LIGHT` entry, a

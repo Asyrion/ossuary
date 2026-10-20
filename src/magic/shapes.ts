@@ -38,6 +38,7 @@ import {
   graspFx,
   hideSpellFx,
   iceColumn,
+  soulFx,
   lanceFx,
   mantleFx,
   pollenFx,
@@ -1283,7 +1284,8 @@ const harvest: Cast = (def) => {
     e.status!.hex = 0;
     const u = away(e, player.x, player.z);
     damageEnemy(e, n * P.perStack, u.x * 0.2, u.z * 0.2, 0.2, 'spell', def.school);
-    strikeFx({ x: e.x, y: foeY(e), z: e.z }, { x: player.x, y: 1, z: player.z }, color, CFG.spellFx.chain, true);
+    strikeFx({ x: e.x, y: foeY(e), z: e.z }, { x: player.x, y: 1, z: player.z }, color, CFG.spellFx.chain);
+    soulFx({ x: e.x, y: foeY(e), z: e.z }, () => ({ x: player.x, y: 1, z: player.z }), color); // (its stacks coming home)
     burst(e.x, foeY(e), e.z, color, 6 + n * 2, 1.8, 0.04);
   }
   const mana = Math.round(stacks * P.mana);

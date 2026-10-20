@@ -13,7 +13,7 @@ import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { vigilHooks } from '../vigil/where';
 import { scene } from '../render/renderer';
-import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
+import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { vatStruck } from '../world/laboratory';
@@ -296,6 +296,9 @@ export function fireSpellBolt(
   if (o.shatter) G.room.bolts[G.room.bolts.length - 1].shatter = true; // (fire catches these as molten glass)
 }
 
+const WHITE = new THREE.Color(0xffffff);
+/** A foe's shot's dark ring: the back of a sphere a little larger than its sheath, so it shows round its edge. */
+const SHOT_RIM = markShared(new THREE.MeshBasicMaterial({ color: 0x14101c, side: THREE.BackSide }));
 /** Enemy projectile. */
 export function spawnShot(
   x: number,
@@ -320,7 +323,12 @@ export function spawnShot(
   const mesh = new THREE.Group();
   const sh = blob(0.4);
   sh.position.y = -y + 0.015;
-  mesh.add(new THREE.Mesh(sphereGeo(0.13 * size), basicMat(color)), glowShared(color, 0.9 * size, 0.9), sh);
+  // a foe's shot in the spells' style but plainly not the mage's (docs/effects.md): a hot core of its school's light in a
+  // sheath of that colour, ringed in dark so it reads as danger over any floor, in a lower glow
+  const core = new THREE.Mesh(sphereGeo(0.07 * size), basicMat(new THREE.Color(color).lerp(WHITE, 0.6).getHex())),
+    sheath = new THREE.Mesh(sphereGeo(0.12 * size), basicMat(color)),
+    rim = new THREE.Mesh(sphereGeo(0.16 * size), SHOT_RIM);
+  mesh.add(rim, sheath, core, glowShared(color, 0.8 * size, 0.55), sh);
   scene.add(mesh);
   G.room.shots.push({
     x,

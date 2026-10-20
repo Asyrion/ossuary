@@ -48,7 +48,7 @@ import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
 import { buildSerpent, serpentMoved, updateSerpent } from './jellySerpent';
 import { buildKaelith, updateKaelith } from './kaelith';
-import { SCHOOL_LIGHT } from '../render/arcane';
+import { SCHOOL_LIGHT, runeRing, shine } from '../render/arcane';
 import { ease, lerp } from '../util';
 import { actAs } from './acting';
 
@@ -82,6 +82,8 @@ function floorRing(e: Enemy, color: number, radius: number) {
 }
 
 /** Build a boss's body and set its first state. */
+/** The Warden's circle of runes on the floor, by Warden. */
+const wardenFloor = new WeakMap<Enemy, { floor: THREE.Object3D; mat: THREE.MeshBasicMaterial }>();
 export function buildBoss(e: Enemy) {
   e.contact = 2;
   e.isBoss = true;
@@ -100,6 +102,11 @@ export function buildBoss(e: Enemy) {
     e.eye = L.parts.eye;
     e.ring = L.parts.ring;
     e.halo = L.parts.halo;
+    // its warning: a circle of runes on the floor under it, lit and turning faster as its shots come due (its halo, which
+    // whited it and the mage out, stays low: docs/effects.md)
+    const mat = shine(SCHOOL_LIGHT.hallow, 0),
+      floor = runeRing(e.group, SCHOOL_LIGHT.hallow, CFG.enemy.warden.r * 1.9, [0, 0.03, 0], 8, [0, 0, 0], mat);
+    wardenFloor.set(e, { floor, mat });
     e.state = 'walk';
     e.st = 2.2;
   } else if (e.type === 'hart' || e.type === 'angler') {
@@ -364,6 +371,12 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     halo = e.halo!;
   e.idle?.(e.t); // (a look built in code lives: it blinks, sways, sheds its motes)
   ring.rotation.z += dt * (e.state.startsWith('wind') ? 6 : 1.2);
+  const W = wardenFloor.get(e);
+  if (W) {
+    const k = e.state.startsWith('wind') ? 1 - e.st / 0.75 : 0;
+    W.mat.opacity = Math.max(0, k) * 0.85;
+    W.floor.rotation.y += dt * (1 + 9 * Math.max(0, k));
+  }
   if (e.state === 'walk') {
     e.vx = ux * speed * (hpFrac < 0.5 ? 1.25 : 1);
     e.vz = uz * speed * (hpFrac < 0.5 ? 1.25 : 1);
@@ -378,7 +391,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
   } else if (e.state === 'windBurst' || e.state === 'windAim') {
     e.vx = e.vz = 0;
     const k = 1 - e.st / 0.75;
-    halo.material.opacity = 0.35 + k * 0.6;
+    halo.material.opacity = 0.35 + k * 0.2;
     eye.scale.setScalar(1 + k * 0.6); // (its great eyes widen)
     e.body.position.y = 0;
     e.body.position.x = Math.sin(e.t * 50) * 0.02;
