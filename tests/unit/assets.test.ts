@@ -189,6 +189,10 @@ describe('the asset manifest', () => {
         .map((f) => f.where),
     ).toEqual(['coins.owl.face', 'coins.owl.icon']);
   });
+  it("the spells' circles of pixel art are there (magic/spellFx.ts `sigilTex`)", () => {
+    for (const id of ['pyre_seal', 'consecrate', 'ferrymans_toll'])
+      expect(existsSync(join('public/assets/textures/spells', `${id}.png`)), id).toBe(true);
+  });
   it('budgets are positive for every kind', () => {
     for (const b of Object.values(BUDGETS)) {
       expect(b.triangles).toBeGreaterThan(0);
