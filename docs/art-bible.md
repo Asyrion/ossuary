@@ -198,6 +198,12 @@ pixels thick or more, `CFG.pixelLook.actors`). Built in the pixel look, not in t
 as they are drawn, for one draw call more a frame (docs/architecture.md, Pixel look). **The owner accepted it
 (2026-10-20).**
 
+### 4.13 The actors, step E2: light in steps (built 2026-10-20)
+
+The light on an actor falls in five steps even to the eye; its darks turn 30 % toward the floor's shadow colour and its
+lights 22 % toward the rim's warm amber (4.2), each material keeping its own colour (`CFG.pixelLook.actors`: `steps`,
+`cool`, `warm`). Like E1 it is done in the shade pass, at no draw call. **The owner accepted it (2026-10-20).**
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta

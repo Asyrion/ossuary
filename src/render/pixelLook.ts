@@ -27,7 +27,6 @@ export interface PixelLook {
   /** the grid: 'texel', 'fine', or 0 for off */ lines: Lines;
   outline: boolean;
   bands: boolean;
-  /** the actors' light in steps on their own ramps (the dev menu compares it, art bible 4.2) */ ramps: boolean;
 }
 const P = CFG.pixelLook,
   KEY = 'ossuary.look',
@@ -120,7 +119,7 @@ function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: num
 /** Every grid the dev menu offers, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine'];
 const offered = (l: unknown): l is Lines => LINES.includes(l as Lines);
-let look: PixelLook = { lines: P.start, outline: true, bands: false, ramps: true };
+let look: PixelLook = { lines: P.start, outline: true, bands: false };
 try {
   // (a choice is kept with the default it was made against: when the default changes, the new one shows once)
   const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as (Partial<PixelLook> & { start?: Lines }) | null;
@@ -129,7 +128,6 @@ try {
       lines: offered(v.lines) ? v.lines : P.start,
       outline: v.outline !== false,
       bands: !!v.bands,
-      ramps: v.ramps !== false,
     };
 } catch {
   /* no storage: the default */
@@ -239,7 +237,6 @@ const shade = new THREE.ShaderMaterial({
     actors: { value: 0 },
     rimColor: { value: new THREE.Color().setHex(parseInt(P.actors.rim.slice(1), 16), THREE.LinearSRGBColorSpace) },
     rim: { value: P.actors.rimAmount },
-    ramps: { value: 1 },
     rampSteps: { value: P.actors.steps },
     cool: { value: P.actors.cool },
     warm: { value: P.actors.warm },
@@ -257,7 +254,7 @@ const shade = new THREE.ShaderMaterial({
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 grid;
     uniform float outline; uniform float bands; uniform float gap; uniform float dark; uniform float steps; uniform float range;
     uniform float actors; uniform vec3 rimColor; uniform float rim;
-    uniform float ramps; uniform float rampSteps; uniform float cool; uniform float warm;
+    uniform float rampSteps; uniform float cool; uniform float warm;
     ${GRADE_GLSL}
     const vec3 LUM = vec3(0.299, 0.587, 0.114);
     // an actor's light on its own ramp: in a few steps even to the eye, the hue kept, then its darks turned toward the
@@ -288,7 +285,7 @@ const shade = new THREE.ShaderMaterial({
         if (!me) for (int i = 0; i < 4; i++) if (actorAt(n[i])) { col = ink(texelFetch(tColor, at(n[i]), 0).rgb * pow(1.0 - dark, 1.0 / 2.2)); break; }
       }
       gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
-      if (me && ramps > 0.5) gl_FragColor.rgb = ramp(gl_FragColor.rgb);
+      if (me) gl_FragColor.rgb = ramp(gl_FragColor.rgb);
       if (bands > 0.5) { // light in a few steps, the hue kept: steps even to the eye (finer in the dark), never black
         float l = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114)), s = sqrt(l);
         float q = max(floor(s * steps + 0.5), 1.0) / steps;
@@ -658,7 +655,6 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   s.tDepth.value = target!.depthTexture;
   s.tMask.value = actorsDrawn ? mask!.texture : target!.texture;
   s.actors.value = actorsDrawn ? 1 : 0;
-  s.ramps.value = look.ramps ? 1 : 0;
   (s.grid.value as THREE.Vector2).set(gw, gh);
   s.outline.value = look.outline ? 1 : 0;
   s.bands.value = look.bands ? 1 : 0;

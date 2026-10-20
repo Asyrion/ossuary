@@ -6,7 +6,7 @@ describe('the pixel look', () => {
   it("is the game's look: on from the start, at the texel (the room kit's), with outlines; the dev menu offers the texel and the fine grid", () => {
     expect(CFG.pixelLook.start).toBe('texel');
     expect(LINES).toEqual(['texel', 'fine']);
-    expect(pixelLook()).toEqual({ lines: 'texel', outline: true, bands: false, ramps: true });
+    expect(pixelLook()).toEqual({ lines: 'texel', outline: true, bands: false });
   });
   it('at the texel, a game pixel is a room-kit texel: a 48th of a unit across, and down the screen as much as a floor texel seen at 45°', () => {
     const { px, py } = texelPixel(48, 34, Math.PI / 4);
