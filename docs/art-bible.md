@@ -193,7 +193,7 @@ own pass. Floor tiles stay drawn (4.8).
 ### 4.12 The actors, step E1: outline and rim (built 2026-10-19)
 
 The mage, the foes and the bosses get the closed outline of 4.4 (one pixel outside the silhouette, all round, in its
-colour darkened toward the floor's shadow) and the rim of 4.5 (a warm edge on the top and left where the actor is three
+colour darkened toward the floor's shadow) and the rim of 4.5 (a warm edge on the top and left where the actor is four
 pixels thick or more, `CFG.pixelLook.actors`). Built in the pixel look, not in the models: the actors stamp the stencil
 as they are drawn, for one draw call more a frame (docs/architecture.md, Pixel look). **The owner accepted it
 (2026-10-20).**

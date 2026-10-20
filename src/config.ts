@@ -789,9 +789,9 @@ export const CFG = {
     fineLayer: 2,
     // the actors (the mage, the foes, the bosses: art bible 4.4 and 4.5): a closed outline round each, and a rim of warm
     // light on its top and left edge (the colour as written, and how much of it); the light on an actor in `steps` steps
-    // (even to the eye), its darks turned toward the floor's shadow colour by `cool` and its lights toward the rim's
-    // warm colour by `warm` (art bible 4.2)
-    actors: { rim: '#ffd9a6', rimAmount: 0.4, steps: 5, cool: 0.3, warm: 0.22 },
+    // (even to the eye), the top one at `top` of white's (in the same terms), its darks turned toward the floor's shadow
+    // colour by `cool` and its lights toward the rim's warm colour by `warm` (art bible 4.2)
+    actors: { rim: '#ffd9a6', rimAmount: 0.4, steps: 5, top: 0.9, cool: 0.3, warm: 0.22 },
   },
   // alchemy (items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
