@@ -426,7 +426,8 @@ export function containerLook(kind: 'coffer' | 'chest', gilded = false) {
     lid = g.getObjectByName('lid')!,
     ward = g.getObjectByName('ward');
   if (ward) {
-    const gl = glow(gilded ? GOLD : WARD, gilded ? 1.3 : 1, 0.55);
+    const flat = ward.userData.flat === true, // (lying over a made chest's lid, its glow small: a large one tinted the lid)
+      gl = glow(gilded ? GOLD : WARD, flat ? 0.7 : gilded ? 1.3 : 1, flat ? 0.3 : 0.55);
     ward.add(gl);
   } // (its own: it is freed when the ward breaks)
   return { g, lid, ward };
@@ -445,9 +446,10 @@ function madeContainer(kind: 'coffer' | 'chest', gilded: boolean) {
   const g = new THREE.Group();
   g.add(model, blob(kind === 'coffer' ? 0.8 : 1));
   if (kind === 'chest') {
-    const front = new THREE.Box3().setFromObject(model).max.z,
-      ward = wardSeal(gilded);
-    ward.position.set(0, 0.24, front + 0.03);
+    // (its seal hovers flat over the lid, turning: seen from above as the camera sees it, the lock and bands left clear)
+    const box = new THREE.Box3().setFromObject(model),
+      ward = wardSeal(gilded, true);
+    ward.position.set(0, box.max.y + CFG.roomKit.sealHover, (box.min.z + box.max.z) / 2);
     g.add(ward);
   }
   g.traverse((o) => {
@@ -527,16 +529,20 @@ function chest(gilded: boolean) {
   g.add(blob(1));
   return keep(g, [lid], [ward]); // (the seal, merged above, turns on its own)
 }
-/** A chest's ward seal, standing tilted back a little: a circle of runes in ward blue (gold on a gilded chest), merged. */
-function wardSeal(gilded: boolean) {
+/** A chest's ward seal, standing tilted back a little (or lying `flat`, wider, over a made chest's lid): a circle of runes
+    in ward blue (a pale gold on a gilded chest, which a deeper gold over its red wood turned pink), its rings two pixels
+    thick, merged. */
+function wardSeal(gilded: boolean, flat = false) {
   const ward = new THREE.Group();
   ward.name = 'ward';
-  ward.rotation.x = -0.3;
+  ward.rotation.x = flat ? -Math.PI / 2 : -0.3;
+  ward.userData.flat = flat;
   const seal = new THREE.Group(),
-    light = glowTone(gilded ? GOLD : WARD);
+    light = glowTone(gilded ? SEAL_GOLD : WARD);
+  if (flat) seal.scale.setScalar(CFG.roomKit.sealFlatScale);
   ward.add(seal);
-  mesh(seal, new THREE.TorusGeometry(0.19, 0.012, 3, 28), light);
-  mesh(seal, new THREE.TorusGeometry(0.13, 0.007, 3, 24), light);
+  mesh(seal, new THREE.TorusGeometry(0.19, 0.018, 3, 28), light);
+  mesh(seal, new THREE.TorusGeometry(0.13, 0.012, 3, 24), light);
   mesh(seal, GEO.stamp, light);
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2;
@@ -545,7 +551,8 @@ function wardSeal(gilded: boolean) {
   mergeStill(seal);
   return ward;
 }
-const SEAL_RUNE = shared(runeStrokes(0.045));
+const SEAL_RUNE = shared(runeStrokes(0.045)),
+  SEAL_GOLD = 0xffeaa0;
 
 /** A look merged (the parts that move, `moving` each merged on its own, `apart` left as they are) and kept to be copied: its geometry marked shared,
     so taking one copy away frees nothing the others use. */
