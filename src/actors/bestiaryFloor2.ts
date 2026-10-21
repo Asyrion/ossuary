@@ -24,7 +24,10 @@
 import type { Enemy, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
-import { SCHOOL_LIGHT } from '../render/arcane';
+import * as THREE from 'three';
+import { SCHOOL_LIGHT, circle } from '../render/arcane';
+import { CFG } from '../config';
+import { openBlob } from '../render/materials';
 import { burst } from '../combat/fx';
 import { addSpores } from '../world/props';
 import { addPool, frostAt, poolAt, shockAt } from '../world/pools';
@@ -214,6 +217,7 @@ const newt: Behaviour = {
     } else if (e.state === 'lunge') {
       // out of the water at the mage: a cold bite
       const face = rush(e, num(P.lunge));
+      if (Math.random() < dt * 30) burst(e.x, 0.18, e.z, 0xbfe8ff, 1, 0.6, 0.035); // (water streaming off it as it flies)
       if (a.dist < e.r + player.r + 0.05 && !mantleShields(e)) {
         if (hurtPlayer(e.foe!.contact, e.x, e.z)) player.chill = Math.max(player.chill, num(P.chill));
         e.st = 0;
@@ -267,6 +271,7 @@ const newt: Behaviour = {
   },
   pose(e) {
     e.model!.visible = !e.hidden;
+    openBlob(e.group, !!e.hidden); // (under the water, only a ripple: its shadow's dark middle read as a hole there)
   },
 };
 
@@ -522,7 +527,7 @@ const cloud: Behaviour = {
           x = e.x + Math.cos(ang) * r,
           z = e.z + Math.sin(ang) * r;
         laySpark(room, x, z, num(P.sparkTime));
-        strikeFx({ x, y: 1.2, z }, { x, y: 0.05, z }, light(e), 0.22, true);
+        strikeFx({ x, y: 1.2, z }, { x, y: 0.05, z }, STORM_DEEP, 0.22); // (two game pixels thick, sheathed in storm's deeper gold: a thin one in its pale light read as a white hair)
         e.cycle! -= 1;
       }
       if (e.st <= 0) {
@@ -531,12 +536,32 @@ const cloud: Behaviour = {
       }
     }
   },
-  pose(e) {
+  pose(e, P) {
     const p = e.parts!;
     if (e.state === 'gather') p.cloud.scale.setScalar(1 + (e.tele ?? 0) * 0.25);
     else p.cloud.scale.setScalar(1);
+    // as it gathers, a circle on the floor where its sparks will rain, pulsing brighter in steps as the rain nears
+    const mark = (p.mark ??= rainMark(e, num(P.reach)));
+    mark.visible = e.state === 'gather';
+    if (mark.visible)
+      (mark.userData.mat as THREE.MeshBasicMaterial).opacity =
+        CFG.pixelLook.tele +
+        Math.floor((e.tele ?? 0) * 3) * 0.2 +
+        (Math.floor(e.t * CFG.pixelLook.telePulse) % 2) * 0.1;
   },
 };
+
+/** Storm's light in the deeper gold a foe's storm shot is sheathed in (it stands off floor 2's pale moss). */
+const STORM_DEEP = CFG.pixelLook.shotSheath.storm ?? SCHOOL_LIGHT.storm;
+/** The thunderhead's warning on the floor: a circle of storm light as wide as its rain falls (drawn, not added: added
+    light washed out pale on floor 2's moss). */
+function rainMark(e: Enemy, reach: number) {
+  const mat = new THREE.MeshBasicMaterial({ color: STORM_DEEP, transparent: true, depthWrite: false }),
+    g = circle(e.group, STORM_DEEP, reach, mat);
+  g.userData.mat = mat;
+  g.renderOrder = 2;
+  return g;
+}
 
 const darter: Behaviour = {
   init(e, P) {

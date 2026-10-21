@@ -12,8 +12,9 @@ import type { Bolt, Box, Enemy, RockBox, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { vigilHooks } from '../vigil/where';
-import { scene } from '../render/renderer';
+import { TILT, scene } from '../render/renderer';
 import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
+import { SCHOOL_LIGHT } from '../render/arcane';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { vatStruck } from '../world/laboratory';
@@ -297,6 +298,10 @@ export function fireSpellBolt(
 }
 
 const WHITE = new THREE.Color(0xffffff);
+/** A pale school's light, to the deeper tone its foes' shots are sheathed in (`CFG.pixelLook.shotSheath`). */
+const SHEATH = new Map<number, number>(
+  Object.entries(CFG.pixelLook.shotSheath).map(([k, v]) => [SCHOOL_LIGHT[k as 'frost' | 'storm'], v]),
+);
 /** A foe's shot's dark ring: the back of a sphere a little larger than its sheath, so it shows round its edge. */
 const SHOT_RIM = markShared(new THREE.MeshBasicMaterial({ color: 0x14101c, side: THREE.BackSide }));
 /** Enemy projectile. */
@@ -321,13 +326,18 @@ export function spawnShot(
     [dx, dz] = [dx * c - dz * n, dz * c + dx * n];
   } // (thrown out of steam, or at a mage unseen under the Shadowstep Tincture: it can't be aimed)
   const mesh = new THREE.Group();
-  const sh = blob(0.4);
+  const sh = blob(0.4, true); // (open: it flies, and nothing covers its shadow's middle)
   sh.position.y = -y + 0.015;
   // a foe's shot in the spells' style but plainly not the mage's (docs/effects.md): a hot core of its school's light in a
   // sheath of that colour, ringed in dark so it reads as danger over any floor, in a lower glow
-  const core = new THREE.Mesh(sphereGeo(0.07 * size), basicMat(new THREE.Color(color).lerp(WHITE, 0.6).getHex())),
-    sheath = new THREE.Mesh(sphereGeo(0.12 * size), basicMat(color)),
+  const deep = SHEATH.get(color); // (a pale school: a deeper sheath round a smaller core, so it isn't one white orb)
+  const core = new THREE.Mesh(
+      sphereGeo((deep ? 0.06 : 0.07) * size),
+      basicMat(new THREE.Color(color).lerp(WHITE, 0.6).getHex()),
+    ),
+    sheath = new THREE.Mesh(sphereGeo((deep ? 0.13 : 0.12) * size), basicMat(deep ?? color)),
     rim = new THREE.Mesh(sphereGeo(0.16 * size), SHOT_RIM);
+  if (deep) core.position.set(0, Math.sin(TILT), Math.cos(TILT)).multiplyScalar(0.1 * size); // (out through the sheath's face toward the camera, so the hot core shows in it rather than hidden inside)
   mesh.add(rim, sheath, core, glowShared(color, 0.8 * size, 0.55), sh);
   scene.add(mesh);
   G.room.shots.push({

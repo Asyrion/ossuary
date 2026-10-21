@@ -91,7 +91,7 @@ function pool(parent: THREE.Object3D, r: number) {
   part(
     parent,
     new THREE.CircleGeometry(r, 18),
-    std(0x10303a, { roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.92 }),
+    std(0x2e5e6e, { roughness: 0.9, emissive: 0x16404e }), // (the floor's deep water, as the room's pools: a near-black one read as a hole)
     [0, 0.008, 0],
     { rot: [-Math.PI / 2, 0, 0] },
   );

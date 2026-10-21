@@ -2,11 +2,13 @@
    set burning, a burning one chilled; magic/status.ts) and from the floor (fire on ice, frost on burning oil; world/pools.ts).
    Foes inside can't aim: their shots go wide (`spawnShot`). Eyes can't see the mage through one: a basilisk's stare, a
    radiant eye, a watching statue (`steamBetween`). Water under it is scalded, and what hides in it comes up (`hearGround`'s
-   'steam'). Each cloud is a few soft puffs, drifting up and thinning out. */
+   'steam'). Each cloud is a few puffs, drifting up and thinning out, drawn as pixel art draws fog: a dither of solid
+   pixels in two tones, as many as the puff is thick (overlapping puffs don't pile up into a white wall), and thinner
+   over the mage, so the fight inside it still reads (`CFG.steamLook`). */
 import * as THREE from 'three';
 import type { Room } from '../types';
 import { G, player } from '../state';
-import { scene } from '../render/renderer';
+import { camera, scene } from '../render/renderer';
 import { fogTex, glowTex } from '../render/textures';
 import { MAGIC } from './status';
 import { groundHears } from '../world/groundHooks';
@@ -44,17 +46,58 @@ const CHAIN: Record<Charge, 'thundercloud' | 'incense' | 'miasma'> = {
 const TINT: Record<Charge, number> = { storm: 0xf4eeb0, hallow: 0xffe8a8, umbral: 0x5a4078 };
 const clouds: Cloud[] = [];
 
+/** Shared by every cloud's material: where the mage stands, in the camera's view (the dither thins round it). */
+const U = {
+  uMage: { value: new THREE.Vector2(0, 1e4) },
+  uHole: { value: CFG.steamLook.hole },
+  uHoleK: { value: CFG.steamLook.holeK },
+  uDense: { value: CFG.steamLook.dense },
+  uSolid: { value: CFG.steamLook.solid },
+  uChecker: { value: CFG.steamLook.checker },
+  uSparse: { value: CFG.steamLook.sparse },
+};
+const at = new THREE.Vector3();
+/** A puff's sprite material drawn as pixel art draws fog: where the puff is thick, solid pixels in its lighter tone;
+    thinner, every other pixel (a checker) in a darker one; thinner still, one pixel in four; then none
+    (`CFG.steamLook.solid`, `checker`, `sparse`). */
+function ditherSteam(mat: THREE.SpriteMaterial) {
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader
+      .replace('void main() {', 'varying vec2 vSteamView;\nvoid main() {')
+      .replace('#include <logdepthbuf_vertex>', 'vSteamView = mvPosition.xy;\n#include <logdepthbuf_vertex>');
+    sh.fragmentShader = sh.fragmentShader
+      .replace(
+        'void main() {',
+        `varying vec2 vSteamView;
+uniform vec2 uMage;
+uniform float uHole, uHoleK, uDense, uSolid, uChecker, uSparse;
+void main() {`,
+      )
+      .replace(
+        '#include <alphatest_fragment>',
+        `float d = length(vSteamView - uMage) / uHole;
+float a = diffuseColor.a * uDense * (d < 1.0 ? uHoleK : d < 1.5 ? mix(uHoleK, 1.0, 0.5) : 1.0);
+vec2 q = mod(floor(gl_FragCoord.xy), 2.0);
+bool checker = q.x == q.y, sparse = q.x + q.y < 0.5;
+if (a < uSparse || (a < uChecker && !sparse) || (a < uSolid && !checker)) discard;
+diffuseColor.rgb *= a < uSolid ? 0.82 : 1.0;
+diffuseColor.a = 1.0;`,
+      );
+  };
+  mat.customProgramCacheKey = () => 'steamDither';
+  return mat;
+}
+
 /** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. A
     `dark` one (a thrown Shadowstep Tincture) is darkness, not steam: foes in it can't aim either, but water keeps still. */
 export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark = false) {
   const room = G.room.current,
-    mat = new THREE.SpriteMaterial({
-      map: dark ? fogTex : glowTex,
-      color: dark ? 0x2a1a40 : 0xe8f2f8,
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-    });
+    mat = dark
+      ? new THREE.SpriteMaterial({ map: fogTex, color: 0x2a1a40, transparent: true, opacity: 0, depthWrite: false }) // (darkness in hard bands, not steam's dither)
+      : ditherSteam(
+          new THREE.SpriteMaterial({ map: glowTex, color: 0xd8e6ee, transparent: true, opacity: 0, depthWrite: false }),
+        );
   const puffs = Array.from({ length: PUFFS }, (_, i) => {
     const s = new THREE.Sprite(mat),
       a = (i / PUFFS) * Math.PI * 2,
@@ -134,6 +177,8 @@ function drop(c: Cloud) {
 }
 /** Every step: the clouds drift up and thin out, and go. Only the current room's show. */
 export function updateSteam(dt: number) {
+  at.set(player.x, 0.7, player.z).applyMatrix4(camera.matrixWorldInverse);
+  U.uMage.value.set(at.x, at.y);
   for (let i = clouds.length - 1; i >= 0; i--) {
     const c = clouds[i];
     c.t -= dt;

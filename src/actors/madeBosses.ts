@@ -32,12 +32,21 @@ const POSE: Record<string, (body: THREE.Object3D, p: Record<string, THREE.Object
 
 /** The made look of boss `id`, wrapping its look in code `code`, or undefined while it has none. */
 export function madeBossLook(id: string, code: () => BossBuilt): (() => BossBuilt) | undefined {
-  const how = (CFG.madeBosses as Record<string, { size: number; keep: readonly string[]; fire?: string }>)[id];
+  const how = (
+    CFG.madeBosses as Record<string, { size: number; keep: readonly string[]; fire?: string; tint?: number }>
+  )[id];
   if (!how || !modelFor('props', `foe_${id}`)) return undefined;
-  return () => build(id, code(), how.size, how.keep, how.fire);
+  return () => build(id, code(), how.size, how.keep, how.fire, how.tint);
 }
 
-function build(id: string, made: BossBuilt, scale: number, keep: readonly string[], fire?: string): BossBuilt {
+function build(
+  id: string,
+  made: BossBuilt,
+  scale: number,
+  keep: readonly string[],
+  fire?: string,
+  tint = 1,
+): BossBuilt {
   made.idle(0);
   made.group.updateMatrixWorld(true);
   // (its solid body only, as madeFoes.ts measures it)
@@ -58,7 +67,12 @@ function build(id: string, made: BossBuilt, scale: number, keep: readonly string
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
     const was = m.material as THREE.MeshToonMaterial;
-    m.material = new THREE.MeshStandardMaterial({ map: was.map, roughness: 0.85, metalness: 0 }); // (its own: a hit lights it alone)
+    m.material = new THREE.MeshStandardMaterial({
+      map: was.map,
+      color: new THREE.Color().setScalar(tint),
+      roughness: 0.85,
+      metalness: 0,
+    }); // (its own: a hit lights it alone; `tint` darkens a pale one off a pale floor)
   });
   body.add(model);
   g.add(body);

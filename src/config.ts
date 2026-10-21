@@ -248,6 +248,8 @@ export const CFG = {
     look: 0.75,
     lookAt: [0.5, 1],
     steer: [0.7, -0.7, 1.4, -1.4],
+    sparkArt: 26, // (a spark on the floor drawn as a cross this many pixels across: actors/foes.ts)
+    rimeArt: 40, // (a rime snail's patch of rime drawn this many pixels across: actors/bestiaryGround.ts)
   },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
   foeWay: { turns: [0.6, 1.1, 1.6] },
@@ -531,7 +533,12 @@ export const CFG = {
     driveReach: 1,
     poolBlur: 6,
     pitBlur: 4,
-  }, // (poolBlur, pitBlur: how soft a pool's and a pit's outline is, in its canvas's pixels, softEdge.ts; jellyWade: walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
+    shockRim: 2,
+  }, // (poolBlur, pitBlur: how round a pool's outline is (cut hard at half the blur) and how soft a pit's, in its canvas's pixels (32 a tile), softEdge.ts; shockRim: the width of a shocked pool's bright rim, in those pixels; jellyWade: walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
+  // steam drawn as pixel art draws fog (magic/steam.ts): its puffs' fade times `dense`; where that is `solid` or more the
+  // pixels are solid, from `checker` every other pixel, from `sparse` one in four, below it none; round the mage (within
+  // `hole` units of it on screen) only `holeK` as thick, so the mage and the fight inside still read
+  steamLook: { dense: 1.2, solid: 0.42, checker: 0.26, sparse: 0.12, hole: 0.75, holeK: 0.4 },
   // the rooms' objects (world/props.ts): how long each flammable one burns (seconds), how often burning spreads
   // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
@@ -806,7 +813,8 @@ export const CFG = {
     bands: 7,
     glowSteps: 5,
     shadowSteps: 3,
-    openShadow: 0.55, // (the blob under a made boss, whose dark middle shows between its legs: render/materials.ts)
+    openShadow: 0.55, // (the blob under a made boss, whose dark middle shows between its legs, and under a flyer: render/materials.ts)
+    openSteps: [0.62, 0.62, 0.62, 0.45, 0.25] as readonly number[], // (that blob's alpha in rings from the middle out: flat, no dark dot)
     fineLayer: 2,
     // the actors (the mage, the foes, the bosses: art bible 4.4 and 4.5): a closed outline round each, and a rim of warm
     // light on its top and left edge (the colour as written, and how much of it); the light on an actor in `steps` steps
@@ -817,6 +825,9 @@ export const CFG = {
     // steady glow washed a dark foe out to a flat shape)
     tele: 0.28,
     telePulse: 6,
+    // a foe's shot of a pale school: its sheath in a deeper tone of the school's light, so the hot core reads inside it
+    // (in the school's own pale light, core and sheath read as one white-blue orb: art bible 4.15, F3)
+    shotSheath: { frost: 0x2a86e0, storm: 0xe0ae10 } as Partial<Record<'frost' | 'storm', number>>,
     // a stain, a scorch or soot on the floor lifted to the floor's shadow colour's lightness in its own hue, then turned
     // this far toward that colour (where the floor has one): a near-black mark read as a hole in the floor (art bible 4.2:
     // black only in outlines)
@@ -844,10 +855,11 @@ export const CFG = {
     brineSerpent: { motion: 'sway', main: 'body', span: 1.5, keep: ['pool'] },
   },
   // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
-  // look kept as built (the rune ring and the halo the fight turns and lights), and the part whose fire is set on the
-  // model (its painted flames don't light)
+  // look kept as built (the rune ring and the halo the fight turns and lights), the part whose fire is set on the
+  // model (its painted flames don't light), and how far its surface is darkened (`tint`, times its texture: the pale
+  // abbess stands off her pale floor)
   madeBosses: {
-    abbess: { size: 1, keep: ['ring', 'halo'] },
+    abbess: { size: 1, keep: ['ring', 'halo'], tint: 0.66 },
     pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm' },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
