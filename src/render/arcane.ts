@@ -3,6 +3,7 @@
    a thing look magical in the pixel look: runes, rune rings, magic circles, crystals, motes, lightning, expanding
    rings. */
 import * as THREE from 'three';
+import { CFG } from '../config';
 
 export type V3 = [number, number, number];
 
@@ -33,6 +34,15 @@ export const shine = (color: number, opacity = 0.6) =>
     depthWrite: false,
     side: THREE.DoubleSide,
   });
+
+/** `color` deepened for drawing rather than adding: its lightness held at `most` (a pale school colour added over a bright
+    floor came out white, art bible 4.15), its hue and saturation kept. */
+export function deepen(color: number, most: number = CFG.spellFx.deep) {
+  const c = new THREE.Color(color),
+    hsl = { h: 0, s: 0, l: 0 };
+  c.getHSL(hsl);
+  return c.setHSL(hsl.h, hsl.s, Math.min(hsl.l, most)).getHex();
+}
 
 export function part(
   parent: THREE.Object3D,
@@ -174,13 +184,19 @@ export function motes(parent: THREE.Object3D, color: number, n: number, radius: 
 /** A jagged bolt of lightning of `n` segments, a bright core in a coloured sheath; `set` draws it from a to b, jittered
     by `seed` (a new seed each flicker). */
 export function lightningBolt(parent: THREE.Object3D, color: number, n = 8, width = 0.03) {
-  // (the core adds light, so it reads white over anything; segments overlap a little, so the bolt has no gaps)
-  const core = shine(0xffffff, 1),
-    sheath = shine(color, 0.55),
+  // (a thin white core that adds light, in a sheath of the school's colour drawn, not added: an added sheath over a bright
+  // floor came out white; segments overlap a little, so the bolt has no gaps)
+  const L = CFG.spellFx.lightning,
+    core = shine(0xffffff, 1),
+    sheath = lit(deepen(color), L.sheathOpacity),
     segs = Array.from({ length: n }, () => [
-      part(parent, box(width, 1, width), core, [0, 0, 0]),
-      part(parent, box(width * 2.2, 1, width * 2.2), sheath, [0, 0, 0]),
+      part(parent, box(width * L.core, 1, width * L.core), core, [0, 0, 0]),
+      part(parent, box(width * L.sheath, 1, width * L.sheath), sheath, [0, 0, 0]),
     ]);
+  for (const [c, s] of segs) {
+    s.renderOrder = 7;
+    c.renderOrder = 8; // (the core over its sheath)
+  }
   const a = new THREE.Vector3(),
     b = new THREE.Vector3(),
     p = new THREE.Vector3(),
@@ -192,7 +208,7 @@ export function lightningBolt(parent: THREE.Object3D, color: number, n = 8, widt
   let rnd = 1;
   const r = () => (rnd = (rnd * 16807) % 2147483647) / 2147483647 - 0.5;
   return {
-    /** Its two materials: recolour the sheath, fade both. */
+    /** Its two materials: recolour the sheath (`deepen` the colour), fade both. */
     core,
     sheath,
     set(from: V3, to: V3, seed: number, jitter = 0.12, visible = true) {

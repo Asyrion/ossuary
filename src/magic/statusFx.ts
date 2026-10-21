@@ -23,6 +23,7 @@ import { Sfx } from '../audio/sfx';
 import { renderHearts } from '../notify';
 import { TILT, scene } from '../render/renderer';
 import { disposeTree, glow, markShared } from '../render/materials';
+import { floorShade } from '../render/pixelLook';
 import { burst } from '../combat/fx';
 import { damageEnemy, drink } from '../combat/damage';
 import { drinksStatus } from '../actors/foeData';
@@ -580,10 +581,11 @@ export function tileReaction(r: Reaction, x: number, z: number) {
   floatText(x, 1.3, z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44);
 }
 
-/** Eclipse's black sun: a dark orb in a crown of gold light (Hallow round Umbral), made for each foe it takes. */
+/** Eclipse's black sun: a dark orb in a crown of gold light (Hallow round Umbral), made for each foe it takes. Its dark is
+    a violet shadow in the floor's shadow colour (`floorShade`): a near-black disc read as a hole in the floor. */
 function blackSun() {
   const g = new THREE.Group();
-  g.add(new THREE.Mesh(sunGeo(), new THREE.MeshBasicMaterial({ color: 0x06030a })));
+  g.add(new THREE.Mesh(sunGeo(), new THREE.MeshBasicMaterial({ color: floorShade(0x1a0830, CFG.pixelLook.sunShade) })));
   const crown = glow(GOLD, 1.6, 0.85);
   g.add(crown);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 4, 24), new THREE.MeshBasicMaterial({ color: GOLD }));

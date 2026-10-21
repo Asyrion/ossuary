@@ -74,6 +74,9 @@ export const glowTex = stepped(
   ]),
   CFG.pixelLook.glowSteps,
 );
+/** A puff of fog in hard bands (a miasma, a thrown Shadowstep Tincture's darkness): full inside `fogCore` of its radius,
+    half outside, so where puffs overlap they make hard steps rather than a blur (art bible 3: no soft alpha). */
+export const fogTex = stepped('255,255,255', (d) => (d < CFG.pixelLook.fogCore ? 1 : 0.5), 2);
 export const shadowTex = stepped(
   '0,0,0',
   fade([

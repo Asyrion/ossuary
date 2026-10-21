@@ -810,6 +810,12 @@ export const CFG = {
     // this far toward that colour (where the floor has one): a near-black mark read as a hole in the floor (art bible 4.2:
     // black only in outlines)
     decalShade: 0.3,
+    // a fog of darkness (a miasma, a thrown Shadowstep Tincture) in hard bands: each puff a disc at full strength inside
+    // `fogCore` of its radius and half outside, so where puffs overlap the bands stay hard (art bible 3: no soft alpha)
+    fogCore: 0.55,
+    // how far Eclipse's black sun is turned toward the floor's shadow colour (as `decalShade`; further, so its violet stays
+    // dark rather than a bright blue)
+    sunShade: 0.6,
   },
   // foes made in Tripo (actors/madeFoes.ts, art bible 4.19), by look: how code moves the still model as a whole, the
   // part of the look in code it takes the place of (the one its behaviour swells or lifts), and its span: the model's
@@ -1007,6 +1013,20 @@ export const CFG = {
     weaveName: 2, // (seconds before the same weave's name rises again, for those that go on and on)
     nameGap: 0.44,
     nameStack: 0.5, // (a name rising where another rose under `nameStack` s ago stands `nameGap` above it on screen)
+    // a school's colour drawn rather than added where added light came out white on a bright floor (art bible 4.15): its
+    // lightness held at `deep` at most. Hallow's gold (Consecrate, Judgement, Wardlight), its rings edged a game pixel
+    // round in `edge` at `edgeOpacity` of the gold's, its glow, fill and Wardlight's orbs' glow this strong; lightning a
+    // white core `core` of the bolt's width in a drawn sheath `sheath` times it, at `sheathOpacity`; a shard's halo this
+    // strong
+    deep: 0.42,
+    hallow: { gold: '#e09a2a', edge: '#3a1e0a', edgeOpacity: 0.75, glow: 0.14, fill: 0.1, orbGlow: 0.45 },
+    lightning: { core: 0.45, sheath: 2.4, sheathOpacity: 0.95 },
+    shardGlow: 0.3,
+    // the Living Wall's made hedge: its weave tinted, and lit from within so its greens hold on a dark floor
+    hedge: { tint: '#a8f088', glow: '#58b838' },
+    // how strongly Grasp of the Grave and the Thorn Snare shade the ground in their circle (the floor's own shadow colour,
+    // pixelLook.ts floorShade): the floor shows through, never a pit's black
+    groundShade: 0.55,
   },
   lights: {
     hemi: 1.57,
