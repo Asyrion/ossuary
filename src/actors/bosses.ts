@@ -84,6 +84,8 @@ function floorRing(e: Enemy, color: number, radius: number) {
 /** Build a boss's body and set its first state. */
 /** The Warden's circle of runes on the floor, by Warden. */
 const wardenFloor = new WeakMap<Enemy, { floor: THREE.Object3D; mat: THREE.MeshBasicMaterial }>();
+/** How long the Warden winds up before each attack (seconds): its burst, its aimed volley. */
+const WIND_UP = { windBurst: 0.75, windAim: 0.5 };
 export function buildBoss(e: Enemy) {
   e.contact = 2;
   e.isBoss = true;
@@ -373,7 +375,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
   ring.rotation.z += dt * (e.state.startsWith('wind') ? 6 : 1.2);
   const W = wardenFloor.get(e);
   if (W) {
-    const k = e.state.startsWith('wind') ? 1 - e.st / 0.75 : 0;
+    const k = e.state === 'windBurst' || e.state === 'windAim' ? 1 - e.st / WIND_UP[e.state] : 0; // (from none to full as it winds up)
     W.mat.opacity = Math.max(0, k) * 0.85;
     W.floor.rotation.y += dt * (1 + 9 * Math.max(0, k));
   }
@@ -386,7 +388,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     if (e.st <= 0) {
       e.cycle = e.cycle! + 1;
       e.state = e.cycle % 2 ? 'windBurst' : 'windAim';
-      e.st = e.state === 'windBurst' ? 0.75 : 0.5;
+      e.st = WIND_UP[e.state as keyof typeof WIND_UP];
     }
   } else if (e.state === 'windBurst' || e.state === 'windAim') {
     e.vx = e.vz = 0;
