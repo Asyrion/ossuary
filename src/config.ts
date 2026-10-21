@@ -934,6 +934,10 @@ export const CFG = {
     glowDark: 0.5,
     artifactScale: 1.2,
     artifactClear: 0.24,
+    // a made chest's ward seal (items/pickupLooks.ts): how high it hovers over the lid, and how much wider it lies than the
+    // seal that stands before a chest built in code
+    sealHover: 0.1,
+    sealFlatScale: 1.45,
     icon: {
       size: 96,
       out: 24,

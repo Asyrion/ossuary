@@ -240,7 +240,10 @@ ward stone larger, and every mark on the floor (scorch, soot, a foe's stain) tur
 (`CFG.pixelLook.decalShade`, in each mark's own hue after the room inspection). **The owner kept the outline and the
 softer marks (2026-10-21).** The reliquary chest, the gilded chest, the offering coffer and the artifacts' pedestal are
 made in Tripo from the owner's picks (`docs/art/items/`; docs/assets.md, asset log), the chests' and the coffer's lids cut
-off on their hinges so they still open (`tools/art/lid.py`), a chest's ward seal still drawn in code before it.
+off on their hinges so they still open (`tools/art/lid.py`; inside, planks drawn at the texel, the owner's choice). A
+made chest's ward seal, still drawn in code, hovers flat over its lid and turns, its rings two pixels thick and a gilded
+chest's a pale gold: standing before the chest it read as a pale smudge, and pink over the gilded chest's red wood (the
+owner's "surprise me", 2026-10-21).
 
 ## 5. The reference pictures
 

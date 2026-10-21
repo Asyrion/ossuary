@@ -16,11 +16,27 @@ body = bpy.context.view_layer.objects.active
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 zs = [v.co.z for v in body.data.vertices]
 z = min(zs) + (max(zs) - min(zs)) * cut
+# the inside: planks of dark wood drawn at the texel (48 game pixels a unit: a plank 5 wide, a dark joint between, a few
+# knots), kept by the game as they are (texturePixel.ts); a little light of its own, as the lid's underside faces away
+# from every light once it is open; near black read as a hole
+PLANKS = [(0.40, 0.235, 0.13), (0.34, 0.195, 0.105), (0.43, 0.26, 0.15), (0.37, 0.21, 0.115)]  # (sRGB)
+JOINT, KNOT, W = (0.16, 0.09, 0.06), (0.26, 0.14, 0.08), 24
+from PIL import Image  # (pixels set in Blender came out black in the export: drawn here and loaded)
+import os, tempfile
+pic = Image.new('RGB', (W, W))
+for yy in range(W):
+    for xx in range(W):
+        k = yy // 6; c = JOINT if yy % 6 == 5 else PLANKS[k % 4]
+        if yy % 6 != 5 and (xx * 7 + k * 11) % 23 == 0: c = KNOT
+        if yy % 6 != 5 and (xx + k * 5) % 12 == 0: c = JOINT  # (a butt joint along the plank)
+        pic.putpixel((xx, yy), tuple(round(v * 255) for v in c))
+path = os.path.join(tempfile.mkdtemp(), 'inside.png'); pic.save(path)
+img = bpy.data.images.load(path); img.pack()
 inside = bpy.data.materials.new('inside'); inside.use_nodes = True
-bsdf = inside.node_tree.nodes['Principled BSDF']
-bsdf.inputs['Base Color'].default_value = (0.1, 0.045, 0.02, 1)  # (dark wood, in linear light: near black read as a hole)
-# (a little light of its own: the lid's underside faces away from every light once it is open)
-bsdf.inputs['Emission Color'].default_value = (0.1, 0.045, 0.02, 1); bsdf.inputs['Emission Strength'].default_value = 0.6
+nt = inside.node_tree; bsdf = nt.nodes['Principled BSDF']
+tex = nt.nodes.new('ShaderNodeTexImage'); tex.image = img; tex.interpolation = 'Closest'
+nt.links.new(tex.outputs['Color'], bsdf.inputs['Base Color']); nt.links.new(tex.outputs['Color'], bsdf.inputs['Emission Color'])
+bsdf.inputs['Emission Strength'].default_value = 0.5
 lid = body.copy(); lid.data = body.data.copy(); bpy.context.scene.collection.objects.link(lid)
 body.name, lid.name = 'body', 'lid'
 for ob, keep_above in ((body, False), (lid, True)):
@@ -39,7 +55,12 @@ for ob, keep_above in ((body, False), (lid, True)):
                                      use_non_contiguous=False, use_verts=False)
     bpy.ops.mesh.fill_holes(sides=0)
     bpy.ops.object.mode_set(mode='OBJECT')
-    for f in ob.data.polygons[had:]: f.material_index = len(ob.data.materials) - 1
+    uv = ob.data.uv_layers.active.data
+    for f in ob.data.polygons[had:]:
+        f.material_index = len(ob.data.materials) - 1
+        for li in f.loop_indices:  # (the planks laid flat across it: one texture a half unit, so one texel a game pixel)
+            co = ob.data.vertices[ob.data.loops[li].vertex_index].co
+            uv[li].uv = (co.x / 0.5, co.y / 0.5)
     print(ob.name, len(ob.data.polygons), 'faces,', len(ob.data.polygons) - had, 'caps')
 # the hinge: the back of the cut, in the middle
 back = max(v.co.y for v in lid.data.vertices if abs(v.co.z - z) < 0.02)

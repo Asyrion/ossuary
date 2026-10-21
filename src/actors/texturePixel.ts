@@ -63,12 +63,14 @@ export function selfLight(key: string, v: number) {
   });
 }
 
-/** Wear it on every textured mesh under `root`. */
+/** Wear it on every textured mesh under `root`, but for a container's cut face (a material named `inside`,
+    tools/art/lid.py), which keeps its own planks drawn at the texel. */
 export async function wearTexel(root: THREE.Object3D, key: string, urls: { file: string; glow: string }) {
   const mat = await texelMaterial(key, urls);
   root.traverse((o) => {
-    const m = o as THREE.Mesh;
-    if (m.isMesh && (m.material as THREE.MeshStandardMaterial).map) m.material = mat;
+    const m = o as THREE.Mesh,
+      own = m.material as THREE.MeshStandardMaterial;
+    if (m.isMesh && own.map && own.name !== 'inside') m.material = mat;
   });
   return mat;
 }
