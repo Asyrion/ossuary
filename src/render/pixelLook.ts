@@ -276,6 +276,7 @@ const shade = new THREE.ShaderMaterial({
     outline: { value: 0 },
     bands: { value: 0 },
     gap: { value: P.outlineGap },
+    thingGap: { value: P.thingGap },
     dark: { value: P.outlineDark },
     steps: { value: P.bands },
     range: { value: 1 },
@@ -285,7 +286,7 @@ const shade = new THREE.ShaderMaterial({
   fragmentShader: /* glsl */ `
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 grid;
     uniform float outline; uniform float bands; uniform float gap; uniform float dark; uniform float steps; uniform float range;
-    uniform float actors; uniform vec3 rimColor; uniform float rim;
+    uniform float actors; uniform float thingGap; uniform vec3 rimColor; uniform float rim;
     uniform float rampSteps; uniform float rampTop; uniform float cool; uniform float warm;
     ${GRADE_GLSL}
     const vec3 LUM = vec3(0.299, 0.587, 0.114);
@@ -315,7 +316,9 @@ const shade = new THREE.ShaderMaterial({
         float d = depthAt(p), farther = 0.0;
         // (an actor's own edge is left to its outline outside it, so that stays one pixel wide)
         for (int i = 0; i < 4; i++) if (!mine || outlinedAt(n[i])) farther = max(farther, depthAt(n[i]) - d);
-        if (farther > gap) col = ink(col * pow(1.0 - dark, 1.0 / 2.2)); // (as dark as 1 - dark in linear light)
+        // (inside a thing, only a deeper step: a round bottle's flank falls away steeply at its edge, and a line one
+        // pixel in left its edge pixel outside it, the outline open)
+        if (farther > (mine && !me ? max(gap, thingGap) : gap)) col = ink(col * pow(1.0 - dark, 1.0 / 2.2)); // (as dark as 1 - dark in linear light)
         // the actor's closed outline, outside it all round: a pixel beside one, whatever lies there, in its colour darkened
         // (near black on every floor, tinted toward the floor's shadow and a little toward the actor, art bible 4.4)
         if (!mine) for (int i = 0; i < 4; i++) if (outlinedAt(n[i])) { col = gradeShadow * 0.35 + texelFetch(tColor, at(n[i]), 0).rgb * 0.12; break; }

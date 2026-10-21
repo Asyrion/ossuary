@@ -131,10 +131,10 @@ function runeFox(): Built {
     part(s, sphere(1, 10, 8), tailFurs[i % 3], [0, 0, 0], { scale: [r * 0.8, r * 1.35, r] });
     for (const side of [-1, 1])
       for (const [dz, m] of [
-        [0.35, streak],
-        [-0.3, streak2],
+        [0.65, streak],
+        [-0.6, streak2],
       ] as [number, THREE.Material][])
-        part(s, box(0.014, r * 1.7, 0.014), m, [side * r * 0.78 * Math.sqrt(1 - dz * dz), 0, dz * r]); // (on its skin, both sides)
+        part(s, box(0.014, r * 1.7, 0.014), m, [side * r * 0.8 * Math.sqrt(1 - dz * dz), 0, dz * r]); // (on its skin, both sides, in from its edge: there, unoutlined, they read as a pale rim)
     for (let j = 0; j < 2; j++) {
       const a = i * 2.3 + j * 3.1;
       part(s, sphere(0.013, 4, 3), [star, gold, cyan][(i + j) % 3], [

@@ -21,6 +21,7 @@ import { hallowAt, umbralAt } from '../world/mechanisms';
 import { layFire } from '../actors/foes';
 import { renderHearts } from '../notify';
 import { disposeTree } from '../render/materials';
+import { gradeNow } from '../render/pixelLook';
 import { mesh, tone } from '../world/kitParts';
 import { potionHold } from '../input';
 import { POTIONS, type PotionDef, type PotionId, type ThrowEffect } from './alchemyData';
@@ -206,16 +207,69 @@ export function breathe(id: PotionId) {
   boonActs('brewersBreath', x, z);
 }
 
-/** A bottle lands: it shatters, its splash rings out in its colour, and its throw effect lands there. */
+/* ---------- a splash's look ---------- */
+
+interface Edge {
+  m: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
+  t: number;
+  to: number;
+}
+const edges: Edge[] = [],
+  idleEdges: Edge[] = [];
+let edgeGeo: THREE.RingGeometry | null = null;
+/** The dark edge under a splash's ring, in the floor's shadow colour: it grows with the ring and fades in flat steps. */
+function splashEdge(x: number, z: number, to: number) {
+  const E = A.splashEdge,
+    g = gradeNow();
+  let e = idleEdges.pop();
+  if (!e) {
+    edgeGeo ??= new THREE.RingGeometry(E.inner, E.outer, 40).rotateX(-Math.PI / 2);
+    edgeGeo.userData.shared = true;
+    const m = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }));
+    m.renderOrder = -1; // (drawn before the ring, so the ring lies over it)
+    scene.add(m);
+    e = { m, t: 0, to };
+  }
+  e.m.material.color.set(g.amount > 0 ? g.shadow : '#101018');
+  e.m.position.set(x, 0.07, z);
+  e.m.visible = true;
+  e.t = 0;
+  e.to = to;
+  edges.push(e);
+  stepEdge(e, 0);
+}
+function stepEdge(e: Edge, dt: number) {
+  e.t += dt;
+  const k = Math.min(1, e.t / RING_LIFE),
+    E = A.splashEdge;
+  e.m.scale.setScalar(0.2 + (e.to - 0.2) * (1 - (1 - k) ** 3)); // (as the ring grows: magic/spellFx.ts)
+  e.m.material.opacity = (E.opacity * Math.ceil((1 - k) * E.steps)) / E.steps;
+  return k >= 1;
+}
+/** A spray of glass, in the floor's shadow's colour, and drawn over the floor (`burst`'s, recoloured). */
+function shards(x: number, z: number, n: number, spd: number) {
+  const from = G.fx.particles.length,
+    g = gradeNow(),
+    c = new THREE.Color(0xd8e8f0);
+  if (g.amount > 0) c.lerp(new THREE.Color(g.shadow), A.shard);
+  burst(x, 0.2, z, c.getHex(), n, spd, 0.03);
+  for (const p of G.fx.particles.slice(from)) p.m.material.depthWrite = false;
+}
+const RING_LIFE = 0.45;
+
+/** A bottle lands: it shatters, its splash rings out in its colour over a dark edge, and its throw effect lands there. */
 function splash(f: Flight) {
   const def = POTIONS[f.id],
     c = col(def),
     retort = player.stats.effects.has('retort'),
     r = A.splash * (retort ? A.retort.splashMul : 1);
   Sfx.at(f.x1, f.z1).bottleBreak();
-  ringFx(f.x1, 0.08, f.z1, c, 0.2, r, 0.45, true);
+  splashEdge(f.x1, f.z1, r);
+  ringFx(f.x1, 0.08, f.z1, c, 0.2, r, RING_LIFE, true);
+  const from = G.fx.particles.length;
   burst(f.x1, 0.3, f.z1, c, 18, 2.6, 0.05);
-  burst(f.x1, 0.2, f.z1, 0xd8e8f0, retort ? 16 : 8, retort ? 3 : 2, 0.03); // (glass)
+  for (const p of G.fx.particles.slice(from)) p.m.material.depthWrite = false; // (its colour, not an outline's black)
+  shards(f.x1, f.z1, retort ? 16 : 8, retort ? 3 : 2);
   if (retort) for (const e of near(f.x1, f.z1, r)) damageEnemy(e, A.retort.cut, 0, 0, 0, 'spell'); // (the Cracked Retort's glass cuts)
   THROW[def.throw.effect](f.x1, f.z1, r, def);
 }
@@ -346,6 +400,11 @@ export function updateThrows(dt: number) {
     }
     shockAt(tx, tz, undefined, true);
   }
+  for (let i = edges.length - 1; i >= 0; i--)
+    if (stepEdge(edges[i], dt)) {
+      edges[i].m.visible = false;
+      idleEdges.push(...edges.splice(i, 1));
+    }
   updateThrall(dt);
   // the aim: a ring where it will land (two for a split throw, as wide as the Retort makes the splash), in the potion's
   // colour once it is known
@@ -385,6 +444,8 @@ export function clearThrows() {
   }
   flights.length = 0;
   storms.length = 0;
+  for (const e of edges) e.m.visible = false;
+  idleEdges.push(...edges.splice(0));
   dropThrall();
   for (const m of markers) m.visible = false;
 }

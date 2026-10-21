@@ -143,7 +143,7 @@ export function validateKit(name: string, kit: Partial<KitWeights> | undefined, 
 
 const HEX = /^#[0-9a-f]{6}$/i;
 /** Problems with a floor look's dressing and colours (`scatter` kinds the room kit strews, `materials` written as
-    colours, the `grade`'s colour and amounts); empty when valid. The names `materials` may change belong to the renderer
+    colours, the `grade`'s colour and amounts, the `bossKit`'s kinds, the `accent`); empty when valid. The names `materials` may change belong to the renderer
     (kitColours.ts reports an unknown one as the floor is built). */
 export function validateLookExtras(
   name: string,
@@ -152,9 +152,13 @@ export function validateLookExtras(
     materials?: Record<string, string>;
     grade?: Record<string, unknown>;
     tesserae?: Record<string, string>;
+    bossKit?: Partial<KitWeights>;
+    accent?: string;
   },
 ): string[] {
-  const errs: string[] = [];
+  const errs: string[] = validateKit(`${name}: bossKit`, look.bossKit, false);
+  if (look.accent !== undefined && !HEX.test(look.accent))
+    errs.push(`look "${name}": accent needs a colour like #a1b2c3`);
   for (const [k, v] of Object.entries(look.scatter ?? {})) {
     if (!(SCATTER_KINDS as readonly string[]).includes(k))
       errs.push(`look "${name}": scatter names unknown kind "${k}"`);

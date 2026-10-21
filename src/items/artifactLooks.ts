@@ -82,7 +82,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     const w = new THREE.Group();
     w.rotation.z = -0.6;
     g.add(w);
-    mesh(w, cyl(0.012, 0.026, 0.5), tone(0xd8c7a4, 0.08), 0, 0, 0);
+    mesh(w, cyl(0.019, 0.026, 0.5), tone(0xd8c7a4, 0.08), 0, 0, 0); // (two pixels at its tip, as every thin part)
     for (const y of [-0.17, -0.12]) mesh(w, cyl(0.03, 0.03, 0.025, 7), tone(LEATHER), 0, y, 0);
     gem(w, c, 0.06, 0, 0.29, 0, 1.6);
   },
@@ -189,13 +189,13 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     const s = new THREE.Group();
     s.rotation.z = -0.55;
     g.add(s);
-    mesh(s, cyl(0.014, 0.016, 0.5), tone(DARKWOOD, 0.1), 0, -0.05, 0);
+    mesh(s, cyl(0.019, 0.02, 0.5), tone(DARKWOOD, 0.1), 0, -0.05, 0);
     put(mesh(s, GEO.gem, metal(c), 0, 0.28, 0), 0, 0, 0, [0.05, 0.14, 0.015]);
     box(s, 0.1, 0.02, 0.03, metal(IRON), 0, 0.2, 0);
   },
   serpent(g, c) {
     // a rod with a serpent coiled up it, its eyes lit
-    mesh(g, cyl(0.014, 0.018, 0.52), tone(DARKWOOD, 0.1), 0, 0, 0);
+    mesh(g, cyl(0.019, 0.02, 0.52), tone(DARKWOOD, 0.1), 0, 0, 0);
     const pts: number[][] = [];
     for (let i = 0; i <= 16; i++) {
       const t = i / 16,
@@ -211,7 +211,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     const w = new THREE.Group();
     w.rotation.z = -0.6;
     g.add(w);
-    mesh(w, cyl(0.014, 0.03, 0.5), tone(0x2a1a14, 0.1), 0, 0, 0);
+    mesh(w, cyl(0.019, 0.03, 0.5), tone(0x2a1a14, 0.1), 0, 0, 0);
     for (const y of [-0.1, 0.02, 0.12])
       put(mesh(w, cyl(0.031, 0.031, 0.012, 6), glowTone(c)), 0, 0, 0.15, 1).position.y = y;
     gem(w, 0xffa040, 0.06, 0, 0.29, 0, 1.8);
@@ -240,9 +240,10 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     // a rosary: a loop of beads, a pendant hanging from it
     for (let i = 0; i < 10; i++) {
       const a = (i / 10) * Math.PI * 2;
-      mesh(g, ball(0.028, 6, 4), tone(c, 0.05), Math.cos(a) * 0.14, 0.05 + Math.sin(a) * 0.14, 0);
+      mesh(g, ball(0.03, 6, 4), tone(c, 0.05), Math.cos(a) * 0.14, 0.05 + Math.sin(a) * 0.14, 0);
     }
-    stick(g, [0, -0.09, 0], [0, -0.18, 0], 0.006, tone(0x6a5a44));
+    mesh(g, new THREE.TorusGeometry(0.14, 0.012, 3, 20), tone(0x6a5a44), 0, 0.05, 0); // (the cord the beads are strung on)
+    stick(g, [0, -0.09, 0], [0, -0.18, 0], 0.018, tone(0x6a5a44));
     gem(g, shade(c, 1.2), 0.04, 0, -0.21, 0);
   },
   lens(g, c) {
@@ -258,7 +259,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
         a - Math.PI / 2,
       );
     }
-    for (let i = 0; i < 3; i++) mesh(g, cyl(0.012, 0.012, 0.05, 5), tone(C.bone, 0.05), 0, 0.21 + i * 0.055, 0);
+    for (let i = 0; i < 3; i++) mesh(g, cyl(0.019, 0.019, 0.05, 5), tone(C.bone, 0.05), 0, 0.21 + i * 0.055, 0);
   },
   shard(g, c) {
     // a shard of red crystal bound in gold wire
@@ -354,7 +355,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
       f.rotation.z = a;
       g.add(f);
       put(mesh(f, ball(0.07, 8, 6), tone(c, 0.08), s * 0.03, 0.06, 0), 0, 0, 0, [0.8, 2.6, 0.15]);
-      stick(f, [s * 0.03, -0.14, 0], [s * 0.03, 0.22, 0], 0.006, tone(0xe8e0c8));
+      stick(f, [s * 0.03, -0.14, 0], [s * 0.03, 0.22, 0], 0.018, tone(0xe8e0c8));
     }
     mesh(g, new THREE.TorusGeometry(0.03, 0.012, 4, 10), tone(C.bone), 0, -0.1, 0).rotation.x = Math.PI / 2;
   },
@@ -388,7 +389,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
   spoon(g, c) {
     // a silver spoon on a cord, worn thin at the bowl
     put(mesh(g, ball(0.07, 10, 6), metal(c), 0, -0.12, 0.01), 0, 0, 0, [1, 1.35, 0.35]);
-    stick(g, [0, -0.04, 0], [0, 0.17, 0], 0.012, metal(c));
+    stick(g, [0, -0.04, 0], [0, 0.17, 0], 0.019, metal(c));
     mesh(g, ball(0.022, 6, 4), metal(c), 0, 0.18, 0);
     put(mesh(g, new THREE.TorusGeometry(0.05, 0.008, 4, 12), tone(0x6a5a3e, 0.1), 0, 0.24, 0), 0, 0, 0);
   },
@@ -749,7 +750,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     const w = new THREE.Group();
     w.rotation.z = -0.6;
     g.add(w);
-    mesh(w, cyl(0.012, 0.022, 0.44), tone(0x3a3440, 0.08), 0, -0.03, 0);
+    mesh(w, cyl(0.019, 0.024, 0.44), tone(0x3a3440, 0.08), 0, -0.03, 0);
     put(mesh(w, GEO.gem, tone(0x5c6478, 0.15, 0.5), 0, 0.22, 0), 0, 0.4, 0, [0.05, 0.07, 0.05]);
     const star = new THREE.Group();
     star.position.set(0.14, 0.22, 0.02);

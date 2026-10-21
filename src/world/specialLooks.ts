@@ -346,7 +346,8 @@ export function offeringStoneLook(look: FloorLook, turn: number, curse: number) 
 /** The bargain stone's runes: dark while it waits, red with the price once cast into, gold once kept. */
 export const BARGAIN_RUNES = { idle: 0xa8503a, price: 0xd23a2a, kept: 0xffbe3a };
 /** The bargain stone at the circle's head: a tall stele in the floor's stone on a slab, a heart carved into its face and
-    runes down it, on one material of their own (`runes`, the colour its state gives). */
+    runes down it, on one material of their own (`runes`, the colour its state gives); where the floor has an `accent`,
+    the edges of its face lit in it (the drowned floor's stone is its walls' own teal: the stele sank into them). */
 export function bargainStoneLook(look: FloorLook) {
   const g = new THREE.Group(),
     st = stoneOf(look, 1.5),
@@ -383,6 +384,19 @@ export function bargainStoneLook(look: FloorLook) {
   h.bezierCurveTo(0.09, 0.12, 0.13, 0.01, 0, -0.09);
   mesh(g, new THREE.ExtrudeGeometry(h, { depth: 0.02, bevelEnabled: false, curveSegments: 6 }), runes, 0, 1.12, 0.16);
   for (const y of [0.86, 0.6, 0.36]) put(mesh(g, GEO.smallRune, runes, 0, y, 0.17), 0, 0, 0, 1.3);
+  if (look.accent) {
+    const edge = glowTone(parseInt(look.accent.slice(1), 16)),
+      up = new THREE.Vector3(0, 1, 0);
+    for (const s of [-1, 1]) {
+      // (along the face's two upright edges, from the slab to the cap; two pixels thick)
+      const a = new THREE.Vector3(s * 0.235, 0.13, 0.11),
+        b = new THREE.Vector3(s * 0.17, 1.42, 0.085),
+        d = b.clone().sub(a),
+        m = mesh(g, new THREE.CylinderGeometry(0.036, 0.036, d.length(), 4), edge);
+      m.position.copy(a).addScaledVector(d, 0.5);
+      m.quaternion.setFromUnitVectors(up, d.normalize());
+    }
+  }
   const glows = { price: glow(BARGAIN_RUNES.price, 0.9, 0.55), kept: glow(BARGAIN_RUNES.kept, 1, 0.6) }; // (shown with their state)
   for (const gl of Object.values(glows)) {
     gl.position.set(0, 0.9, 0.3);

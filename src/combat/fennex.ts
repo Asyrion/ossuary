@@ -13,6 +13,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree } from '../render/materials';
 import { mergeRig } from '../render/rig';
+import { markThing } from '../render/pixelLook';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { fennexLook } from '../actors/fennexLook';
 import { toast } from '../notify';
@@ -46,6 +47,7 @@ function make(stage: number, x: number, z: number, face: number) {
     g = new THREE.Group();
   mergeRig(L.group, L.idle, 'fennex:' + stage);
   L.group.scale.setScalar(F.scale[stage - 1]);
+  markThing(L.group); // (its closed outline in the pixel look, its colours as made: art bible 4.4)
   g.add(L.group, blob(L.shadow * F.scale[stage - 1]));
   g.position.set(x, 0, z);
   scene.add(g);

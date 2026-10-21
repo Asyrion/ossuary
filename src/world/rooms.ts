@@ -69,7 +69,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
       : plan.type === 'shrine'
         ? shrineLook(floorLook)
         : themedLook(floorLook, theme);
-  const look: RoomLook = { ...dressed, kinds: pickKinds(dressed.kit, plan.seed, DEV.kitKinds) }; // (the room kit's kinds, drawn on its seed)
+  const kit = plan.type === 'boss' && dressed.bossKit ? { ...dressed.kit, ...dressed.bossKit } : dressed.kit; // (a boss's floor calm)
+  const look: RoomLook = { ...dressed, kinds: pickKinds(kit, plan.seed, DEV.kitKinds) }; // (the room kit's kinds, drawn on its seed)
   const room: Room = {
     plan,
     template,
