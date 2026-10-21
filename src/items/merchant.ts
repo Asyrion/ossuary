@@ -42,22 +42,16 @@ function makeParts() {
   const ring = shared(new THREE.TorusGeometry(0.56, 0.025, 5, 32));
   ring.rotateX(Math.PI / 2);
   const column = shared(new THREE.CylinderGeometry(0.5, 0.56, 1.5, 24, 1, true));
-  const disc = shared(new THREE.CircleGeometry(0.56, 32));
-  disc.rotateX(-Math.PI / 2);
   return {
     rune,
     ring,
     column,
-    disc,
-    discMat: markShared(
-      new THREE.MeshBasicMaterial({ color: 0x0c1220, transparent: true, opacity: C.fill, depthWrite: false }),
-    ),
     runeMat: markShared(
       new THREE.MeshBasicMaterial({
         map: glyphTexture(),
         color: WARD,
         transparent: true,
-        opacity: C.rune,
+        opacity: 0.55,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       }),
@@ -75,20 +69,17 @@ function makeParts() {
   };
 }
 
-/** The ward circle a ware floats in: a rune on the floor over a dark fill, a ring and a faint column of light. */
+/** The ward circle a ware floats in: a rune on the floor, a ring and a faint column of light. */
 function wardCircle() {
   const P = (parts ??= makeParts()),
     g = new THREE.Group();
-  const disc = new THREE.Mesh(P.disc, P.discMat);
-  disc.position.y = 0.015;
-  disc.renderOrder = -1; // (under the rune)
   const rune = new THREE.Mesh(P.rune, P.runeMat);
   rune.position.y = 0.02;
   const ring = new THREE.Mesh(P.ring, M.ward);
   ring.position.y = 0.03;
   const column = new THREE.Mesh(P.column, P.columnMat);
   column.position.y = 0.75;
-  g.add(disc, rune, ring, column);
+  g.add(rune, ring, column);
   return g;
 }
 
