@@ -54,6 +54,7 @@ import { canHeal } from '../magic/status';
 import { lerp, mulberry, rand } from '../util';
 import { BESTIARY_OPTIONS, FOE_LOOKS } from './bestiaryLooks';
 import { FANTASY_LOOKS } from './fantasyLooks';
+import { madeFoeLook } from './madeFoes';
 import { BESTIARY_BEHAVIOURS, clearGround, updateGround } from './bestiaryFoes';
 import { light, num, span, wayRound, type Aim, type Behaviour } from './foeKit';
 import { metFoe } from './bestiary';
@@ -65,9 +66,12 @@ import { hearGround } from '../world/groundHooks';
 
 export type { Aim } from './foeKit';
 
-/** The builder of the look of id `look`: its fantasy look, else a bestiary look, or a look of its own. */
-const lookBuilder = (look: string) =>
-  FANTASY_LOOKS[look] ?? BESTIARY_OPTIONS.find((o) => o.id === look)?.build ?? FOE_LOOKS[look];
+/** The builder of the look of id `look`: its made model wrapping the look in code (madeFoes.ts), else its fantasy look,
+    a bestiary look, or a look of its own. */
+const lookBuilder = (look: string) => {
+  const code = FANTASY_LOOKS[look] ?? BESTIARY_OPTIONS.find((o) => o.id === look)?.build ?? FOE_LOOKS[look];
+  return code && (madeFoeLook(look, code) ?? code);
+};
 
 /** Build foe `def` into `e`: its model, merged, in `e.body`; its surfaces that a hit or a status lights. */
 export function buildFoe(e: Enemy, def: FoeDef) {

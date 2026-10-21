@@ -504,3 +504,47 @@ test("floors 1 and 2's standing relics never cut a room in two: on several seeds
   }
   expect(relics).toBeGreaterThan(3); // (the check saw some)
 });
+
+test("floor 2's made foes: the eight weakest wear their Tripo model (each its own surface, so a hit lights one)", async ({
+  page,
+}) => {
+  type M = { isMesh?: boolean; material?: { map: unknown; uuid: string }; traverse(f: (o: M) => void): void };
+  type Foe = { model?: M; y?: number };
+  type GF = { spawn(k: string, x?: number, z?: number): Foe; player: { x: number; z: number }; sim(t: number): void };
+  const errors = await start(page, '?seed=K3F9QX&floor=2&room=great_hall&variant=quiet');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game;
+    const looks = [
+      'mireToad',
+      'lanternJelly',
+      'thunderhead',
+      'puddleElemental',
+      'puffcap',
+      'rimeSnail',
+      'glassNewt',
+      'stormDarter',
+    ];
+    const mats = (e: Foe) => {
+      const out: { map: boolean; id: string }[] = [];
+      e.model!.traverse((o) => o.isMesh && o.material && out.push({ map: !!o.material.map, id: o.material.uuid }));
+      return out;
+    };
+    const made = looks.filter((k) => mats(g.spawn(k, g.player.x + 3, g.player.z - 2)).some((m) => m.map));
+    const a = mats(g.spawn('mireToad', g.player.x - 3, g.player.z - 2)).map((m) => m.id),
+      b = mats(g.spawn('mireToad', g.player.x - 3, g.player.z + 1)).map((m) => m.id);
+    g.sim(0.3);
+    return { made, shared: a.filter((id) => b.includes(id)).length };
+  });
+  expect(r.made.sort()).toEqual([
+    'glassNewt',
+    'lanternJelly',
+    'mireToad',
+    'puddleElemental',
+    'puffcap',
+    'rimeSnail',
+    'stormDarter',
+    'thunderhead',
+  ]);
+  expect(r.shared).toBe(0);
+  expect(errors).toEqual([]);
+});

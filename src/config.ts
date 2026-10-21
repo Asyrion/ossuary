@@ -810,6 +810,19 @@ export const CFG = {
     // black only in outlines)
     decalShade: 0.3,
   },
+  // foes made in Tripo (actors/madeFoes.ts, art bible 4.19), by look: how code moves the still model as a whole, the
+  // part of the look in code it takes the place of (the one its behaviour swells or lifts), and its span: the model's
+  // longest side across the floor, in units (about one and a half times its body's width, data/foes.json `r`)
+  madeFoes: {
+    mireToad: { motion: 'squat', main: 'body', span: 1.05 },
+    lanternJelly: { motion: 'float', main: 'bell', span: 0.8 },
+    thunderhead: { motion: 'float', main: 'cloud', span: 1.35 },
+    puddleElemental: { motion: 'sway', main: 'body', span: 1.2 },
+    puffcap: { motion: 'squat', main: 'ball', span: 0.85 },
+    rimeSnail: { motion: 'crawl', main: 'body', span: 1.4 },
+    glassNewt: { motion: 'crawl', main: 'body', span: 1.15 },
+    stormDarter: { motion: 'bank', main: 'body', span: 1.15 },
+  },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across
   hud: { pixel: [2, 3] as [number, number], tall: 900, spellIcon: 16, coin: 12 },

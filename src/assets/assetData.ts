@@ -74,6 +74,15 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   sunken_bell: 'large-prop',
   rotten_planks: 'prop',
   rimed_bones: 'prop',
+  // floor 2's foes made in Tripo (actors/madeFoes.ts): a still model in place of the look in code
+  foe_mireToad: 'prop',
+  foe_lanternJelly: 'prop',
+  foe_thunderhead: 'prop',
+  foe_puddleElemental: 'prop',
+  foe_puffcap: 'prop',
+  foe_rimeSnail: 'prop',
+  foe_glassNewt: 'prop',
+  foe_stormDarter: 'prop',
   // the solid parts of spells (magic/spellFx.ts): made models only, no placeholder; the spells draw their own without them
   ice_column: 'prop',
   bone_hand: 'prop',
