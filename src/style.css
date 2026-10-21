@@ -133,7 +133,7 @@ body.touch #devHint,#devHint:empty{display:none}
 .stick{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(232,220,194,.28);background:rgba(10,8,6,.2);display:none}
 .stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(232,200,150,.35);border:1px solid rgba(255,230,190,.5)}
 .stick.on{display:block}
-.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:flex-start;padding:max(24px,env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(28px,env(safe-area-inset-left,0px));background:linear-gradient(90deg,rgba(0,0,0,.78) 0%,rgba(0,0,0,.45) 55%,rgba(0,0,0,.1) 100%);overflow:auto}
+.screen{z-index:10;position:fixed;inset:0;display:flex;align-items:center;justify-content:flex-start;padding:max(24px,env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(28px,env(safe-area-inset-left,0px));background:linear-gradient(90deg,rgba(0,0,0,.78) 0%,rgba(0,0,0,.45) 55%,rgba(0,0,0,.1) 100%);overflow:auto}
 .screen.hidden{display:none}
 .card{max-width:560px;color:var(--ink);border:solid transparent;border-width:calc(var(--u) * 4);border-image:url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;image-rendering:pixelated;padding:24px 26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 .card *{image-rendering:auto}
@@ -180,7 +180,7 @@ body.touch.portrait #rotate{display:flex}
 #loreEffect{font:500 15px var(--f-ui);color:#e8dcc2;margin-top:6px;line-height:1.3}
 #loreText{font-family:var(--f-serif);font-style:italic;font-size:15px;line-height:1.4;color:#cbbd9f;margin:7px 0 0;padding-top:7px;border-top:1px solid rgba(94,77,57,.7)}
 @media (max-width:700px){#lore{width:min(360px,86vw);padding:10px 12px}#loreText{font-size:14px}}
-#toast{border:solid transparent;border-width:calc(var(--u) * 4);border-image:url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + var(--u) * 42);transform:translateX(-50%);color:#e8dcc2;padding:10px 16px;font-size:15px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center}
+#toast{border:solid transparent;border-width:calc(var(--u) * 4);border-image:url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + var(--u) * 34);transform:translateX(-50%);color:#e8dcc2;padding:calc(var(--u) * 3) calc(var(--u) * 6);font-size:calc(var(--u) * 7);line-height:1.3;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.on{opacity:1}
 /* a grimoire page asking which spell to give up */
 #prompt{border:solid transparent;border-width:calc(var(--u) * 4);border-image:url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + var(--u) * 58);transform:translateX(-50%);box-shadow:0 6px 18px rgba(0,0,0,.55);color:#e8dcc2;padding:10px 18px 8px;font-size:15px;text-align:center;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw}
