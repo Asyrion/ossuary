@@ -14,6 +14,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
+import { markThing } from '../render/pixelLook';
 import { burst } from '../combat/fx';
 import { banner, renderHearts, renderPurse, toast, itemLore } from '../notify';
 import { heroDrink } from '../actors/hero';
@@ -50,10 +51,16 @@ export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 
     is its bottle as this run deals it (`id` names the potion), a reagent its own (alchemyLooks.ts), a rune its chip of
     stone (runeLooks.ts). */
 export function itemVisual(kind: Item, id?: string): THREE.Object3D {
-  if (kind === 'potion') return bottleLook(G.run.bottles[(id ?? 'healing') as PotionId]);
-  if (kind === 'reagent') return reagentLook((id ?? 'graveMoss') as ReagentId);
-  if (kind === 'rune') return runePickupLook((id ?? 'quicken') as RuneId);
-  return itemLook(kind);
+  const v =
+    kind === 'potion'
+      ? bottleLook(G.run.bottles[(id ?? 'healing') as PotionId])
+      : kind === 'reagent'
+        ? reagentLook((id ?? 'graveMoss') as ReagentId)
+        : kind === 'rune'
+          ? runePickupLook((id ?? 'quicken') as RuneId)
+          : itemLook(kind);
+  markThing(v); // (its closed outline in the pixel look, as a discrete object's: art bible 4.4)
+  return v;
 }
 
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
@@ -82,6 +89,7 @@ export function spawnPickup(
     const gilded = kind === 'chest' && (opts.gilded ?? G.run.drops.chance(LOOT.gildedChest));
     const v = containerLook(kind, gilded); // (a coffer or a chest, its lid on a hinge at the back, a chest's ward seal on its front)
     g.add(v.g);
+    markThing(v.g); // (its closed outline in the pixel look)
     G.room.pickups.push({
       kind,
       x,

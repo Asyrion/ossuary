@@ -337,6 +337,41 @@ test("a floor's grade (the art bible's cool shadows): floor 1 leans its darks to
   expect(two).toEqual([]);
 });
 
+test("floor 1's things: every drop and container and the artifacts get the pixel look's closed outline (not an actor's light); a blast's scorch leans to the floor's shadow, never black", async ({
+  page,
+}) => {
+  type GT = {
+    sim(t: number, draw?: boolean): void;
+    clearRoom(): void;
+    dropsHere(): void;
+    blast(x: number, z: number): void;
+    player: { x: number; z: number };
+    marked: { actors: number; things: number };
+    decals: string[];
+  };
+  const errors = await start(page, '?seed=THINGS1');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GT }).__game;
+    g.clearRoom();
+    g.sim(0.5, true);
+    const before = g.marked;
+    g.dropsHere();
+    g.sim(0.8, true);
+    const after = g.marked;
+    g.blast(g.player.x + 2, g.player.z);
+    g.sim(0.2, true);
+    return { before, after, scorch: g.decals[g.decals.length - 1] };
+  });
+  expect(r.before.actors).toBeGreaterThanOrEqual(1); // (the mage)
+  expect(r.after.actors).toBe(r.before.actors);
+  expect(r.after.things - r.before.things).toBeGreaterThanOrEqual(17); // (one of each drop, and a gilded chest)
+  // the scorch is drawn toward floor 1's slate shadow: bluer than it is red, and well off black (it was #14100c)
+  const [red, , blue] = [1, 3, 5].map((i) => parseInt(r.scorch.slice(i, i + 2), 16));
+  expect(blue).toBeGreaterThan(red);
+  expect(blue).toBeGreaterThan(0x20);
+  expect(errors).toEqual([]);
+});
+
 test("a plain room's scatter: on floor 1 a fight's room is strewn from the floor's own scatter (bones, pebbles, verdigris, cobwebs by the walls), only kinds it names; a floor without one leaves its plain rooms bare", async ({
   page,
 }) => {

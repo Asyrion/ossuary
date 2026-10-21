@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { G } from '../state';
+import { CFG } from '../config';
 import { scene } from '../render/renderer';
+import { gradeNow } from '../render/pixelLook';
 import { clamp, rand } from '../util';
 
 const PGEO = new THREE.BoxGeometry(1, 1, 1);
@@ -48,9 +50,12 @@ DGEO.rotateX(-Math.PI / 2);
 DGEO.userData.shared = true;
 /** Stain left on the floor where a foe died. */
 export function addDecal(x: number, z: number, color: number, size: number) {
+  const g = gradeNow(),
+    c = new THREE.Color(color);
+  if (g.amount > 0) c.lerp(new THREE.Color(g.shadow), CFG.pixelLook.decalShade); // (a shadow, not a hole: CFG.pixelLook)
   const m = new THREE.Mesh(
     DGEO,
-    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.6, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.6, depthWrite: false }),
   );
   m.position.set(x, 0.006 + G.fx.decals.length * 0.0002, z);
   m.scale.set(size * rand(0.8, 1.2), 1, size * rand(0.7, 1));

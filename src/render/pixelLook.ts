@@ -38,11 +38,31 @@ const fineObjects = new Set<THREE.Object3D>();
 /** The actors (`markActor`: the mage, the foes, the bosses): their solid meshes stamp the stencil where they are drawn in
     the grid's pass (`stamp`), a pass over the grid turns the stamp into a mask (`drawActors`), and the shading gives
     every pixel of an actor seen a closed outline round it and a rim of light on its top and left (art bible 4.4 and 4.5).
-    Their glows, auras and shadows (translucent, or writing no depth) stamp nothing. */
-const actorRoots = new Set<THREE.Object3D>();
-/** Mark `o` as an actor, for the outline and the rim; it is forgotten once it has left the scene. */
+    Their glows, auras and shadows (translucent, or writing no depth) stamp nothing. The things (`markThing`: pickups,
+    containers, artifacts) stamp too, for the outline alone: their own colours stay as they are made. */
+const actorRoots = new Map<THREE.Object3D, number>();
+const ACTOR = 1,
+  THING = 2;
+/** Mark `o` as an actor, for the outline, the rim and the light in steps; it is forgotten once it has left the scene. */
 export function markActor(o: THREE.Object3D) {
-  actorRoots.add(o);
+  actorRoots.set(o, ACTOR);
+}
+/** Mark `o` as a discrete thing (a pickup, a container, an artifact), for the closed outline alone (art bible 4.4); it is
+    forgotten once it has left the scene. */
+export function markThing(o: THREE.Object3D) {
+  actorRoots.set(o, THING);
+}
+/** How many actors and things are marked and still in the scene (the dev hooks'). */
+export function markedNow() {
+  const n = { actors: 0, things: 0 };
+  for (const [o, kind] of actorRoots) {
+    let p = o;
+    while (p.parent) p = p.parent;
+    if (p.type !== 'Scene') continue;
+    if (kind === ACTOR) n.actors++;
+    else n.things++;
+  }
+  return n;
 }
 /** Mark `o` as holding what is on the fine layer (pickupLooks.ts does, for every coin it builds), so the fine pass runs
     while it is shown; it is forgotten once it has left the scene. */
@@ -272,21 +292,22 @@ const shade = new THREE.ShaderMaterial({
     }
     ivec2 at(ivec2 p) { return clamp(p, ivec2(0), ivec2(grid) - 1); }
     float depthAt(ivec2 p) { return texelFetch(tDepth, at(p), 0).r * range; }
-    // an actor seen there (its stamp, turned into the mask)
-    bool actorAt(ivec2 p) { return actors > 0.5 && texelFetch(tMask, at(p), 0).r > 0.5; }
+    // an actor seen there (its stamp, turned into the mask), or an actor or a thing (the outline's)
+    bool actorAt(ivec2 p) { return actors > 0.5 && texelFetch(tMask, at(p), 0).r > 0.75; }
+    bool outlinedAt(ivec2 p) { return actors > 0.5 && texelFetch(tMask, at(p), 0).r > 0.25; }
     void main() {
       ivec2 p = ivec2(gl_FragCoord.xy);
       vec3 col = texelFetch(tColor, p, 0).rgb;
-      bool me = actorAt(p);
+      bool me = actorAt(p), mine = outlinedAt(p);
       ivec2 n[4] = ivec2[4](p - ivec2(1, 0), p + ivec2(0, 1), p + ivec2(1, 0), p - ivec2(0, 1));
       if (outline > 0.5) { // the nearer side of an edge: a neighbour lies more than gap units farther away
         float d = depthAt(p), farther = 0.0;
         // (an actor's own edge is left to its outline outside it, so that stays one pixel wide)
-        for (int i = 0; i < 4; i++) if (!me || actorAt(n[i])) farther = max(farther, depthAt(n[i]) - d);
+        for (int i = 0; i < 4; i++) if (!mine || outlinedAt(n[i])) farther = max(farther, depthAt(n[i]) - d);
         if (farther > gap) col = ink(col * pow(1.0 - dark, 1.0 / 2.2)); // (as dark as 1 - dark in linear light)
         // the actor's closed outline, outside it all round: a pixel beside one, whatever lies there, in its colour darkened
         // (near black on every floor, tinted toward the floor's shadow and a little toward the actor, art bible 4.4)
-        if (!me) for (int i = 0; i < 4; i++) if (actorAt(n[i])) { col = gradeShadow * 0.35 + texelFetch(tColor, at(n[i]), 0).rgb * 0.12; break; }
+        if (!mine) for (int i = 0; i < 4; i++) if (outlinedAt(n[i])) { col = gradeShadow * 0.35 + texelFetch(tColor, at(n[i]), 0).rgb * 0.12; break; }
       }
       gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
       if (me) gl_FragColor.rgb = ramp(gl_FragColor.rgb);
@@ -504,7 +525,7 @@ let stamping = false;
 function stamp(this: THREE.Object3D, ...[, , , , mat]: Parameters<THREE.Object3D['onBeforeRender']>) {
   if (!stamping || !this.userData.actor || !solid(mat)) return;
   mat.stencilWrite = true;
-  mat.stencilRef = 1;
+  mat.stencilRef = this.userData.actor as number;
   mat.stencilFunc = THREE.AlwaysStencilFunc;
   mat.stencilZPass = THREE.ReplaceStencilOp;
 }
@@ -513,10 +534,11 @@ function unstamp(this: THREE.Object3D, ...[, , , , mat]: Parameters<THREE.Object
   mat.stencilWrite = false;
   mat.stencilZPass = THREE.KeepStencilOp;
 }
-/** The actors' meshes made to stamp (once each), forgetting the actors that have left the scene. Whether any is shown. */
+/** The actors' and things' meshes made to stamp (once each), forgetting those that have left the scene. Which kinds are
+    shown: `ACTOR` and `THING` as bits. */
 function tagActors(scene: THREE.Scene) {
-  let any = false;
-  for (const o of actorRoots) {
+  let any = 0;
+  for (const [o, kind] of actorRoots) {
     let p = o,
       seen = o.visible;
     while (p.parent) {
@@ -528,10 +550,10 @@ function tagActors(scene: THREE.Scene) {
       continue;
     }
     if (!seen) continue;
-    any = true;
+    any |= kind;
     o.traverse((c) => {
       if (!(c as THREE.Mesh).isMesh || c.userData.actor) return;
-      c.userData.actor = true;
+      c.userData.actor = kind;
       const before = c.onBeforeRender.bind(c),
         after = c.onAfterRender.bind(c);
       c.onBeforeRender = (...a) => {
@@ -556,8 +578,12 @@ const maskFill = new THREE.ShaderMaterial({
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: 'void main() { gl_FragColor = vec4(1.0); }',
 });
-/** The actors' stamp turned into `mask` (the grid's `gw` × `gh`): white where an actor is seen, black elsewhere. */
-function drawActors(renderer: THREE.WebGLRenderer, gw: number, gh: number) {
+const thingFill = maskFill.clone();
+thingFill.stencilRef = THING;
+thingFill.fragmentShader = 'void main() { gl_FragColor = vec4(0.5); }';
+/** The stamp turned into `mask` (the grid's `gw` × `gh`): white where an actor is seen, grey where a thing is, black
+    elsewhere; a pass for each kind shown (`kinds`, as `tagActors` gives them). */
+function drawActors(renderer: THREE.WebGLRenderer, gw: number, gh: number, kinds: number) {
   const m = ensureMask(),
     auto = renderer.autoClear;
   m.viewport.set(0, 0, gw, gh);
@@ -568,7 +594,8 @@ function drawActors(renderer: THREE.WebGLRenderer, gw: number, gh: number) {
   renderer.setClearColor(0x000000, 1);
   renderer.clear(true, false, false); // (the colour only: the depth and the stamp are the grid's)
   renderer.autoClear = false;
-  pass(renderer, maskFill, m);
+  if (kinds & ACTOR) pass(renderer, maskFill, m);
+  if (kinds & THING) pass(renderer, thingFill, m);
   renderer.autoClear = auto;
   renderer.setClearColor(clear, alpha);
 }
@@ -645,11 +672,11 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   camera.bottom = -camera.top;
   camera.updateProjectionMatrix();
   const actorsDrawn = tagActors(scene);
-  stamping = actorsDrawn;
+  stamping = actorsDrawn > 0;
   renderer.setRenderTarget(target);
   renderer.render(scene, camera);
   stamping = false;
-  if (actorsDrawn) drawActors(renderer, gw, gh);
+  if (actorsDrawn) drawActors(renderer, gw, gh, actorsDrawn);
   fineDrawn = drawFine(renderer, scene, camera, gw, gh);
   camera.left = l;
   camera.right = r;
