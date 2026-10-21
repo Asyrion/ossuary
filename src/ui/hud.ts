@@ -6,7 +6,9 @@ import { CFG } from '../config';
 import { camera } from '../render/renderer';
 import { iconUrl } from '../assets/models';
 import { obolFace } from '../items/obolFace';
-import { HEART_PATH, RES_ICONS, coinIconBody, soulSvg, spellIcon } from '../render/icons';
+import { HEART_PATH, coinIconBody, pixelHeart, pixelResIcon, soulSvg, spellIcon, spellIconSvg } from '../render/icons';
+import { onPixelIcons, pixelIcon } from '../render/pixelIcons';
+import { spell } from '../magic/spellData';
 import { artifactIconUrl } from '../items/artifactIcons';
 import { artifact } from '../items/artifactData';
 import { payment, slotDef, spellCooldown, spellCost } from '../magic/cost';
@@ -18,6 +20,7 @@ import { on } from '../events';
     in the slot's socket, in the colour of the rune carved there (hollow while empty), and Vein's half heart, shown while it
     would pay. */
 export function renderSpells() {
+  const u = hudPixel();
   player.spells.forEach((id, i) => {
     const slot = $(`slot${i}`),
       key = STR.controls.spellsKeys.split(' and ')[i] ?? '',
@@ -30,13 +33,31 @@ export function renderSpells() {
         }).join('')
       : '';
     slot.innerHTML = id
-      ? `${spellIcon(id)}<i class="cd"></i><b>${key}</b><small>${slotDef(i)!.mana}</small><span class="pips">${pips}</span>` +
+      ? `${spellPixelIcon(id, u)}<i class="cd"></i><b>${key}</b><small>${slotDef(i)!.mana}</small><span class="pips">${pips}</span>` +
         (socket?.runes.includes('vein')
           ? `<svg class="blood" viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}" fill="#c42c1f" clip-path="url(#halfclip)"/></svg>`
           : '')
       : `<b>${key}</b>`; // (as its runes make it)
   });
 }
+/** The size of the HUD's pixel in screen pixels (art bible 4.6: its panels and icons are pixel art, at about the room's
+    pixel), as the CSS sets it (`--u`). */
+export const hudPixel = () => (innerHeight >= CFG.hud.tall ? CFG.hud.pixel[1] : CFG.hud.pixel[0]);
+/** A spell's icon made pixel art (render/pixelIcons.ts), or its drawn icon while that is being made. */
+function spellPixelIcon(id: string, u: number) {
+  const def = spell(id),
+    url = pixelIcon(`spell:${id}`, spellIconSvg(id, def.color), CFG.hud.spellIcon);
+  return url
+    ? `<img class="px icon" src="${url}" width="${(CFG.hud.spellIcon + 2) * u}" height="${(CFG.hud.spellIcon + 2) * u}" alt="${def.name}" title="${def.name}: ${def.text}">`
+    : spellIcon(id);
+}
+onPixelIcons(() => renderSpells()); // (an icon made: the slots drawn again with it)
+addEventListener('resize', () => {
+  lastHearts = lastPurse = '';
+  renderSpells();
+  renderHearts();
+  renderPurse();
+}); // (the HUD's pixel follows the window's height)
 let lastMana = -1;
 /** Every frame: the mana bar, and each slot's cooldown and whether mana is short. */
 function updateMagicHud() {
@@ -96,23 +117,17 @@ export function resetHearts() {
   lastHearts = '';
 }
 export function renderHearts() {
-  const key = player.hp + '/' + player.maxHp + '/' + player.souls.join();
+  const u = hudPixel(),
+    key = player.hp + '/' + player.maxHp + '/' + player.souls.join() + '/' + u;
   if (key === lastHearts) return;
   lastHearts = key;
   let html = '';
   for (let i = 0; i < player.maxHp / 2; i++) {
     const half = player.maxHp - i * 2 === 1,
       v = clamp(player.hp - i * 2, 0, half ? 1 : 2); // (Vigor's half container, a half heart's outline)
-    html +=
-      `<svg viewBox="0 0 24 24"${half ? ' class="half"' : ''}><path d="${HEART_PATH}" fill="#2a1210" stroke="#0b0504" stroke-width="1.6"${half ? ' clip-path="url(#halfclip)"' : ''}/>` +
-      (v === 2
-        ? `<path d="${HEART_PATH}" fill="#c42c1f"/>`
-        : v === 1
-          ? `<path d="${HEART_PATH}" fill="#c42c1f" clip-path="url(#halfclip)"/>`
-          : '') +
-      `<path d="M7 7.2c-1.2.3-2 1.2-2.2 2.4" stroke="rgba(255,220,200,.55)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
+    html += pixelHeart(v, half, u);
   }
-  for (const kind of player.souls) html += soulSvg(kind); // soul motes after the hearts, in the order taken
+  for (const kind of player.souls) html += soulSvg(kind, u); // soul motes after the hearts, in the order taken
   el.hearts.innerHTML = html;
   el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2, player.souls.length));
 }
@@ -120,13 +135,14 @@ export function renderHearts() {
 let lastPurse = '';
 /** Obols, bone keys and blast glyphs carried, as icons and two-digit counts. */
 export function renderPurse() {
-  const key = `${player.coins}/${player.keys}/${player.glyphs}/${obolFace()}`;
+  const u = hudPixel(),
+    key = `${player.coins}/${player.keys}/${player.glyphs}/${obolFace()}/${u}`;
   if (key === lastPurse) return;
   lastPurse = key;
   el.purse.innerHTML = (['coins', 'keys', 'glyphs'] as const)
     .map(
       (k) =>
-        `<span class="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${k === 'coins' ? coinIconBody() : RES_ICONS[k]}</svg><b>${String(player[k]).padStart(2, '0')}</b></span>`,
+        `<span class="${k}">${k === 'coins' ? `<svg viewBox="0 0 24 24" width="${12 * u}" height="${12 * u}" aria-hidden="true">${coinIconBody()}</svg>` : pixelResIcon(k, u)}<b>${String(player[k]).padStart(2, '0')}</b></span>`,
     )
     .join('');
   el.purse.setAttribute('aria-label', STR.purse(player.coins, player.keys, player.glyphs));
