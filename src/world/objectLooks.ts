@@ -1479,19 +1479,7 @@ export function altarLook(look: FloorLook | undefined) {
     red = tone(0x7a1410, 0.05);
   box(g, 1, 0.5, 0.6, tone(st, 0.1), 0, 0.25, 0);
   for (const x of [-0.3, 0, 0.3]) mesh(g, GEO.warnRune, blood, x, 0.27, 0.305);
-  // the altar cloth: creased across its top, a drape over the front with its folds and a red hem (flat, it read as a slab)
   box(g, 1.08, 0.08, 0.68, tone(C.bone, 0.06), 0, 0.54, 0);
-  for (const [x, k] of [
-    [-0.36, 0.68],
-    [-0.13, 0.76],
-    [0.1, 0.68],
-    [0.33, 0.76],
-  ])
-    box(g, 0.05, 0.082, 0.69, tone(shade(C.bone, k), 0.04), x, 0.541, 0);
-  box(g, 0.9, 0.15, 0.03, tone(C.bone, 0.06), 0, 0.47, 0.335);
-  for (const x of [-0.33, -0.11, 0.11, 0.33])
-    box(g, 0.05, 0.15, 0.034, tone(shade(C.bone, 0.66), 0.04), x, 0.47, 0.337);
-  box(g, 0.92, 0.03, 0.036, red, 0, 0.395, 0.337);
   for (let i = 0; i < 3; i++) bone(g, -0.3 + i * 0.3, 0.05, 0.38, 0.4 - i * 0.4 + Math.PI / 2, 0, i === 1);
   skull(g, 0.12, 0.1, 0.42, -0.3, -0.2, 0.9);
   const specs: FlameSpec[] = [];
