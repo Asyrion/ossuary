@@ -193,6 +193,16 @@ describe('the asset manifest', () => {
     for (const id of ['pyre_seal', 'consecrate', 'ferrymans_toll'])
       expect(existsSync(join('public/assets/textures/spells', `${id}.png`)), id).toBe(true);
   });
+  it("the containers' made models each have a lid to open (items/pickupLooks.ts `madeContainer`)", () => {
+    for (const id of ['coffer', 'chest', 'chest_gilded']) {
+      const b = readFileSync(join('public/assets', MANIFEST.props[id].file)),
+        gltf = JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString()) as { nodes: { name?: string }[] };
+      expect(
+        gltf.nodes.some((n) => n.name === 'lid'),
+        id,
+      ).toBe(true);
+    }
+  });
   it('budgets are positive for every kind', () => {
     for (const b of Object.values(BUDGETS)) {
       expect(b.triangles).toBeGreaterThan(0);
