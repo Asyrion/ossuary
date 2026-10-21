@@ -262,11 +262,12 @@ const DRESS: Record<ScatterKind, Dress> = {
     }
     return g;
   },
-  /** A relic of the vault (made models, data/assets.json: a grave marker, a coffin lid, a fallen candelabrum, an angel's
+  /** A relic of the floor (made models, data/assets.json; its look's `relics`, or floor 1's vault's: a grave marker, a coffin lid, a fallen candelabrum, an angel's
       head, a pile of skulls, a broken urn); those with a face turn it to the camera. None while the models aren't in. */
-  relics(R, _look, used) {
-    const left = RELICS.filter((id) => !used.has(id)),
-      id = (left.length ? left : RELICS)[Math.floor(R() * (left.length || RELICS.length))];
+  relics(R, look, used) {
+    const all = relicsOf(look),
+      left = all.filter((id) => !used.has(id)),
+      id = (left.length ? left : all)[Math.floor(R() * (left.length || all.length))];
     used.add(id); // (two in one room are two different relics)
     return relicLook(id, R);
   },
@@ -522,7 +523,9 @@ export function dressTheme(room: Room) {
   room.group.add(still);
 }
 export const RELICS = ['grave_marker', 'coffin_lid', 'fallen_candelabrum', 'angel_head', 'skull_pile', 'broken_urn'];
-const FACING = new Set(['grave_marker', 'angel_head', 'skull_pile']);
+/** The relics a floor strews: its look's own, or the vault's of floor 1. */
+export const relicsOf = (look: { relics?: string[] }) => look.relics ?? RELICS;
+const FACING = new Set(['grave_marker', 'angel_head', 'skull_pile', 'fungus_log', 'sunken_bell']); // (a log lies across, a bell's mouth shows)
 /** A relic put down in the room (its group's child, placed): one that stands (`CFG.themes.relicBlock`) blocks like a
     rock and breaks like one, to a glyph's blast or Mason's Chisel (world/rooms.ts `hitRock`); its tile stops being floor
     meanwhile. A relic whose model isn't in blocks nothing. */

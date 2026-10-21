@@ -641,7 +641,16 @@ export const CFG = {
     plainClear: { door: 1.8, start: 2.4 },
     // the relics that stand in the way like a rock (and break like one, to a glyph's blast or Mason's Chisel); the others
     // lie flat and are walked over. Their collider is this much of the model's footprint.
-    relicBlock: ['grave_marker', 'angel_head', 'skull_pile', 'broken_urn'],
+    relicBlock: [
+      'grave_marker',
+      'angel_head',
+      'skull_pile',
+      'broken_urn',
+      'toppled_font',
+      'pillar_stump',
+      'fungus_log',
+      'sunken_bell',
+    ],
     relicFit: 0.8,
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
     drownAfter: 5,
