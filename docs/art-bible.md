@@ -224,7 +224,8 @@ light came out white, and a pillar of light under 0.6 over a foe. **The owner ac
 F3, floor 1's foes' magic (built 2026-10-20, the owner's go the same day): a foe's shot is a hot core in a sheath of its
 school's light ringed in dark, unlike the mage's; the Warden's halo stays low as it winds up and a circle of runes on the
 floor warns instead; a foe's telegraph pulses at 0.28 of its school's light rather than flooding it flat; the Quill
-Kraken's ink lies as uneven splats; Soul Harvest's threads are full lightning and its stacks fly home as sparks.
+Kraken's ink lies as uneven splats; Soul Harvest's threads are full lightning and its stacks fly home as sparks. **The owner
+accepted F3 (2026-10-21).**
 
 ## 5. The reference pictures
 
