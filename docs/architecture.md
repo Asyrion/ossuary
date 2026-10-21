@@ -687,7 +687,11 @@ depth and stencil), one draw call however many actors there are. The shade pass 
 outside every actor seen and a rim of warm light on its top and left edge where it is four pixels thick or more
 (`CFG.pixelLook.actors`: the rim's colour and amount; art bible 4.4 and 4.5). Their glows and shadows stamp nothing.
 The light on an actor falls in `steps` steps even to the eye, its darks turned toward the floor's shadow colour (`cool`)
-and its lights toward the rim's warm colour (`warm`; `ramp` in the shade pass, art bible 4.2).
+and its lights toward the rim's warm colour (`warm`; `ramp` in the shade pass, art bible 4.2). The things (`markThing`: every pickup and
+container in `items/pickups.ts`, every artifact's visual in `makeArtifactVisual`) stamp the stencil with 2 and get the
+closed outline alone, their own colours kept; the mask pass draws them grey (one draw call more while one is shown).
+Marks on the floor (`addDecal` in `combat/fx.ts`: scorch, soot, stains) lean toward the floor's shadow colour
+(`CFG.pixelLook.decalShade`).
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
