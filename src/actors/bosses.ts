@@ -43,6 +43,7 @@ import { banner } from '../notify';
 import { floatText } from '../magic/statusFx';
 import { makeEnemy } from './enemies';
 import { abbessLook, anglerLook, hartLook, pyreKnightLook, tigerLook, wardenLook } from './bossLooks';
+import { madeBossLook } from './madeBosses';
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
@@ -187,19 +188,22 @@ export function buildBoss(e: Enemy) {
   else if (e.type === 'serpent')
     buildSerpent(e); // built in code: out of its vat (world/laboratory.ts), its fight is jellySerpent.ts
   else if (e.type === 'abbess' || e.type === 'pyre') {
-    // built in code: the bosses of floors 2 and 3
+    // the bosses of floors 2 and 3: made in Tripo where a model is in (madeBosses.ts), else built in code
     const abbess = e.type === 'abbess',
-      L = abbess ? abbessLook() : pyreKnightLook(),
+      code = abbess ? abbessLook : pyreKnightLook,
+      made = madeBossLook(e.type, code),
+      L = (made ?? code)(),
       P = L.parts,
       C = CFG.enemy[e.type];
     const keep = abbess
       ? [P.eye, ...P.eye.children, P.ring, P.jaw, P.gillL, P.gillR]
       : [P.eye, P.ring, P.arms, P.legL, P.legR];
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type, keep);
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type + (made ? ':made' : ''), keep);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group;
     e.idle = L.idle;
     e.shadow = L.shadow;
+    e.openShadow = L.openShadow;
     e.bossSchool = L.school;
     e.body.add(L.group);
     e.eye = P.eye;

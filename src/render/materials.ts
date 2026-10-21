@@ -86,10 +86,19 @@ export function cappedWallMaterials(look: Pick<FloorLook, 'name' | 'wall'>, kind
 const shadowGeo = new THREE.PlaneGeometry(1, 1);
 shadowGeo.rotateX(-Math.PI / 2);
 shadowGeo.userData.shared = true;
-const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
-/** Soft blob shadow on the floor. */
-export function blob(size: number) {
-  const m = new THREE.Mesh(shadowGeo, shadowMat);
+const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })),
+  openShadowMat = markShared(
+    new THREE.MeshBasicMaterial({
+      map: shadowTex,
+      transparent: true,
+      depthWrite: false,
+      opacity: CFG.pixelLook.openShadow,
+    }),
+  );
+/** Soft blob shadow on the floor; `open`, lighter, for a figure whose legs show the floor between them (its dark middle
+    read as a hole there). */
+export function blob(size: number, open = false) {
+  const m = new THREE.Mesh(shadowGeo, open ? openShadowMat : shadowMat);
   m.scale.set(size, 1, size);
   m.position.y = 0.012;
   m.renderOrder = 1;

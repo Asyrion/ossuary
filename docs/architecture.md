@@ -264,7 +264,8 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`) with `MOVED_PARTS`, the parts each foe's behaviour moves (the
   `lookContract` hook checks every look keeps them). A foe's look is the fantasy look, else the bestiary look or
   `FOE_LOOKS` entry of its id (or `look`); a look in `CFG.madeFoes` with a `foe_<look>` prop loaded wears that Tripo
-  model instead (`madeFoes.ts`: code moves it whole, sized by `span`; the code look still gives its lights and moved parts). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  model instead (`madeFoes.ts`: code moves it whole, sized by `span`; the code look still gives its lights and moved parts,
+  and the parts named in `keep`, such as a water foe's pool, as built). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a
@@ -362,7 +363,10 @@ To add a foe: an entry in `data/foes.json` and in its floor's `foes` weights, a 
 `data/floors.json`, never one already met. Tuning `CFG.enemy.<boss>`; weakness and resistance are `weak`/`resist` in
 `CFG.enemy` (`bossAff`). `onBossDead` (`flow.ts`) pays insight, drops a grimoire page and raises the waystone. A boss
 with `hidden` set cannot be hit and does not hurt on contact. Looks: `bossLooks.ts` (names the fights call) built in
-`fantasyBosses.ts`; the Galleries tab stands every boss (`__game.bossLooks()`). `?boss=<id>` forces one.
+`fantasyBosses.ts`; the Galleries tab stands every boss (`__game.bossLooks()`). `?boss=<id>` forces one. A boss in
+`CFG.madeBosses` with a `foe_<id>` prop loaded wears that Tripo model (`madeBosses.ts`): sized to its look in code, whose
+rune ring, halo and named part's fire it keeps; what its fight does to the parts it moves (a jaw, a sword arm) moves the
+model as a whole, and its blob shadow is the open one (`blob(size, true)`, lighter where the floor shows between legs).
 
 | Boss | Id | Fight |
 | --- | --- | --- |

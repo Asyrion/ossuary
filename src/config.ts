@@ -795,6 +795,7 @@ export const CFG = {
     bands: 7,
     glowSteps: 5,
     shadowSteps: 3,
+    openShadow: 0.55, // (the blob under a made boss, whose dark middle shows between its legs: render/materials.ts)
     fineLayer: 2,
     // the actors (the mage, the foes, the bosses: art bible 4.4 and 4.5): a closed outline round each, and a rim of warm
     // light on its top and left edge (the colour as written, and how much of it); the light on an actor in `steps` steps
@@ -822,6 +823,15 @@ export const CFG = {
     rimeSnail: { motion: 'crawl', main: 'body', span: 1.4 },
     glassNewt: { motion: 'crawl', main: 'body', span: 1.15 },
     stormDarter: { motion: 'bank', main: 'body', span: 1.15 },
+    cisternLurker: { motion: 'sway', main: 'rise', span: 1.6, keep: ['disc'] },
+    brineSerpent: { motion: 'sway', main: 'body', span: 1.5, keep: ['pool'] },
+  },
+  // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
+  // look kept as built (the rune ring and the halo the fight turns and lights), and the part whose fire is set on the
+  // model (its painted flames don't light)
+  madeBosses: {
+    abbess: { size: 1, keep: ['ring', 'halo'] },
+    pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm' },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

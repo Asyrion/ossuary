@@ -133,7 +133,7 @@ export function makeEnemy(
     e.group.add(e.aura);
     if (opts.mantle) giveMantle(e, opts.mantle); // (in its school's light)
   }
-  e.group.add(blob(e.shadow ?? C.r * 3));
+  e.group.add(blob(e.shadow ?? C.r * 3, e.openShadow));
   e.group.position.set(e.x, 0, e.z);
   e.group.scale.setScalar(0.01);
   scene.add(e.group);
