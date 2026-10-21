@@ -97,6 +97,8 @@ export interface FloorLook {
   /** What a plain fight or the start scatter over their floor (the themes' kinds, world/themes.ts), each kind's count
       varied a room. */
   scatter?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
+  /** The made relics its `relics` scatter strews (prop ids, data/assets.json); floor 1's vault's when absent. */
+  relics?: string[];
   /** The floor's own colours for the room kit's materials and objects, by name (world/kitColours.ts): '#rrggbb'. */
   materials?: Record<string, string>;
   /** The floor's pottery: an urn's clay and its painted bands (the room kit's urns). */

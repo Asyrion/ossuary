@@ -437,7 +437,7 @@ test("floor 1's relics: the standing ones (grave marker, angel's head, skull pil
   expect(errors).toEqual([]);
 });
 
-test("floor 1's standing relics never cut a room in two: on several seeds, every room's floor is as joined up with them as without", async ({
+test("floors 1 and 2's standing relics never cut a room in two: on several seeds, every room's floor is as joined up with them as without", async ({
   page,
 }) => {
   type Rm = {
@@ -445,8 +445,15 @@ test("floor 1's standing relics never cut a room in two: on several seeds, every
     rocks: { tile?: { c: number; r: number }; mesh?: { userData: { relic?: string } } }[];
   };
   let relics = 0;
-  for (const seed of ['RELICS1', 'RELICS2', 'RELICS3', 'RELICS4']) {
-    const errors = await start(page, `?seed=${seed}`);
+  for (const query of [
+    '?seed=RELICS1',
+    '?seed=RELICS2',
+    '?seed=RELICS3',
+    '?seed=RELICS4',
+    '?seed=RELICS1&floor=2',
+    '?seed=RELICS2&floor=2',
+  ]) {
+    const errors = await start(page, query);
     const r = await page.evaluate(() => {
       const g = (window as unknown as { __game: { rooms(): Rm[] } }).__game;
       // the pieces of a room's floor (four ways round), with its relics' tiles counted as floor or not
@@ -492,7 +499,7 @@ test("floor 1's standing relics never cut a room in two: on several seeds, every
       return { relics, cut };
     });
     relics += r.relics;
-    expect(r.cut, seed).toEqual([]);
+    expect(r.cut, query).toEqual([]);
     expect(errors).toEqual([]);
   }
   expect(relics).toBeGreaterThan(3); // (the check saw some)

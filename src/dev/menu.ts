@@ -69,7 +69,7 @@ import { assetList, assetsOn, setAssetsOn, wallTile } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
 import { lightLevels } from '../render/lights';
-import { RELICS, relicLook, standRelic, scatterOf } from '../world/themes';
+import { relicsOf, relicLook, standRelic, scatterOf } from '../world/themes';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from './effectOptions';
@@ -350,10 +350,10 @@ export function objectsHere() {
   }
 }
 
-/** Ahead of the mage, in a row: one of each relic of the vault (the made models floor 1 strews), to look at them. */
+/** Ahead of the mage, in a row: one of each relic this floor strews (its made models), to look at them. */
 export function relicsHere() {
   const room = G.room.current;
-  RELICS.forEach((id, i) => {
+  relicsOf(room.look).forEach((id, i) => {
     const q = freeSpotNear(room, player.x + (i - 2.5) * 1.2, player.z - 1.6),
       o = relicLook(id, () => 0.5);
     o.position.set(q.x - room.cx, 0, q.z - room.cz);

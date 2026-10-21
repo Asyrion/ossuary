@@ -67,6 +67,13 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   angel_head: 'large-prop',
   skull_pile: 'large-prop',
   broken_urn: 'large-prop',
+  // floor 2's relics (its look's `relics`): made models only, no placeholder
+  toppled_font: 'large-prop',
+  pillar_stump: 'large-prop',
+  fungus_log: 'large-prop',
+  sunken_bell: 'large-prop',
+  rotten_planks: 'prop',
+  rimed_bones: 'prop',
   // the solid parts of spells (magic/spellFx.ts): made models only, no placeholder; the spells draw their own without them
   ice_column: 'prop',
   bone_hand: 'prop',
