@@ -2,6 +2,7 @@
    three kinds of wall, floor, wall light and brazier, weighted (`kit` in each look in data/floors.json); every room draws
    one of each on its seed, so two rooms side by side rarely match. A theme can pin a kind (its `look.kit`), and the dev
    menu can force one on the whole floor to compare. Pure: no three.js. */
+import { SCATTER_KINDS } from './themeData';
 
 export const WALL_KINDS = [
   'bricks',
@@ -136,6 +137,34 @@ export function validateKit(name: string, kit: Partial<KitWeights> | undefined, 
       if (!(v > 0)) errs.push(`look "${name}": kit.${part}.${k} needs a weight above 0`);
     }
     if (!Object.keys(w).length) errs.push(`look "${name}": kit.${part} lists no kinds`);
+  }
+  return errs;
+}
+
+const HEX = /^#[0-9a-f]{6}$/i;
+/** Problems with a floor look's dressing and colours (`scatter` kinds the room kit strews, `materials` written as
+    colours, the `grade`'s colour and amounts); empty when valid. The names `materials` may change belong to the renderer
+    (kitColours.ts reports an unknown one as the floor is built). */
+export function validateLookExtras(
+  name: string,
+  look: { scatter?: Record<string, number>; materials?: Record<string, string>; grade?: Record<string, unknown> },
+): string[] {
+  const errs: string[] = [];
+  for (const [k, v] of Object.entries(look.scatter ?? {})) {
+    if (!(SCATTER_KINDS as readonly string[]).includes(k))
+      errs.push(`look "${name}": scatter names unknown kind "${k}"`);
+    if (!(typeof v === 'number' && v >= 0)) errs.push(`look "${name}": scatter.${k} needs a count of 0 or more`);
+  }
+  for (const [k, v] of Object.entries(look.materials ?? {})) {
+    if (!HEX.test(v)) errs.push(`look "${name}": materials.${k} needs a colour like #a1b2c3`);
+  }
+  const g = look.grade;
+  if (g) {
+    if (typeof g.shadow !== 'string' || !HEX.test(g.shadow))
+      errs.push(`look "${name}": grade.shadow needs a colour like #a1b2c3`);
+    for (const k of ['amount', 'lift', 'ink', 'gap'])
+      if (g[k] !== undefined && !(typeof g[k] === 'number' && (g[k] as number) >= 0 && (g[k] as number) <= 1))
+        errs.push(`look "${name}": grade.${k} needs a number from 0 to 1`);
   }
   return errs;
 }

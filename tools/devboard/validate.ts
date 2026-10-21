@@ -18,7 +18,7 @@ import { validateBoons } from '../../src/progression/boonData';
 import { TEMPLATE_DEFS, validateTemplate } from '../../src/world/templates';
 import { THEME_DEFS, validateThemes } from '../../src/world/themeData';
 import { FLOORS } from '../../src/world/generate';
-import { validateKit } from '../../src/world/kitData';
+import { validateKit, validateLookExtras } from '../../src/world/kitData';
 import { validateMusic } from '../../src/audio/musicData';
 import { validateAmbience } from '../../src/audio/ambienceData';
 import { validateSounds } from '../../src/audio/soundData';
@@ -55,6 +55,7 @@ const checks: [string, () => unknown][] = [
     () =>
       [
         ...FLOORS.map((f) => validateKit(f.look.name, f.look.kit)),
+        ...FLOORS.map((f) => validateLookExtras(f.look.name, f.look)),
         ...THEME_DEFS.map((t) => validateKit(t.id, t.look?.kit, false)),
       ].flat(),
   ],

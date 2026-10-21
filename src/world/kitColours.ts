@@ -20,6 +20,9 @@ const hex = (c: string) => parseInt(c.slice(1), 16);
 /** Paint the kit's shared materials and the objects' colours in a floor's `materials` (the kit's own where it names none). */
 export function applyKitColours(look: FloorLook) {
   const want = look.materials ?? {};
+  for (const k of Object.keys(want))
+    if (!matOwn.has(k) && !(k in tableOwn))
+      console.error(`floor look "${look.name}": materials names unknown colour "${k}"`); // (a browser test fails on it)
   for (const [k, own] of matOwn) mats[k].color!.setHex(want[k] ? hex(want[k]) : own);
   for (const k of Object.keys(tableOwn)) table[k] = want[k] ? hex(want[k]) : tableOwn[k];
 }

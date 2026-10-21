@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { FLOORS } from '../../src/world/generate';
 import { THEME_DEFS, themedLook } from '../../src/world/themeData';
-import { KIT_PARTS, kindsOf, pickKinds, validateKit, type KitWeights } from '../../src/world/kitData';
+import {
+  KIT_PARTS,
+  kindsOf,
+  pickKinds,
+  validateKit,
+  validateLookExtras,
+  type KitWeights,
+} from '../../src/world/kitData';
 
 describe("the room kit's kinds", () => {
   it('every floor offers two or three known kinds of wall, floor, wall light and brazier', () => {
@@ -55,5 +62,15 @@ describe("the room kit's kinds", () => {
     expect(validateKit('x', { wall: { velvet: 1 } } as unknown as KitWeights)).toEqual(
       expect.arrayContaining(['look "x": kit.wall names unknown kind "velvet"', 'look "x": kit.floor lists no kinds']),
     );
+  });
+  it("a floor look's scatter, materials and grade are known and well formed", () => {
+    for (const f of FLOORS) expect(validateLookExtras(f.look.name, f.look)).toEqual([]);
+    expect(
+      validateLookExtras('bad', {
+        scatter: { lava: 2 },
+        materials: { gold: 'red' },
+        grade: { shadow: '#123', amount: 2 },
+      }),
+    ).toHaveLength(4);
   });
 });
