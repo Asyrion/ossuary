@@ -260,6 +260,17 @@ pixel (at the bottom it lay over a one-cell room's south door).
 
 **The owner accepted floor 1 in the new look as a whole (2026-10-21): its rooms, actors, spells, items and HUD.**
 
+### 4.18 Floor 2 in the game, steps A to D (built 2026-10-21, awaiting the owner)
+
+Floor 2, the drowned, in its palette (4.1: slate blue to moss and sea green, the fungi's lime its accent): its floor and
+wall colours, a fill light of 1.3 and the same grade as floor 1's in its own shadow (`#1b2440`), the kit's materials in
+its ramps (wood soaked grey-green, bronze gone to verdigris), and plain rooms strewn with glowing moss, moss, pebbles,
+stains, a few bones, rime and a relic. Measured on the walkable floor as in 4.9: mean lightness 34 to 41 % (17 to 27 %
+before), near black 1 to 7 % (up to 38 % before), shadows at about 210 degrees and lights at about 148. Its six relics
+are made in Tripo from the owner's picks (a stone font, a column's stump, a log grown with glowing fungi, a fallen bell,
+waterlogged planks, rimed bones; `relics` in the floor's look), and its three walls (bricks, tide-worn blocks, rubble)
+are made faces from Tripo pictures through `tools/art/walltile.py` (`docs/art/walls/drowned-*.jpg`).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
