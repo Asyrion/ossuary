@@ -229,9 +229,10 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
     put(mesh(g, new THREE.TorusGeometry(0.085, 0.013, 3, 18), glowTone(0xffe8a0), 0, 0.33, 0), Math.PI / 2 - 0.25);
   },
   shard(g) {
-    // a splinter of lodestone: dark iron-grey, veined with the blue it pulls in, a chip beside it, filings at its foot
+    // a splinter of lodestone: dark iron-grey, veined with the pale cyan it pulls in, a chip beside it, filings at its
+    // foot (its veins pale: a blue one sank into a dark floor with the body)
     const iron = tone(0x5c6478, 0.2, 0.55),
-      vein = glowTone(0x8ab8ff);
+      vein = glowTone(0xb0f4ff);
     put(mesh(g, rough(new THREE.OctahedronGeometry(0.17, 0), 0.025, 11), iron), 0.15, 0.3, 0.1, [0.72, 1.55, 0.6]);
     put(
       mesh(g, rough(new THREE.OctahedronGeometry(0.08, 0), 0.014, 12), iron, 0.17, -0.14, 0.04),
@@ -245,12 +246,12 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
       [0.04, -0.07, -0.45, 0.13],
       [0, 0.22, 0.1, 0.1],
     ])
-      put(mesh(g, cyl(0.024, 0.024, l, 4), vein, x, y, 0.09), 0, 0, rz); // (two pixels wide at least: thinner flickered)
+      put(mesh(g, cyl(0.03, 0.03, l, 4), vein, x, y, 0.09), 0, 0, rz); // (two pixels wide at least: thinner flickered)
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * Math.PI * 2;
       box(g, 0.025, 0.014, 0.06, iron, Math.cos(a) * 0.19, -0.24, Math.sin(a) * 0.19).rotation.y = -a;
     }
-    g.add(glowShared(0x8ab8ff, 0.9, 0.6));
+    g.add(glowShared(0x9ae8ff, 0.9, 0.6));
   },
 };
 /** A soul mote: a flame turned on the upright, its `body` colour round a brighter `core`; `dark`, the body unlit (a black

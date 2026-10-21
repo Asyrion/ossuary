@@ -20,7 +20,7 @@ const lathe = (pts: number[][], seg = 10) =>
   );
 const cyl = (r0: number, r1: number, h: number, seg = 8) => new THREE.CylinderGeometry(r0, r1, h, seg);
 const hex = (c: string) => parseInt(c.slice(1), 16);
-const GLASS = 0x9ebed8,
+const GLASS = 0x6a789c, // (a darker glass: a pale one was the drowned floor's own slate blue)
   CORK = 0x8a6a44,
   WAX = 0xa83a2a,
   BONE = 0xe4d8bc,
@@ -253,9 +253,13 @@ const REAGENT_BUILD: Record<ReagentId, (g: THREE.Group, c: number) => void> = {
     }
   },
   wispEssence(g, c) {
-    // a mote of light in a little glass ball
-    mesh(g, new THREE.SphereGeometry(0.05, 8, 6), glowTone(c), 0, 0, 0);
-    mesh(g, new THREE.SphereGeometry(0.09, 10, 7), tone(GLASS, 0.04, 0.35), 0, 0, 0).scale.setScalar(1);
+    // a mote of light in a little glass bowl, rising out of it (in a closed ball of the darker glass it was lost)
+    mesh(
+      g,
+      new THREE.SphereGeometry(0.09, 10, 7, 0, Math.PI * 2, Math.PI * 0.45, Math.PI * 0.55),
+      tone(GLASS, 0.04, 0.35),
+    );
+    mesh(g, new THREE.SphereGeometry(0.065, 8, 6), glowTone(c), 0, 0.02, 0);
     g.add(glowShared(c, 0.8, 0.55));
   },
   boneDust(g, c) {
@@ -279,23 +283,18 @@ const REAGENT_BUILD: Record<ReagentId, (g: THREE.Group, c: number) => void> = {
     g.add(glowShared(c, 0.6, 0.45));
   },
   rimewater(g, c) {
-    // a frosted phial of water that will not thaw
-    mesh(
-      g,
-      lathe(
-        [
-          [0, -0.12],
-          [0.05, -0.12],
-          [0.06, -0.09],
-          [0.06, 0.08],
-          [0.03, 0.1],
-          [0.03, 0.12],
-          [0, 0.12],
-        ],
-        8,
-      ),
-      glowTone(c),
-    );
+    // a phial of water that will not thaw: the water glowing up to its shoulder, the glass above it
+    const phial = [
+      [0, -0.12],
+      [0.05, -0.12],
+      [0.06, -0.09],
+      [0.06, 0.08],
+      [0.03, 0.1],
+      [0.03, 0.12],
+      [0, 0.12],
+    ];
+    mesh(g, lathe(band(phial, -Infinity, 0.03, true), 8), glowTone(c));
+    mesh(g, lathe(band(phial, 0.03, Infinity), 8), tone(GLASS, 0.04, 0.35));
     mesh(g, cyl(0.035, 0.032, 0.04, 6), tone(0xe8f4ff, 0.05), 0, 0.14, 0);
   },
   bloomPetal(g, c) {

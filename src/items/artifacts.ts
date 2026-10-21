@@ -182,7 +182,15 @@ export function makeArtifactVisual(def: ArtifactDef) {
     look.scale.setScalar(K.artifactScale); // (a touch larger: it must read at a glance)
     const half = new THREE.Box3().setFromObject(look).getSize(new THREE.Vector3()).y / 2;
     look.position.y = Math.max(0, half - K.artifactClear); // (a tall one lifted, so it never dips into its pedestal as it bobs)
-    g.add(look, glowShared(def.kind === 'cursed' ? CURSED_RED : color, 1.1, 0.6));
+    const H = K.artifactGlow;
+    g.add(
+      look,
+      glowShared(
+        new THREE.Color(def.kind === 'cursed' ? CURSED_RED : color).multiplyScalar(H.dim).getHex(),
+        H.size,
+        H.opacity,
+      ),
+    );
   }
   markThing(g); // (its closed outline in the pixel look, as a discrete object's: art bible 4.4)
   return g;
@@ -237,7 +245,8 @@ export function placeArtifact(
     price = { hearts: 1, tag };
   } else {
     const model = modelFor('props', 'pedestal'); // a made pedestal, or the room kit's
-    if (model) pedestal.add(model, blob(1.3));
+    if (model)
+      pedestal.add(model, blob(1.3, true)); // (lighter: its dark middle read as a hole beside it)
     else {
       const look = pedestalLook(room.look);
       mergeStill(look);

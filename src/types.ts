@@ -108,6 +108,10 @@ export interface FloorLook {
   scatter?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
   /** A theme's floor on this floor, by theme id (its base colour, its stain), so themes that share a kit still differ. */
   themeFloor?: Record<string, Partial<FloorLook['floor']>>;
+  /** The kinds a boss room draws from in place of `kit`'s, by part (a calm floor, so a boss's shots read on it). */
+  bossKit?: Partial<KitWeights>;
+  /** The floor's accent (art bible 4.1, '#rrggbb'): on what must stand out of its ramp (the bargain stone's edges). */
+  accent?: string;
   /** The made relics its `relics` scatter strews (prop ids, data/assets.json); floor 1's vault's when absent. */
   relics?: string[];
   /** The floor's own colours for the room kit's materials and objects, by name (world/kitColours.ts): '#rrggbb'. */
