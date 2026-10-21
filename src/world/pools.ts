@@ -41,7 +41,7 @@ const FIRE = 0xff7a2a,
 const LOOK = {
   water: { color: 0x2a5a6a, emissive: 0x0a2430, roughness: 0.38, metalness: 0.25, opacity: 0.78 }, // (rough enough that a torch's glint doesn't read as a wisp)
   frozen: { color: 0xc4e6f6, emissive: 0x2a4e6e, roughness: 0.2, metalness: 0.1, opacity: 0.9 },
-  oil: { color: 0x3a2e20, emissive: 0x140e08, roughness: 0.55, metalness: 0.1, opacity: 0.92 }, // (dull brown: black read as a pit, a sharp glint as fire)
+  oil: { color: 0x3e3226, emissive: 0x4a3420, roughness: 0.55, metalness: 0.1, opacity: 0.92 }, // (dull brown, a little light of its own: black read as a pit, even in a dim room under a deep grade; a sharp glint as fire)
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: 0.7, metalness: 0, opacity: 0.96 },
   mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: 0.42, metalness: 0.12, opacity: 0.9 }, // (drained by a sluice; brown and wet, never a pit's black)
   jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: 0.62, metalness: 0, opacity: 0.84 }, // (the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
