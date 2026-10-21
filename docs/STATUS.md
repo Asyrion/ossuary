@@ -14,7 +14,7 @@ cleaning, the look and the story.
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
 | R2 Code that is kept | **Under way:** steps 1 to 6 done; its done-when check (a week of CI without a flake fix) runs again from 2026-10-19, after the fix for issue #63 |
-| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured); floor 1 under way: its rooms (steps A to D) and its actors (E1 to E3: outline and rim, light in steps, reading the foes) accepted 2026-10-19 and 20 (art bible 4.9 to 4.14), its spells and its foes' magic (F1 to F3) accepted 2026-10-20 and 21 (4.15); its items, item effects and artifacts under way: G1 surveyed, G2 built 2026-10-21 (4.16): the outline on things and the softer marks kept by the owner, the made chests, coffer and pedestal awaiting the owner's look |
+| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured); floor 1 under way: its rooms (steps A to D) and its actors (E1 to E3: outline and rim, light in steps, reading the foes) accepted 2026-10-19 and 20 (art bible 4.9 to 4.14), its spells and its foes' magic (F1 to F3) accepted 2026-10-20 and 21 (4.15); its items, item effects and artifacts under way: G1 and G2 done 2026-10-21 (4.16), the owner going on to the final look once all of floor 1's new assets are in; the HUD and screens next (step 5, art bible 4.6) |
 | R4 The story | Waits for R3 (its art bible is decided); holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
