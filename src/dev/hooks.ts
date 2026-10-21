@@ -108,7 +108,15 @@ import type { TransformId } from '../items/transformData';
 import { placeProp } from '../world/props';
 import { assetList, assetsOn } from '../assets/models';
 import { scatterOf } from '../world/themes';
-import { drawnRows, gradeNow, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from '../render/pixelLook';
+import {
+  drawnRows,
+  gradeNow,
+  markedNow,
+  pixelLook,
+  setPixelLook,
+  type PixelLook,
+  fineLayerDrawn,
+} from '../render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { removeEffectOptions, showEffectOptions } from './effectOptions';
 import { elementDev, sapMul } from '../world/mechanisms';
@@ -393,6 +401,15 @@ export function installHooks() {
       textures: renderer.info.memory.textures,
     }),
     lightLevels,
+    /** The actors and things the pixel look outlines (art bible 4.4), and the colours of the marks on the floor. */
+    get marked() {
+      return markedNow();
+    },
+    get decals() {
+      return G.fx.decals.map(
+        (d) => '#' + (d.material as unknown as { color: { getHexString(): string } }).color.getHexString(),
+      );
+    },
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */
     give: (...ids: string[]) => giveById(ids),
     /** Hand out obols, keys or glyphs, e.g. loot({ glyphs: 3 }). */

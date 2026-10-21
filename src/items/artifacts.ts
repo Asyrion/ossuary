@@ -8,6 +8,7 @@ import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { blob, disposeTree, glow, glowShared, mergeStill } from '../render/materials';
+import { markThing } from '../render/pixelLook';
 import { burst } from '../combat/fx';
 import { banner, renderHearts, renderItems, renderMinimap, toast, artifactLore } from '../notify';
 import { HEART_PATH } from '../render/icons';
@@ -183,6 +184,7 @@ export function makeArtifactVisual(def: ArtifactDef) {
     look.position.y = Math.max(0, half - K.artifactClear); // (a tall one lifted, so it never dips into its pedestal as it bobs)
     g.add(look, glowShared(def.kind === 'cursed' ? CURSED_RED : color, 1.1, 0.6));
   }
+  markThing(g); // (its closed outline in the pixel look, as a discrete object's: art bible 4.4)
   return g;
 }
 

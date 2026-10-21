@@ -30,7 +30,7 @@ const BLOOD = 0x8a1610,
   RUBY = 0xd83426,
   SHINE = 0xffb4a0,
   OBOL = 0xc89a44,
-  LEATHER = 0x6e4a30,
+  LEATHER = 0x5a2c22, // (oxblood: a dark body off floor 1's ochre, its obols the bright part)
   CORD = 0xc8a878,
   GLASS = 0x9ebed8,
   MANA = 0x4a8cff,
@@ -194,7 +194,7 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
     g.add(glowShared(0x6fa8ff, 0.8, 0.6));
   },
   key(g) {
-    // a bone key: its bow a ring round a ward-blue stone, a collar, the shaft, two bits
+    // a bone key: its bow a ring round a ward-blue stone (large enough to glint), a collar, the shaft, two bits
     const k = new THREE.Group();
     k.scale.setScalar(1.15);
     g.add(k);
@@ -202,7 +202,7 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
     b.position.x = -0.19;
     k.add(b);
     mesh(b, new THREE.TorusGeometry(0.078, 0.034, 5, 12), tone(BONE, 0.06));
-    put(mesh(b, new THREE.OctahedronGeometry(0.04, 0), glowTone(WARD)), 0, 0, 0, [1, 1.3, 0.7]);
+    put(mesh(b, new THREE.OctahedronGeometry(0.055, 0), glowTone(WARD)), 0, 0, 0, [1, 1.3, 0.7]);
     mesh(b, new THREE.SphereGeometry(0.03, 5, 4), tone(BONE), 0, 0.11, 0);
     put(mesh(k, cyl(0.032, 0.026, 0.3, 6), tone(BONE, 0.06), 0.03, 0, 0), 0, 0, Math.PI / 2);
     for (const x of [-0.09, -0.06])
@@ -245,7 +245,7 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
       [0.04, -0.07, -0.45, 0.13],
       [0, 0.22, 0.1, 0.1],
     ])
-      put(mesh(g, cyl(0.014, 0.014, l, 3), vein, x, y, 0.09), 0, 0, rz);
+      put(mesh(g, cyl(0.024, 0.024, l, 4), vein, x, y, 0.09), 0, 0, rz); // (two pixels wide at least: thinner flickered)
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * Math.PI * 2;
       box(g, 0.025, 0.014, 0.06, iron, Math.cos(a) * 0.19, -0.24, Math.sin(a) * 0.19).rotation.y = -a;
