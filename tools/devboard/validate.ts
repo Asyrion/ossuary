@@ -55,7 +55,7 @@ const checks: [string, () => unknown][] = [
     () =>
       [
         ...FLOORS.map((f) => validateKit(f.look.name, f.look.kit)),
-        ...FLOORS.map((f) => validateLookExtras(f.look.name, f.look)),
+        ...FLOORS.map((f) => validateLookExtras(f.look.name, { ...f.look, tesserae: f.look.floor.tesserae })),
         ...THEME_DEFS.map((t) => validateKit(t.id, t.look?.kit, false)),
       ].flat(),
   ],

@@ -574,13 +574,13 @@ export function rimeCrawler(): Built {
 export function sparkWyvern(): Built {
   const g = new THREE.Group(),
     body = joint(g, [0, 0.85, 0]),
-    scale = gloss(0x14242e, 0.3, 0.45),
-    belly = gloss(0x2c5a6e, 0.3, 0.4),
+    scale = gloss(0x4a3c94, 0.3, 0.45), // (storm indigo: a dark teal body was lost on the drowned floor, art bible 4.1)
+    belly = gloss(0xb89a34, 0.3, 0.4),
     horn = std(0xc8d0d8),
     spark = lit(S),
     wingM = shine(0xdcecff, 0.3),
     vein = lit(0xf6f0a8);
-  part(body, sphere(0.1, 8, 6), scale, [0, 0, 0], { scale: [0.9, 0.85, 1.6] });
+  part(body, sphere(0.12, 8, 6), scale, [0, 0, 0], { scale: [0.9, 0.85, 1.6] }); // (thick enough to read: a thin dark body vanished)
   part(body, sphere(0.08, 8, 6), belly, [0, -0.03, 0.04], { scale: [0.85, 0.6, 1.4] });
   // the neck and head: horned, a wyvern's long jaw, slit eyes
   tube(
@@ -625,8 +625,8 @@ export function sparkWyvern(): Built {
       [0.03, 0.05, -0.82],
       [0, 0.09, -0.96],
     ],
-    0.06,
-    0.012,
+    0.085,
+    0.016,
     scale,
     14,
     6,

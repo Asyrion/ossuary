@@ -270,6 +270,12 @@ before), near black 1 to 7 % (up to 38 % before), shadows at about 210 degrees a
 are made in Tripo from the owner's picks (a stone font, a column's stump, a log grown with glowing fungi, a fallen bell,
 waterlogged planks, rimed bones; `relics` in the floor's look), and its three walls (bricks, tide-worn blocks, rubble)
 are made faces from Tripo pictures through `tools/art/walltile.py` (`docs/art/walls/drowned-*.jpg`).
+From the room inspection (the owner's go, 2026-10-21): oil keeps a little light of its own (it read as a pit in a dim
+room); the sunken mosaic laid in the floor's own tesserae (`floor.tesserae`: slate-blue rings, moss crosses) instead of
+the kit's warm ones; rime as frost crystals in hard pixels, not a soft glowing blob; standing water and stains in deep
+water and the floor's own stain, never a pit's black; the rubble wall cut four units wide, so it repeats less; the
+collapsed crypt, the garth and the pilgrims' rest each on a floor of their own colour (`themeFloor` in the floor's
+look); the Storm Darter in storm indigo with a gold belly and a thicker body (a thin dark-teal one vanished).
 
 ## 5. The reference pictures
 

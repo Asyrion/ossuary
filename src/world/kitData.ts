@@ -147,7 +147,12 @@ const HEX = /^#[0-9a-f]{6}$/i;
     (kitColours.ts reports an unknown one as the floor is built). */
 export function validateLookExtras(
   name: string,
-  look: { scatter?: Record<string, number>; materials?: Record<string, string>; grade?: Record<string, unknown> },
+  look: {
+    scatter?: Record<string, number>;
+    materials?: Record<string, string>;
+    grade?: Record<string, unknown>;
+    tesserae?: Record<string, string>;
+  },
 ): string[] {
   const errs: string[] = [];
   for (const [k, v] of Object.entries(look.scatter ?? {})) {
@@ -158,6 +163,8 @@ export function validateLookExtras(
   for (const [k, v] of Object.entries(look.materials ?? {})) {
     if (!HEX.test(v)) errs.push(`look "${name}": materials.${k} needs a colour like #a1b2c3`);
   }
+  for (const [k, v] of Object.entries(look.tesserae ?? {}))
+    if (!HEX.test(v)) errs.push(`look "${name}": floor.tesserae.${k} needs a colour like #a1b2c3`);
   const g = look.grade;
   if (g) {
     if (typeof g.shadow !== 'string' || !HEX.test(g.shadow))
