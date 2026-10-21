@@ -13,16 +13,24 @@
 <div id="hurt"></div><div id="dim"></div><div id="chill"></div><div id="stone"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="halfclip"><rect x="0" y="0" width="12" height="24"/></clipPath></defs></svg>
 <div id="hud">
-  <div id="hearts" aria-label="Health"></div>
-  <div id="mana" role="meter" aria-valuemin="0"><i></i></div>
-  <div id="insight" role="meter" aria-valuemin="0"><i></i></div>
+  <!-- the framed panels (art bible 4.6): life and mana top left, the purse and the map top right, the spells and the belt
+       bottom centre -->
+  <div class="hpanel" id="pVitals">
+    <div id="hearts" aria-label="Health"></div>
+    <div id="mana" role="meter" aria-valuemin="0"><i></i></div>
+    <div id="insight" role="meter" aria-valuemin="0"><i></i></div>
+  </div>
   <div id="afflict" role="status" aria-live="polite"></div>
-  <div id="spells"><div class="slot" id="slot0"></div><div class="slot" id="slot1"></div><div id="level" aria-hidden="true"></div></div>
-  <div id="belt" aria-label="Potion belt"></div>
   <div id="items"></div>
-  <div id="purse" role="status"></div>
+  <div class="hpanel" id="pBar">
+    <div id="spells"><div class="slot" id="slot0"></div><div class="slot" id="slot1"></div><div id="level" aria-hidden="true"></div></div>
+    <div id="belt" aria-label="Potion belt"></div>
+  </div>
+  <div id="pTop">
+    <div class="hpanel" id="pPurse"><div id="purse" role="status"></div></div>
+    <div class="hpanel" id="pMap"><canvas id="minimap" width="300" height="220"></canvas></div>
+  </div>
   <div id="vigilHud" role="status"></div>
-  <canvas id="minimap" width="300" height="220"></canvas>
   <div id="bossbar"><div id="bossname"></div><div class="track"><div class="fill"></div></div></div>
   <div id="banner"><div class="t"></div><div class="s"></div></div>
   <aside id="pagePanel" class="invDetail pagePanel" aria-live="polite"></aside>

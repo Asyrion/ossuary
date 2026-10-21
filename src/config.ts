@@ -801,6 +801,9 @@ export const CFG = {
     // black only in outlines)
     decalShade: 0.3,
   },
+  // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
+  // spell's icon in pixels across, made pixel art (render/pixelIcons.ts)
+  hud: { pixel: [2, 3] as [number, number], tall: 900, spellIcon: 16 },
   // alchemy (items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the
