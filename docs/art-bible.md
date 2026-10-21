@@ -245,7 +245,7 @@ made chest's ward seal, still drawn in code, hovers flat over its lid and turns,
 chest's a pale gold: standing before the chest it read as a pale smudge, and pink over the gilded chest's red wood (the
 owner's "surprise me", 2026-10-21).
 
-### 4.17 The HUD and screens, step H (built 2026-10-21, awaiting the owner)
+### 4.17 The HUD and screens, step H (built 2026-10-21)
 
 Variant B of 4.6 built: the HUD in small framed panels of brass and stone, drawn as pixel art at about the room's pixel
 (`--u`, two screen pixels a pixel, three from 900 window rows; `CFG.hud`) from nine-slices made by
@@ -257,6 +257,8 @@ with the closed outline (`pixelSvg` in render/icons.ts); the spells' drawn icons
 screen's card wear the same frame, dark whatever the system's theme (the cream cards of a light system are gone). From the
 closing sweep: the screens stand over the hint, and the hint shows at the top, under the panels, its text at the HUD's
 pixel (at the bottom it lay over a one-cell room's south door).
+
+**The owner accepted floor 1 in the new look as a whole (2026-10-21): its rooms, actors, spells, items and HUD.**
 
 ## 5. The reference pictures
 
