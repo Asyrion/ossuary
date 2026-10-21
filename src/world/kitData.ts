@@ -170,7 +170,7 @@ export function validateLookExtras(
     if (typeof g.shadow !== 'string' || !HEX.test(g.shadow))
       errs.push(`look "${name}": grade.shadow needs a colour like #a1b2c3`);
     for (const k of ['amount', 'lift', 'ink', 'gap'])
-      if (g[k] !== undefined && !(typeof g[k] === 'number' && (g[k] as number) >= 0 && (g[k] as number) <= 1))
+      if (g[k] !== undefined && !(typeof g[k] === 'number' && g[k] >= 0 && g[k] <= 1))
         errs.push(`look "${name}": grade.${k} needs a number from 0 to 1`);
   }
   return errs;

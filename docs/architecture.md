@@ -263,7 +263,8 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
   `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`) with `MOVED_PARTS`, the parts each foe's behaviour moves (the
   `lookContract` hook checks every look keeps them). A foe's look is the fantasy look, else the bestiary look or
-  `FOE_LOOKS` entry of its id (or `look`). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  `FOE_LOOKS` entry of its id (or `look`); a look in `CFG.madeFoes` with a `foe_<look>` prop loaded wears that Tripo
+  model instead (`madeFoes.ts`: code moves it whole, sized by `span`; the code look still gives its lights and moved parts). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a
