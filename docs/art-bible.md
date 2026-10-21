@@ -227,6 +227,19 @@ floor warns instead; a foe's telegraph pulses at 0.28 of its school's light rath
 Kraken's ink lies as uneven splats; Soul Harvest's threads are full lightning and its stacks fly home as sparks. **The owner
 accepted F3 (2026-10-21).**
 
+### 4.16 Floor 1's items, effects and artifacts, steps G1 and G2 (2026-10-21)
+
+G1 surveyed every drop and container, the twelve potions, seven reagents and seven runes, the 61 artifacts, the
+companions and every potion's throw in floor 1's treasure room. What it found: the pickups and artifacts drew no outline
+(4.4 asks one of every discrete object); the coin purse was brown on the ochre floor; the lodestone shard's veins a
+pixel thin; a blast's scorch (a glyph, the Volatile Mixture) a near-black pool that read as a hole; the chests' pale
+bone bands read as the bars of a cage, the pedestal pale. G2 (built, awaiting the owner's look): pickups, containers and
+artifacts get the closed outline alone (`markThing` in the pixel look: their colours stay as made, no rim or light in
+steps, which darkened the flat hearts), the purse in oxblood leather, the shard's veins two pixels wide and the key's
+ward stone larger, and every mark on the floor (scorch, soot, a foe's stain) turned toward the floor's shadow colour
+(`CFG.pixelLook.decalShade`). The chests, the coffer and the pedestal are to be made in Tripo (concepts drawn, not yet
+fetched).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
