@@ -33,19 +33,21 @@ const C = CFG.surface;
 const FIRE = 0xff7a2a,
   EMBER = 0xffc060,
   ICE = 0xbfe6ff,
-  SPARK = 0xf0e890,
+  SPARK = 0xf0e070,
+  SPARK_HOT = 0xfff8c8,
   WATER = 0x5a8a9a,
   JELLY = 0x7ae070;
 
-/** How each state looks: colour, glow, gloss and opacity over the floor. */
+/** How each state looks: colour, glow and gloss. A pool is terrain: one flat tone with a hard edge (art bible 4.4), so
+    puddles poured over each other read as one pool, not darker where they overlap. */
 const LOOK = {
-  water: { color: 0x2a5a6a, emissive: 0x0a2430, roughness: 0.38, metalness: 0.25, opacity: 0.78 }, // (rough enough that a torch's glint doesn't read as a wisp)
-  frozen: { color: 0xc4e6f6, emissive: 0x2a4e6e, roughness: 0.2, metalness: 0.1, opacity: 0.9 },
-  oil: { color: 0x3e3226, emissive: 0x4a3420, roughness: 0.55, metalness: 0.1, opacity: 0.92 }, // (dull brown, a little light of its own: black read as a pit, even in a dim room under a deep grade; a sharp glint as fire)
-  burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: 0.7, metalness: 0, opacity: 0.96 },
-  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: 0.42, metalness: 0.12, opacity: 0.9 }, // (drained by a sluice; brown and wet, never a pit's black)
-  jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: 0.62, metalness: 0, opacity: 0.84 }, // (the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
-  frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: 0.55, metalness: 0, opacity: 0.9 }, // (dull too: no torch glints)
+  water: { color: 0x2e5e6e, emissive: 0x16404e, roughness: 0.9, metalness: 0, opacity: 1 }, // (the floor's deep water: matt, so a torch's glint doesn't smear amber over it nor read as a wisp)
+  frozen: { color: 0x6aa6d6, emissive: 0x1a4472, roughness: 0.5, metalness: 0, opacity: 1 }, // (blue ice: a near-white read as fog)
+  oil: { color: 0x3e3226, emissive: 0x4a3420, roughness: 0.55, metalness: 0.1, opacity: 1 }, // (dull brown, a little light of its own: black read as a pit, even in a dim room under a deep grade; a sharp glint as fire)
+  burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: 0.7, metalness: 0, opacity: 1 },
+  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: 0.42, metalness: 0.12, opacity: 1 }, // (drained by a sluice; brown and wet, never a pit's black)
+  jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: 0.62, metalness: 0, opacity: 1 }, // (the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
+  frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: 0.55, metalness: 0, opacity: 1 }, // (dull too: no torch glints)
 };
 function dress(p: Pool) {
   const L =
@@ -289,7 +291,8 @@ export function addPool(
   return p;
 }
 
-/** A flat mesh over the pool's tiles, its outline drawn as blurred circles joined up (an alpha map). */
+/** A flat mesh over the pool's tiles, its outline drawn as blurred circles joined up and cut hard where the blur is
+    half (an alpha map: rounded and organic, but a pixel edge, no soft fade). */
 function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
   const P = 32,
     c0 = Math.min(...tiles.map((t) => t.c)),
@@ -316,6 +319,13 @@ function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
     if (in_(t.c, t.r + 1)) g.fillRect(x - P * 0.5, y, P, P);
   }
   softenCanvas(g, CFG.surface.poolBlur);
+  const img = g.getImageData(0, 0, cv.width, cv.height),
+    mask = new Uint8Array(cv.width * cv.height);
+  for (let i = 0; i < mask.length; i++) {
+    const v = (mask[i] = img.data[i * 4 + 3] >= 128 ? 1 : 0) * 255;
+    img.data.fill(v, i * 4, i * 4 + 4);
+  }
+  g.putImageData(img, 0, 0);
   const alpha = floorOwnedTexture(new THREE.CanvasTexture(cv));
   const detail = floorOwnedTexture(detailTexture().clone());
   detail.repeat.set(w / 2, h / 2);
@@ -328,15 +338,53 @@ function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
     map: detail,
     emissiveMap: detail,
     transparent: true,
+    alphaTest: 0.5,
     depthWrite: false,
   });
   mat.userData.detail = detail;
   mat.userData.ice = ice;
+  mat.userData.mask = { mask, w: cv.width, h: cv.height };
   const geo = new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
   const mesh = new THREE.Mesh(geo, mat);
   mesh.renderOrder = 1;
   mesh.position.set(room.bounds.minX + c0 - 0.5 + w / 2 - room.cx, 0.01, room.bounds.minZ + r0 - 0.5 + h / 2 - room.cz);
   return { mesh, mat };
+}
+
+/** The bright rim a shock lights round a pool while it crackles (`CFG.surface.shockRim` pixels of its canvas wide, in
+    storm's colour), made the first time the pool is shocked. */
+function shockRim(room: Room, p: Pool) {
+  if (p.rim) return p.rim;
+  const { mask, w, h } = p.mat.userData.mask as { mask: Uint8Array; w: number; h: number },
+    R = C.shockRim,
+    cv = document.createElement('canvas');
+  cv.width = w;
+  cv.height = h;
+  const g = cv.getContext('2d')!,
+    img = g.createImageData(w, h),
+    out = (x: number, y: number) => x < 0 || y < 0 || x >= w || y >= h || !mask[y * w + x];
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (!mask[y * w + x]) continue;
+      let edge = false;
+      for (let d = 1; d <= R && !edge; d++) edge = out(x - d, y) || out(x + d, y) || out(x, y - d) || out(x, y + d);
+      if (edge) img.data.fill(255, (y * w + x) * 4, (y * w + x) * 4 + 4);
+    }
+  g.putImageData(img, 0, 0);
+  const mat = new THREE.MeshBasicMaterial({
+    color: SPARK,
+    alphaMap: floorOwnedTexture(new THREE.CanvasTexture(cv)),
+    transparent: true,
+    alphaTest: 0.5,
+    depthWrite: false,
+  });
+  const rim = new THREE.Mesh(p.mesh.geometry, mat);
+  rim.position.copy(p.mesh.position);
+  rim.position.y += 0.004;
+  rim.renderOrder = 2;
+  rim.visible = false;
+  room.group.add(rim);
+  return (p.rim = rim);
 }
 
 /** Grey swirls and ripples that tile: the surface of water and oil, and the patches of fire on burning oil. */
@@ -520,6 +568,7 @@ export function shockAt(x: number, z: number, from?: Enemy, spareMage = false) {
   }
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;
   p.charged = C.charged;
+  shockRim(G.room.current, p); // (it shows: a crackling rim of storm light round it)
   douseStandsIn(p); // (candle stands standing in it go out)
   for (const e of G.room.enemies) {
     if (e === from || e.dead || e.spawn > 0 || e.hidden || e.flying || !inPool(p, e.x, e.z)) continue;
@@ -573,8 +622,12 @@ export function updatePools(dt: number, now: number, acting: boolean) {
     glow.setHex(p.mat.userData.emissive as number);
     if (p.state === 'burning')
       p.mat.emissive.copy(glow).multiplyScalar(0.75 + Math.sin(now * 17 + p.tiles[0].x) * 0.15 + Math.random() * 0.1);
-    else if (p.charged > 0) p.mat.emissive.setHex(Math.random() < 0.5 ? 0x8a8030 : 0x2a2a10);
-    else if (p.kind === 'water') p.mat.emissive.copy(glow).multiplyScalar(1 + Math.sin(now * 2 + p.tiles[0].z) * 0.4);
+    else if (p.charged > 0) p.mat.emissive.setHex(Math.random() < 0.5 ? 0x8a7a20 : 0x3a3410);
+    if (p.rim) {
+      // the shock's rim, flickering in two steps of storm light while it crackles
+      p.rim.visible = p.charged > 0 && Math.floor(now * 20) % 4 !== 0;
+      (p.rim.material as THREE.MeshBasicMaterial).color.setHex(Math.floor(now * 30) % 2 ? SPARK : SPARK_HOT);
+    } else if (p.kind === 'water') p.mat.emissive.copy(glow).multiplyScalar(1 + Math.sin(now * 2 + p.tiles[0].z) * 0.4);
     if (!acting) continue;
     p.charged = Math.max(0, p.charged - dt);
     if (p.state === 'frozen' && (p.t -= dt) <= 0) {
@@ -624,6 +677,10 @@ function spend(room: Room, p: Pool) {
   room.group.remove(p.mesh);
   p.mesh.geometry.dispose();
   p.mat.dispose();
+  if (p.rim) {
+    room.group.remove(p.rim);
+    (p.rim.material as THREE.Material).dispose();
+  }
   for (const t of p.tiles) {
     addDecal(t.x, t.z, 0x0a0806, 0.75);
     room.poolGrid![t.r][t.c] = undefined;

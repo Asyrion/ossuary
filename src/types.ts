@@ -419,6 +419,7 @@ export interface Pool {
   mat: THREE.MeshStandardMaterial;
   /** Drained to mud by an open sluice (still slow to wade; nothing hides in it). */ mud?: boolean;
   /** The jelly serpent's jelly (water, green and slower to wade; it swims in it). */ jelly?: boolean;
+  /** The bright rim round it while a shock crackles through it (made the first time one does). */ rim?: THREE.Mesh;
 }
 
 /** A grimoire page (magic/pages.ts): on a library's lectern, on its shelf for obols, or lying loose. */
@@ -544,7 +545,7 @@ export interface Enemy extends Circle {
   animRate?: number;
   tele?: number;
   shadow?: number;
-  /** Its blob shadow lighter at the middle: a made model on real legs shows the floor between them. */ openShadow?: boolean;
+  /** Its blob shadow lighter at the middle: a made model on real legs shows the floor between them (a flyer's always is). */ openShadow?: boolean;
   /** Its model's parts its behaviour moves (a beetle's wing-cases, a mimic's lid); how open a lid or shell is (0 to 1);
       what it takes of a hit (a shut mimic, half); a behaviour's own clock (a salamander's trail); the glow of its telegraph. */
   parts?: Record<string, THREE.Object3D>;

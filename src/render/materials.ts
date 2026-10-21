@@ -86,17 +86,37 @@ export function cappedWallMaterials(look: Pick<FloorLook, 'name' | 'wall'>, kind
 const shadowGeo = new THREE.PlaneGeometry(1, 1);
 shadowGeo.rotateX(-Math.PI / 2);
 shadowGeo.userData.shared = true;
+/** An open shadow's fade: flat steps from the rim in, no darker dot at the middle (`CFG.pixelLook.openSteps`, the
+    alpha of each ring from the middle out over equal radii). */
+function openShadowTex() {
+  const N = 64,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!,
+    img = g.createImageData(N, N),
+    steps = CFG.pixelLook.openSteps;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const d = Math.hypot(x + 0.5 - N / 2, y + 0.5 - N / 2) / (N / 2);
+      img.data[(y * N + x) * 4 + 3] = d >= 1 ? 0 : Math.round(steps[Math.floor(d * steps.length)] * 255);
+    }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter;
+  return t;
+}
 const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })),
   openShadowMat = markShared(
     new THREE.MeshBasicMaterial({
-      map: shadowTex,
+      color: 0x000000,
+      alphaMap: openShadowTex(),
       transparent: true,
       depthWrite: false,
       opacity: CFG.pixelLook.openShadow,
     }),
   );
-/** Soft blob shadow on the floor; `open`, lighter, for a figure whose legs show the floor between them (its dark middle
-    read as a hole there). */
+/** Soft blob shadow on the floor; `open`, lighter and flat at the middle, for a figure whose legs show the floor between
+    them, or a flyer above it (its dark middle read as a hole there). */
 export function blob(size: number, open = false) {
   const m = new THREE.Mesh(shadowGeo, open ? openShadowMat : shadowMat);
   m.scale.set(size, 1, size);
@@ -104,6 +124,11 @@ export function blob(size: number, open = false) {
   m.renderOrder = 1;
   m.userData.blob = true;
   return m;
+}
+/** Make the blob shadow in `group` open or not (a foe swimming under water shows no dark middle). */
+export function openBlob(group: THREE.Object3D, open: boolean) {
+  const m = group.children.find((o) => o.userData.blob) as THREE.Mesh | undefined;
+  if (m) m.material = open ? openShadowMat : shadowMat;
 }
 
 const cache = new Map<string, { userData: Record<string, unknown> }>();

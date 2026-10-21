@@ -75,6 +75,40 @@ function edgeTex() {
   g.fillRect(0, 0, 64, 64);
   return (edgeKept = new THREE.CanvasTexture(c));
 }
+/** A rime snail's rime: crystals of frost in hard pixels (`CFG.foeGround.rimeArt` across the patch, about the texel
+    at its usual size), spines branching from a few seeds, pale at the core and frost-blue out along them, as floor 2's
+    rime lies (art bible 4.18): a soft pale ellipse read as fog. An alpha map (its green channel) over the rime's colour,
+    in three steps. Made once. */
+let rimeKept: THREE.CanvasTexture | null = null;
+function rimeTex() {
+  if (rimeKept) return rimeKept;
+  const N = CFG.foeGround.rimeArt,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!,
+    m = N / 2;
+  let s = 11;
+  const R = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 7; k++) {
+    const a0 = R() * Math.PI * 2,
+      d0 = Math.sqrt(R()) * m * 0.6,
+      x0 = m + Math.cos(a0) * d0,
+      y0 = m + Math.sin(a0) * d0,
+      reach = (m - d0) * 0.85;
+    for (let a = 0; a < 6; a++) {
+      const ang = (a / 6) * Math.PI * 2 + R() * 0.5,
+        len = reach * (0.45 + R() * 0.55);
+      for (let t = 0; t < len; t++) {
+        g.fillStyle = t < 2 ? '#ffffff' : t < len * 0.6 ? '#bdbdbd' : '#8a8a8a';
+        g.fillRect(Math.round(x0 + Math.cos(ang) * t), Math.round(y0 + Math.sin(ang) * t), 1, 1);
+      }
+    }
+  }
+  rimeKept = new THREE.CanvasTexture(c);
+  rimeKept.magFilter = rimeKept.minFilter = THREE.NearestFilter;
+  rimeKept.generateMipmaps = false;
+  return rimeKept;
+}
 const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null, blackice: null };
 const NO_LOOK = { sx: 1, sz: 1, turn: 0 };
 /** A splat of ink: a disc whose edge swells and dips in lobes, with three drops thrown off it. */
@@ -106,20 +140,17 @@ function meshOf(kind: GroundKind) {
       : kind === 'ink'
         ? splatGeometry()
         : new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2);
-  // (ink and rime fade at their edges, so neither reads as a hole in the floor: ink a glossy violet sheen, never a pit's
-  // black; rime a faint frost-blue that overlapping patches don't stack into a white plank)
+  // (ink fades at its edge, so it doesn't read as a hole in the floor: a glossy violet sheen, never a pit's black; rime is
+  // crystals in hard pixels, which overlapping patches don't stack into a white plank)
   const mat =
     kind === 'web'
       ? new THREE.MeshBasicMaterial({ color: 0xd8d0e8, transparent: true, opacity: 0.55, depthWrite: false })
       : kind === 'rime'
-        ? new THREE.MeshStandardMaterial({
-            color: 0x8fc8ec,
-            emissive: 0x123450,
-            roughness: 0.45,
-            metalness: 0.1,
+        ? new THREE.MeshBasicMaterial({
+            color: 0xa8d4f4,
+            alphaMap: rimeTex(),
             transparent: true,
-            opacity: 0.28,
-            alphaMap: glowTex,
+            opacity: 0.95,
             depthWrite: false,
           })
         : kind === 'blackice'

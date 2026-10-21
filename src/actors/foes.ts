@@ -228,18 +228,57 @@ const hazards: {
 const MAX_HAZARDS = 96; // (of each kind)
 /** Each kind's patches' glow on the floor, drawn at once (one instanced mesh a kind: a room of salamanders stays cheap). */
 const hazardGlow: Record<HazardKind, THREE.InstancedMesh | null> = { fire: null, spark: null, blackfire: null };
+/** A spark on the floor as pixel art (`CFG.foeGround.sparkArt` pixels across, at the texel when laid full size): a
+    cross of storm light, hot at the middle, its arms stepping down to amber at the tips, with short ticks between them;
+    hard-edged, so it reads as lightning, not as the floor's soft glowing moss. Made once. */
+function sparkTexture() {
+  const N = CFG.foeGround.sparkArt,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!,
+    m = N / 2,
+    dot = (x: number, y: number, col: string, w = 2, h = 2) => {
+      g.fillStyle = col;
+      g.fillRect(Math.round(x), Math.round(y), w, h);
+    },
+    { hot, storm, tip } = { hot: '#fff8c8', storm: '#ecc838', tip: '#b87a10' };
+  for (let i = 3; i < m - 1; i++) {
+    const col = i < m * 0.7 ? storm : tip,
+      jag = i > m * 0.5 && i % 4 === 0 ? 1 : 0; // (a kink in each arm: lightning, not a plus sign)
+    dot(m - 1 + i, m - 1 - jag, col); // east
+    dot(m - 1 - i, m - 1 + jag, col); // west
+    dot(m - 1 + jag, m - 1 + i, col); // south
+    dot(m - 1 - jag, m - 1 - i, col); // north
+  }
+  for (const [sx, sy] of [
+    [1, 1],
+    [1, -1],
+    [-1, 1],
+    [-1, -1],
+  ])
+    for (let i = 2; i < m * 0.45; i++) dot(m - 1 + sx * i, m - 1 + sy * i, i < 4 ? storm : tip, 1, 1); // (the ticks between)
+  dot(m - 2, m - 2, hot, 4, 4);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
 function hazardMesh(kind: HazardKind) {
   const had = hazardGlow[kind];
   if (had) return had;
   const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
-    mat = new THREE.MeshBasicMaterial({
-      map: glowTex,
-      color: kind === 'fire' ? 0xff6a20 : kind === 'blackfire' ? 0x9a4aff : SCHOOL_LIGHT.storm,
-      transparent: true,
-      opacity: 0.8,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
+    mat =
+      kind === 'spark'
+        ? new THREE.MeshBasicMaterial({ map: sparkTexture(), transparent: true, alphaTest: 0.5, depthWrite: false }) // (drawn, not added: added storm light came out a pale wash)
+        : new THREE.MeshBasicMaterial({
+            map: glowTex,
+            color: kind === 'fire' ? 0xff6a20 : kind === 'blackfire' ? 0x9a4aff : SCHOOL_LIGHT.storm,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
   const mesh = new THREE.InstancedMesh(geo, mat, MAX_HAZARDS);
   mesh.count = 0;
   mesh.frustumCulled = false;
@@ -375,15 +414,18 @@ export function updateFoeHazards(dt: number) {
     const list = hazards.filter((h) => h.kind === kind);
     if (!list.length && !hazardGlow[kind]?.count) continue;
     const mesh = hazardMesh(kind);
+    const [tx, tz] = CFG.roomKit.texel,
+      art = CFG.foeGround.sparkArt;
     list.forEach((h, i) => {
-      const k =
-        Math.min(1, h.t / 0.4) *
-        (kind !== 'spark'
-          ? 0.85 + Math.sin(G.flow.clock * 11 + i) * 0.15
-          : h.armed
-            ? 0.9 + Math.sin(G.flow.clock * 30 + i) * 0.1
-            : 0.45);
-      mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.setScalar((kind !== 'spark' ? 0.75 : 0.6) * k)));
+      if (kind === 'spark') {
+        // a cross a texel a pixel (stretched down the floor as the camera squashes it): small while it crackles, full
+        // once armed, flickering in a step rather than pulsing smooth, and small again as it goes out
+        const k = (h.armed ? (Math.floor(G.flow.clock * 14 + i * 5) % 3 ? 1 : 0.7) : 0.6) * (h.t > 0.25 ? 1 : 0.6);
+        mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.set((art / tx) * k, 1, (art / tz) * k)));
+        return;
+      }
+      const k = Math.min(1, h.t / 0.4) * (0.85 + Math.sin(G.flow.clock * 11 + i) * 0.15);
+      mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.setScalar(0.75 * k)));
     });
     mesh.count = list.length;
     mesh.instanceMatrix.needsUpdate = true;
@@ -406,6 +448,15 @@ export const litFire = (b: PropBox) =>
 export const litFires = (room: Room) => (room.props ?? []).filter(litFire);
 
 /* ---------- behaviours ---------- */
+
+/** A glow of `e`'s school's light before its mouth (its body faces +Z), hidden until a behaviour shows it. */
+function mouthGlow(e: Enemy) {
+  const s = glow(light(e), 0.5, 0);
+  s.position.set(0, 0.3, 0.5);
+  s.visible = false;
+  e.body.add(s);
+  return s;
+}
 
 const BEHAVIOURS: Record<string, Behaviour> = {
   ...BESTIARY_BEHAVIOURS, // (actors/bestiaryFoes.ts)
@@ -754,6 +805,11 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         // its throat swells with cold, then it breathes a cone of it
         e.vx = e.vz = 0;
         e.tele = Math.min(1, 1 - e.st / num(P.breathTell));
+        if (Math.random() < dt * 24) {
+          const fx = Math.sin(e.face),
+            fz = Math.cos(e.face);
+          burst(e.x + fx * 0.45, 0.3, e.z + fz * 0.45, light(e), 1, 0.5, 0.035);
+        } // (frost gathering at its mouth)
         if (e.st <= 0) {
           const n = num(P.shots),
             base = Math.atan2(a.uz, a.ux),
@@ -789,6 +845,14 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       e.model!.position.y = Math.sin(k * Math.PI) * 0.55;
       if (e.state === 'crouch') p.body.scale.set(1.1, 0.82, 1.1);
       if (e.state === 'puff') p.throat.scale.multiplyScalar(1 + (e.tele ?? 0) * 0.6);
+      // the cold it gathers before it breathes, at its mouth, brighter in steps (a made toad has no throat to swell)
+      const puff = (p.puff ??= mouthGlow(e));
+      puff.visible = e.state === 'puff';
+      if (puff.visible) {
+        const k = Math.ceil((e.tele ?? 0) * 3) / 3;
+        (puff as THREE.Sprite).material.opacity = 0.45 + k * 0.5;
+        puff.scale.setScalar(0.4 + k * 0.5);
+      }
     },
   },
 
