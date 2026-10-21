@@ -772,6 +772,11 @@ soundscape an entry in `data/music.json` or `data/ambience.json`; an effect an e
 ## UI
 
 HTML/CSS over the canvas (`index.html`, `src/style.css`).
+- The look (art bible 4.17): framed panels (`.hpanel` in `src/style.css`, `#pVitals`, `#pTop`, `#pBar`) and screen
+  cards wear nine-slices of pixel art (`public/assets/hud/`, made by `tools/art/hudframe.py`) through `border-image`,
+  each pixel `--u` screen pixels (`hudPixel()`, `CFG.hud`). Pixel icons: `pixelSvg`, `pixelHeart`, `soulSvg`,
+  `pixelResIcon` (render/icons.ts); the spells' drawn icons made pixel art when first asked for (`pixelIcon`,
+  render/pixelIcons.ts, `onPixelIcons` to draw again).
 - HUD `ui/hud.ts`: hearts, mana bar and slots (`renderSpells`), resources, soul motes, boss bar, banners,
   `showPrompt`, the minimap (`renderMinimap`; finished rooms are drawn darker with a tick, `roomFinished`). The potion
   belt `#belt` is `ui/belt.ts`; the insight strip and level badge `ui/insightHud.ts`; the Vigil's `#vigilHud`
