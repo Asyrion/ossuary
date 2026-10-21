@@ -238,6 +238,17 @@ export const gradeNow = () => ({
   ink: GRADE.gradeInk.value,
   gap: shade.uniforms.gap.value as number,
 });
+/** A dark on the floor (a stain, a scorch, a spell's darkened ground, Eclipse's black sun) as a shadow, not a hole (art
+    bible 4.2: black only in outlines): `color` lifted to the floor's shadow colour's lightness in its own hue, then turned
+    `toward` that colour, so it keeps its own; as it is where the floor has no grade. */
+export function floorShade(color: number, toward: number = P.decalShade) {
+  const g = gradeNow(),
+    c = new THREE.Color(color);
+  if (g.amount <= 0) return c;
+  const sh = new THREE.Color(g.shadow),
+    lum = (k: THREE.Color) => k.r * 0.2126 + k.g * 0.7152 + k.b * 0.0722;
+  return c.multiplyScalar(Math.min(lum(sh) / Math.max(lum(c), 1e-4), 8)).lerp(sh, toward);
+}
 /** Grade the pixel look for a floor (its `grade`, types.ts FloorLook); none, colours as they are. */
 export function setGrade(g?: { shadow: string; amount: number; lift: number; ink?: number; gap?: number }) {
   // (the pass works on encoded colours, so the hex goes in as it is written, not converted to linear light)

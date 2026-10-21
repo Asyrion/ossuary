@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import type { Room } from '../types';
 import { G, player } from '../state';
 import { scene } from '../render/renderer';
-import { glowTex } from '../render/textures';
+import { fogTex, glowTex } from '../render/textures';
 import { MAGIC } from './status';
 import { groundHears } from '../world/groundHooks';
 import { damageEnemy } from '../combat/damage';
@@ -49,7 +49,7 @@ const clouds: Cloud[] = [];
 export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark = false) {
   const room = G.room.current,
     mat = new THREE.SpriteMaterial({
-      map: glowTex,
+      map: dark ? fogTex : glowTex,
       color: dark ? 0x2a1a40 : 0xe8f2f8,
       transparent: true,
       opacity: 0,
@@ -78,6 +78,7 @@ export function chargeSteam(x: number, z: number, school: Charge) {
   c.school = school;
   c.tick = 0;
   c.mat.color.setHex(TINT[school]);
+  if (school === 'umbral') c.mat.map = fogTex; // (a miasma is a fog of darkness: in hard bands, as the Shadowstep's)
   weaveAt(CHAIN[school], c.x, c.z);
   return true;
 }

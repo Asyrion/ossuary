@@ -1002,7 +1002,7 @@ function refraction(s: (typeof smites)[number], w: (typeof walls)[number]) {
 let ward: { def: SpellDef; t: number; fx: ReturnType<typeof wardFx>; touched: Map<Enemy, number> } | null = null;
 const orbit: Cast = (def) => {
   endWard();
-  ward = { def, t: 0, fx: wardFx(def.params.count, hex(def.color)), touched: new Map() };
+  ward = { def, t: 0, fx: wardFx(def.params.count), touched: new Map() };
   burst(player.x, 0.8, player.z, hex(def.color), 12, 2, 0.04);
   Sfx.wardlight();
   return true;

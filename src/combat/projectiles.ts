@@ -71,7 +71,7 @@ function makeBolt(s: BoltSpec) {
   shadow.position.y = -y + 0.015;
   // (its look, from spellFx.ts: the core, then its glow and shadow at 1 and 2, then rings, runes or a trail)
   const look = boltLook(s.color, s.scale, !!s.shard);
-  mesh.add(look.core, glowShared(s.color, 0.75 * s.scale, 0.9), shadow, ...look.extras);
+  mesh.add(look.core, glowShared(s.color, 0.75 * s.scale, look.glow ?? 0.9), shadow, ...look.extras);
   mesh.rotation.y = Math.atan2(s.vx, s.vz);
   animateBolt(mesh, 0, 0, 0);
   mesh.position.set(s.x, y, s.z);

@@ -6,7 +6,7 @@
      a spell's shard of ice (a splinter with a frost trail); `animateBolt` turns them as they fly; `impactFx` flares
      where one ends;
    - rings of light (`ringFx`): shockwaves on the floor and flashes turned to the camera;
-   - lightning (`strikeFx`): a jagged bolt, a white core in a coloured sheath, re-jagged every step and flickering;
+   - lightning (`strikeFx`): a jagged bolt, a thin white core in a sheath of its colour, re-jagged every step and flickering;
    - the Cinder Lance (`lanceFx`), the Pyre Seal (`sealFx`), the Glacial Wall's pillars (`iceColumn`) and the Static
      Mantle (`mantleFx`).
 
@@ -19,10 +19,12 @@ import type { Vec2 } from '../types';
 import { scene } from '../render/renderer';
 import { basicMat, disposeTree, glow, markShared, mergeStill } from '../render/materials';
 import { modelFor } from '../assets/models';
+import { floorShade, markThing } from '../render/pixelLook';
 import {
   SCHOOL_LIGHT,
   box,
   circle,
+  deepen,
   lightningBolt,
   lit,
   part,
@@ -91,14 +93,15 @@ const sigilTex = (id: string) =>
     t.generateMipmaps = false;
     return t;
   });
-/** The sigil `id` as a disc `radius` round, lying on the floor in added light of `color` (its material, to fade). */
-function sigil(parent: THREE.Object3D, id: string, radius: number, color: number) {
+/** The sigil `id` as a disc `radius` round, lying on the floor in added light of `color` (its material, to fade); or
+    `drawn` in `color`, not added, and edged a game pixel round in a dark (`rimmed`, turned with it by `set`). */
+function sigil(parent: THREE.Object3D, id: string, radius: number, color: number, drawn = false) {
   const mat = new THREE.MeshBasicMaterial({
     map: sigilTex(id),
     color,
     transparent: true,
     opacity: 0,
-    blending: THREE.AdditiveBlending,
+    blending: drawn ? THREE.NormalBlending : THREE.AdditiveBlending,
     depthWrite: false,
   });
   const m = new THREE.Mesh(
@@ -108,8 +111,56 @@ function sigil(parent: THREE.Object3D, id: string, radius: number, color: number
   m.scale.setScalar(radius);
   m.position.y = 0.02;
   parent.add(m);
-  return { m, mat };
+  const rimMat = drawn
+      ? new THREE.MeshBasicMaterial({
+          map: sigilTex(id),
+          color: hexOf(CFG.spellFx.hallow.edge),
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        })
+      : null,
+    rims = rimMat ? rimmed(parent, m, rimMat) : [];
+  return {
+    m,
+    mat,
+    /** Turn it (and its edge) by `a` about Y, at `opacity` (its edge at its share of that). */
+    set(a: number, opacity: number) {
+      m.rotation.y = a;
+      mat.opacity = opacity;
+      for (const e of rims) e.rotation.y = a;
+      if (rimMat) rimMat.opacity = opacity * CFG.spellFx.hallow.edgeOpacity;
+    },
+  };
 }
+/** A dark edge round the lines of `src` (a ring or a sigil lying on the floor): copies of it in `mat`, a game pixel to
+    each side and drawn before it, added to `parent` beside it (a ring of light with no dark edge washed into a bright
+    floor). */
+function rimmed(parent: THREE.Object3D, src: THREE.Object3D, mat: THREE.Material) {
+  const [px, pz] = CFG.roomKit.texel;
+  return [
+    [1 / px, 0],
+    [-1 / px, 0],
+    [0, 1 / pz],
+    [0, -1 / pz],
+  ].map(([dx, dz]) => {
+    const e = src.clone();
+    e.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.material = mat;
+      m.renderOrder = -1; // (under the lines it edges, wherever the camera sorts it)
+    });
+    e.position.x += dx;
+    e.position.z += dz;
+    e.position.y -= 0.001;
+    parent.add(e);
+    return e;
+  });
+}
+const hexOf = (c: string) => parseInt(c.slice(1), 16);
+/** Hallow's gold, drawn (art bible 4.15: its light added over a bright floor came out cream-white, its gold lost). */
+const hallowGold = () => hexOf(CFG.spellFx.hallow.gold);
 /** A spell's made part (data/assets.json `props`: the ice, the bone hands, the thorns, the sword, the lantern; Tripo
     models worn as pixel art), or null while it isn't in: the spell then builds its own from code. */
 const made = (id: string) => modelFor('props', id);
@@ -123,18 +174,31 @@ function faceCamera(o: THREE.Object3D, yaw: number, spin: number) {
 
 /* ---------- bolts ---------- */
 
-/** How a bolt looks: its core (first in the bolt's group) and what it carries besides its glow and shadow (added after
-    them). The cantrip: a crystal of its colour made white-hot, a rune ring turning round it and two runes trailing. A
-    spell's shard (Rime Shards, Shatter): a splinter of ice with a frost trail. Pointing along +Z, where it flies. */
-export function boltLook(color: number, scale: number, shard: boolean): { core: THREE.Mesh; extras: THREE.Object3D[] } {
+/** How a bolt looks: its core (first in the bolt's group), what it carries besides its glow and shadow (added after
+    them), and how strong its glow is when not the usual. The cantrip: a crystal of its colour made white-hot, a rune ring
+    turning round it and two runes trailing. A spell's shard (Rime Shards, Shatter): a splinter of ice with a frost trail.
+    Pointing along +Z, where it flies. */
+export function boltLook(
+  color: number,
+  scale: number,
+  shard: boolean,
+): { core: THREE.Mesh; extras: THREE.Object3D[]; glow?: number } {
   if (shard) {
-    // (ice-blue, not white, and two game pixels thick: a white splinter a pixel wide was lost on the floor)
-    const core = new THREE.Mesh(octa(), basicMat(0xa8dcff));
+    // (its school's colour drawn deep along the splinter and its trail, white only as a thin core along its top, two game
+    // pixels thick at least: a white splinter in a white halo was lost on a bright floor)
+    const deep = deepen(color),
+      core = new THREE.Mesh(octa(), basicMat(deep));
     core.scale.set(0.085 * scale, 0.085 * scale, 0.3 * scale);
-    const trail = new THREE.Mesh(cube(), shineOf('trail', color, 0.6));
+    const heart = new THREE.Mesh(octa(), basicMat(0xffffff));
+    heart.scale.set(0.03 * scale, 0.03 * scale, 0.2 * scale);
+    heart.position.y = 0.07 * scale; // (on its top, where the camera sees it)
+    const trail = new THREE.Mesh(
+      cube(),
+      keep(`fx.shardTrail.${deep}`, () => lit(deep, 0.6)),
+    );
     trail.scale.set(0.06 * scale, 0.06 * scale, 0.5 * scale);
     trail.position.z = -0.3 * scale;
-    return { core, extras: [trail] };
+    return { core, extras: [heart, trail], glow: CFG.spellFx.shardGlow };
   }
   const core = new THREE.Mesh(octa(), basicMat(whiter(color)));
   core.scale.set(0.075 * scale, 0.075 * scale, 0.15 * scale);
@@ -248,8 +312,8 @@ export function strikeFx(a: P3, b: P3, color: number, life: number = CFG.spellFx
     scene.add(root);
     s = { root, bolt, ends, a: [0, 0, 0], b: [0, 0, 0], t: 0, life, thin };
   }
-  s.bolt.sheath.color.setHex(color);
-  for (const e of s.ends) e.material.color.setHex(color);
+  s.bolt.sheath.color.setHex(deepen(color));
+  for (const e of s.ends) e.material.color.setHex(deepen(color));
   s.a = [a.x, a.y, a.z];
   s.b = [b.x, b.y, b.z];
   s.t = 0;
@@ -267,7 +331,7 @@ function stepStrike(s: Strike, dt: number) {
     len = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1], s.b[2] - s.a[2]);
   s.bolt.set(s.a, s.b, jag++, len * 0.09 + 0.03, Math.random() > 0.15);
   s.bolt.core.opacity = k;
-  s.bolt.sheath.opacity = 0.55 * k;
+  s.bolt.sheath.opacity = CFG.spellFx.lightning.sheathOpacity * k;
   for (const e of s.ends) e.material.opacity = 0.85 * k;
   return false;
 }
@@ -577,7 +641,7 @@ export function mantleFx(color: number) {
           b = (((f + i) % 5) - 2) * 0.4;
         j.set(pt(a, b), pt(a + 1.1, -b), seed++, 0.07, (f + i) % 3 !== 0 && fade > 0.2);
         j.core.opacity = fade;
-        j.sheath.opacity = 0.55 * fade;
+        j.sheath.opacity = CFG.spellFx.lightning.sheathOpacity * fade;
       });
     },
     drop() {
@@ -589,24 +653,26 @@ export function mantleFx(color: number) {
 
 /* ---------- Hallow and Umbral ---------- */
 
-/** Consecrate's holy ground at (x, z): a circle of gold light with a rune ring turning in it, a soft glow and motes rising.
-    `update` fades it by `fade`; `drop` takes it away. */
-export function consecrateFx(x: number, z: number, radius: number, color: number) {
-  const g = new THREE.Group();
+/** Consecrate's holy ground at (x, z): a circle drawn in Hallow's gold (whatever the spell's pale colour) and edged in
+    dark, with a rune ring turning in it, a soft glow and motes rising. `update` fades it by `fade`; `drop` takes it away. */
+export function consecrateFx(x: number, z: number, radius: number, _color?: number) {
+  const g = new THREE.Group(),
+    H = CFG.spellFx.hallow,
+    gold = hallowGold();
   g.position.set(x, 0, z);
   scene.add(g);
-  const { m: holy, mat: holyMat } = sigil(g, 'consecrate', radius, color);
+  const holy = sigil(g, 'consecrate', radius, gold, true);
   const fill = new THREE.Mesh(
     keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)),
-    shine(color, 0.12),
+    lit(gold, H.fill),
   );
   fill.scale.setScalar(radius);
   fill.position.y = 0.012;
   g.add(fill);
-  const warm = glow(color, radius * 2.2, 0.3);
+  const warm = glow(gold, radius * 2.2, H.glow);
   warm.position.y = 0.4;
   g.add(warm);
-  const moteMat = lit(whiter(color, 0.5)),
+  const moteMat = lit(whiter(gold, 0.35)),
     motes = Array.from({ length: 10 }, (_, i) => {
       const m = new THREE.Mesh(octa(), moteMat);
       m.scale.setScalar(0.035);
@@ -617,10 +683,9 @@ export function consecrateFx(x: number, z: number, radius: number, color: number
     });
   return {
     update(t: number, fade: number) {
-      holyMat.opacity = (0.85 + Math.sin(t * 4) * 0.1) * fade;
-      holy.rotation.y = t * 0.3;
-      fill.material.opacity = 0.12 * fade;
-      warm.material.opacity = 0.3 * fade;
+      holy.set(t * 0.3, (0.85 + Math.sin(t * 4) * 0.1) * fade);
+      fill.material.opacity = H.fill * fade;
+      warm.material.opacity = H.glow * fade;
       motes.forEach((m, i) => {
         const u = (t * 0.45 + i / 10) % 1,
           a = m.userData.a as number,
@@ -639,17 +704,24 @@ export function consecrateFx(x: number, z: number, radius: number, color: number
 /** Judgement: a closing ring of gold under the foe it has chosen while it waits (`mark`, k from 0 to 1), then a pillar of
     light falls on it (`fall`), bright and narrowing (`fade`, from 0 to 1 over its life). */
 export function smiteFx(color: number, radius: number) {
-  const g = new THREE.Group();
+  const g = new THREE.Group(),
+    H = CFG.spellFx.hallow,
+    gold = hallowGold();
   scene.add(g);
-  const markMat = shine(color, 0.7),
-    mark = circle(g, color, radius, markMat);
-  mergeStill(mark);
+  // (its ring drawn in Hallow's gold and edged in dark, not added: added over a bright floor it came out cream-white)
+  const mark = new THREE.Group(),
+    markMat = lit(gold, 0.7),
+    rimMat = lit(hexOf(H.edge), 0.7 * H.edgeOpacity),
+    ring = circle(mark, gold, radius, markMat);
+  g.add(mark);
+  mergeStill(ring);
+  rimmed(mark, ring, rimMat);
   // (the pillar's light stays under 0.6 all told, so it lights the foe rather than whiting it out: docs/effects.md)
   const beamMat = shine(whiter(color, 0.4), 0.22),
     beam = part(g, new THREE.CylinderGeometry(radius * 0.55, radius * 0.55, 4, 14, 1, true), beamMat, [0, 2, 0]);
   const coreMat = shine(0xffffff, 0.16),
     core = part(g, new THREE.CylinderGeometry(radius * 0.2, radius * 0.2, 4, 10, 1, true), coreMat, [0, 2, 0]);
-  const halo = glow(color, radius * 3.2, 0);
+  const halo = glow(gold, radius * 3.2, 0);
   halo.position.y = 0.6;
   g.add(halo);
   beam.visible = core.visible = false;
@@ -666,6 +738,7 @@ export function smiteFx(color: number, radius: number) {
       mark.scale.setScalar(1.6 - k * 0.6);
       mark.rotation.y = t * 2;
       markMat.opacity = 0.35 + k * 0.5 + Math.sin(t * 25) * 0.1 * k;
+      rimMat.opacity = markMat.opacity * H.edgeOpacity;
     },
     fall() {
       beam.visible = core.visible = true;
@@ -683,6 +756,7 @@ export function smiteFx(color: number, radius: number) {
       coreMat.opacity = 0.16 * (1 - k);
       halo.material.opacity = 0.3 * (1 - k);
       markMat.opacity = 0.8 * (1 - k);
+      rimMat.opacity = markMat.opacity * H.edgeOpacity;
       mark.scale.setScalar(1 + k * 0.6);
     },
     drop() {
@@ -692,21 +766,25 @@ export function smiteFx(color: number, radius: number) {
   };
 }
 
-/** Wardlight: `count` motes of gold light circling the mage, each a white-hot crystal in a glow. `place` puts mote `i` at
+/** Wardlight: `count` motes of Hallow's gold circling the mage, each a gold crystal in a glow. `place` puts mote `i` at
     (x, y, z); `drop` takes them away. */
-export function wardFx(count: number, color: number) {
+export function wardFx(count: number) {
   const g = new THREE.Group();
   scene.add(g);
-  const crystalMat = lit(whiter(color, 0.45));
+  // (gold crystals in a gold glow, closed in an outline: white-hot ones in added light came out cream-white on a bright
+  // floor)
+  const gold = hallowGold(),
+    crystalMat = lit(gold);
   const motes = Array.from({ length: count }, () => {
     const m = new THREE.Group();
     g.add(m);
     const c = new THREE.Mesh(octa(), crystalMat);
     c.scale.set(0.07, 0.12, 0.07);
     m.add(c);
-    m.add(glow(color, 0.6, 0.75));
+    m.add(glow(gold, 0.6, CFG.spellFx.hallow.orbGlow));
     return m;
   });
+  markThing(g);
   return {
     place(i: number, x: number, y: number, z: number, spin: number, on: boolean) {
       const m = motes[i];
@@ -795,7 +873,8 @@ export function graspFx(x: number, z: number, radius: number, color: number) {
   scene.add(g);
   const pool = new THREE.Mesh(
     keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)),
-    new THREE.MeshBasicMaterial({ color: 0x0c0614, transparent: true, opacity: 0.7, depthWrite: false }),
+    // (its dark a shadow in the floor's shadow colour, the floor showing through: a near-black one read as a pit)
+    new THREE.MeshBasicMaterial({ color: floorShade(0x0c0614), transparent: true, opacity: 0, depthWrite: false }),
   );
   pool.scale.setScalar(radius);
   pool.position.y = 0.013;
@@ -850,7 +929,7 @@ export function graspFx(x: number, z: number, radius: number, color: number) {
         h.scale.setScalar(Math.max(0.01, k));
       });
       rimMat.opacity = 0.7 * Math.min(1, k * 2);
-      pool.material.opacity = 0.7 * Math.min(1, k * 2);
+      pool.material.opacity = CFG.spellFx.groundShade * Math.min(1, k * 2);
     },
     drop() {
       scene.remove(g);
@@ -869,7 +948,8 @@ export function thornFx(x: number, z: number, radius: number, color: number) {
   scene.add(g);
   const earth = new THREE.Mesh(
     keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)),
-    new THREE.MeshBasicMaterial({ color: 0x1e160c, transparent: true, opacity: 0.65, depthWrite: false }),
+    // (turned earth in the floor's shadow colour, the floor showing through: a near-black one read as a pit)
+    new THREE.MeshBasicMaterial({ color: floorShade(0x1e160c), transparent: true, opacity: 0, depthWrite: false }),
   );
   earth.scale.setScalar(radius);
   earth.position.y = 0.013;
@@ -930,7 +1010,7 @@ export function thornFx(x: number, z: number, radius: number, color: number) {
         v.scale.setScalar(Math.max(0.01, k));
       });
       rimMat.opacity = 0.6 * Math.min(1, k * 2);
-      earth.material.opacity = 0.65 * Math.min(1, k * 2);
+      earth.material.opacity = CFG.spellFx.groundShade * Math.min(1, k * 2);
     },
     drop() {
       scene.remove(g);
@@ -1002,12 +1082,20 @@ export function woodColumn(x: number, z: number, h: number, hedge = true) {
     if (hedge) {
       model.scale.set(0.6, h / 0.75, 1); // (its length cut to two spots, its height the trunk's)
       model.traverse((o) => {
-        const m = (o as THREE.Mesh).material as THREE.MeshToonMaterial | undefined;
+        const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
         if (m && !m.userData.living) {
-          m.color.setHex(0xa8d878); // (its grey weave tinted living green, the Verdant's)
+          // (its grey weave tinted living green, the Verdant's, and its strands lit lime from within by the weave itself:
+          // tinted only, it was a near-black slab on a dark floor)
+          m.color.setHex(hexOf(CFG.spellFx.hedge.tint));
+          if (m.emissive) {
+            m.emissive.setHex(hexOf(CFG.spellFx.hedge.glow));
+            m.emissiveMap = m.map;
+          }
+          m.needsUpdate = true;
           m.userData.living = true;
         }
       });
+      markThing(model); // (its closed outline, as a discrete thing's: art bible 4.4)
       g.add(model);
     }
     g.add(mossPatch());
