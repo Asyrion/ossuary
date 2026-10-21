@@ -245,6 +245,17 @@ made chest's ward seal, still drawn in code, hovers flat over its lid and turns,
 chest's a pale gold: standing before the chest it read as a pale smudge, and pink over the gilded chest's red wood (the
 owner's "surprise me", 2026-10-21).
 
+### 4.17 The HUD and screens, step H (built 2026-10-21, awaiting the owner)
+
+Variant B of 4.6 built: the HUD in small framed panels of brass and stone, drawn as pixel art at about the room's pixel
+(`--u`, two screen pixels a pixel, three from 900 window rows; `CFG.hud`) from nine-slices made by
+`tools/art/hudframe.py` (`public/assets/hud/`). Top left the hearts and the mana bar (two flat tones in a brass trough,
+the insight strip under it); top right the obols, keys and glyphs beside the framed map; bottom centre the spell slots,
+the level and the potion belt; the boss bar moved to the top. The hearts, soul motes, key and glyph are pixel bitmaps
+with the closed outline (`pixelSvg` in render/icons.ts); the spells' drawn icons are made pixel art when first shown
+(render/pixelIcons.ts: drawn small, their edge cut hard, outlined). The hint, the prompt, the lore card and every
+screen's card wear the same frame, dark whatever the system's theme (the cream cards of a light system are gone).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
