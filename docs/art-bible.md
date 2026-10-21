@@ -254,7 +254,9 @@ the insight strip under it); top right the obols, keys and glyphs beside the fra
 the level and the potion belt; the boss bar moved to the top. The hearts, soul motes, key and glyph are pixel bitmaps
 with the closed outline (`pixelSvg` in render/icons.ts); the spells' drawn icons are made pixel art when first shown
 (render/pixelIcons.ts: drawn small, their edge cut hard, outlined). The hint, the prompt, the lore card and every
-screen's card wear the same frame, dark whatever the system's theme (the cream cards of a light system are gone).
+screen's card wear the same frame, dark whatever the system's theme (the cream cards of a light system are gone). From the
+closing sweep: the screens stand over the hint, and the hint shows at the top, under the panels, its text at the HUD's
+pixel (at the bottom it lay over a one-cell room's south door).
 
 ## 5. The reference pictures
 
