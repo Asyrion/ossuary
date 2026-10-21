@@ -237,8 +237,10 @@ bone bands read as the bars of a cage, the pedestal pale. G2 (built, awaiting th
 artifacts get the closed outline alone (`markThing` in the pixel look: their colours stay as made, no rim or light in
 steps, which darkened the flat hearts), the purse in oxblood leather, the shard's veins two pixels wide and the key's
 ward stone larger, and every mark on the floor (scorch, soot, a foe's stain) turned toward the floor's shadow colour
-(`CFG.pixelLook.decalShade`). The chests, the coffer and the pedestal are to be made in Tripo (concepts drawn, not yet
-fetched).
+(`CFG.pixelLook.decalShade`, in each mark's own hue after the room inspection). **The owner kept the outline and the
+softer marks (2026-10-21).** The reliquary chest, the gilded chest, the offering coffer and the artifacts' pedestal are
+made in Tripo from the owner's picks (`docs/art/items/`; docs/assets.md, asset log), the chests' and the coffer's lids cut
+off on their hinges so they still open (`tools/art/lid.py`), a chest's ward seal still drawn in code before it.
 
 ## 5. The reference pictures
 

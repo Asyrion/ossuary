@@ -524,7 +524,10 @@ a floor from the floor it was bound on (`G.run.fennexFrom`), breathes Ember in i
   simulated in `tests/unit/loot.test.ts`).
 - Pickups: `items/pickups.ts` (`spawnPickup`, `useItem`/`cantUse`, `giveResources`, coffers, warded and gilded
   chests); looks `pickupLooks.ts`. Hearts are not taken at full health, mana vials at full mana, soul motes past
-  `CFG.souls.max`, a lodestone shard with spells ready and mana full (a message says why, once). While the mage knows
+  `CFG.souls.max`, a lodestone shard with spells ready and mana full (a message says why, once). A made coffer or chest
+  (data/assets.json props `coffer`, `chest`, `chest_gilded`; its lid a node named `lid` on the hinge, cut by
+  `tools/art/lid.py`) takes the place of the one built in code (`madeContainer` in `pickupLooks.ts`); the pedestal's is
+  props `pedestal`. While the mage knows
   no spell, an obol drops in place of a vial or shard. Obol faces: `items/obolFace.ts`; `__game.obolFace`.
 - Glyphs (`combat/glyphs.ts`): chalked with Space or LT, set off by a fuse or the mage's bolts, chaining.
   `CFG.glyph`; `__game.blast(x, z)`.
