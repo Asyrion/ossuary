@@ -97,6 +97,8 @@ export function themedLook(look: FloorLook, theme?: ThemeDef): FloorLook {
   const out = { ...look } as Record<string, unknown>;
   for (const [k, patch] of Object.entries(theme.look))
     out[k] = { ...(look as unknown as Record<string, object>)[k], ...(patch as object) };
+  const own = look.themeFloor?.[theme.id]; // (this floor's own colours for the theme)
+  if (own) out.floor = { ...(out.floor as object), ...own };
   return out as unknown as FloorLook;
 }
 

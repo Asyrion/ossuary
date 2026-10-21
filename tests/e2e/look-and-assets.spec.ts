@@ -313,7 +313,7 @@ test('the pixel look: at the texel from the start, the fine grid from the URL, d
   expect(offErrors).toEqual([]);
 });
 
-test("a floor's grade (the art bible's cool shadows): floor 1 leans its darks toward its shadow colour, lifts black and fills more light; a floor without one is drawn as it is", async ({
+test("a floor's grade (the art bible's cool shadows): floor 1 leans its darks toward its shadow colour, lifts black and fills more light; a floor without one (floor 3, not yet in the new look) is drawn as it is", async ({
   page,
 }) => {
   type GG = { grade: { shadow: string; amount: number; lift: number }; lightLevels(): { fill: number } };
@@ -327,7 +327,7 @@ test("a floor's grade (the art bible's cool shadows): floor 1 leans its darks to
   expect(f1.grade.shadow).toMatch(/^#[0-9a-f]{6}$/);
   expect(f1.fill).toBeGreaterThan(1);
   expect(one).toEqual([]);
-  const two = await start(page, '?seed=GRADE1&floor=2');
+  const two = await start(page, '?seed=GRADE1&floor=3');
   const f2 = await page.evaluate(() => {
     const g = (window as unknown as { __game: GG }).__game;
     return { grade: g.grade, fill: g.lightLevels().fill };
@@ -386,7 +386,7 @@ test("a plain room's scatter: on floor 1 a fight's room is strewn from the floor
   expect(Object.values(s1).reduce((a, b) => a + b, 0)).toBeGreaterThan(4);
   for (const k of Object.keys(s1)) expect(kinds).toContain(k);
   expect(one).toEqual([]);
-  const two = await start(page, '?room=crypt_a&seed=SCATTER1&floor=2');
+  const two = await start(page, '?room=crypt_a&seed=SCATTER1&floor=3');
   const s2 = await page.evaluate(() => {
     const g = (window as unknown as { __game: GS & { warp(i: number): void } }).__game;
     g.warp(1);

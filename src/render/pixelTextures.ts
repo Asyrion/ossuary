@@ -1082,11 +1082,12 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       c[1] * 0.55 + base[1] * 0.45,
       c[2] * 0.55 + base[2] * 0.45,
     ];
-    const cream = dull([150, 144, 122]),
-      teal = dull([46, 104, 100]),
-      ochre = dull([140, 106, 60]),
-      terracotta = dull([140, 72, 52]),
-      pale = dull([176, 168, 144]);
+    const own = f.look.floor.tesserae, // (a floor's own tesserae, in its palette)
+      cream = dull(own ? hex(own.ground) : [150, 144, 122]),
+      teal = dull(own ? hex(own.lattice) : [46, 104, 100]),
+      ochre = dull(own ? hex(own.cross) : [140, 106, 60]),
+      terracotta = dull(own ? hex(own.ring) : [140, 72, 52]),
+      pale = dull(own ? hex(own.pale) : [176, 168, 144]);
     const bed: RGB = scale(base, 0.8);
     const holes: [number, number, number][] = Array.from({ length: f.n(4) }, () => [R() * cw, R() * ch, 10 + R() * 16]);
     for (let ty = 0; ty < ch; ty += T)
@@ -1462,7 +1463,7 @@ export function pixelFloorTexture(
         y = R() * ch,
         rx = 14 + R() * 30,
         ry = rx * (0.35 + R() * 0.2);
-      px.blotch(x, y, rx, ry, 1.6, (u, v) => px.mix(u, v, [12, 22, 26], paving === 'mosaic' ? 0.38 : 0.62)); // (lighter over the pale mosaic, or it reads as a hole)
+      px.blotch(x, y, rx, ry, 1.6, (u, v) => px.mix(u, v, [26, 44, 56], paving === 'mosaic' ? 0.38 : 0.55)); // (deep water, never a pit's black; lighter over the pale mosaic)
       for (let u = Math.floor(x - rx * 0.7); u < x + rx * 0.7; u++) {
         const v = Math.round(y - ry * Math.sqrt(Math.max(0, 1 - ((u - x) / rx) ** 2)) + 1);
         if (bayer(u, v) < 0.7) px.mix(u, v, [150, 200, 210], 0.4);

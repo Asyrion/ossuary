@@ -64,7 +64,8 @@ describe("the room kit's kinds", () => {
     );
   });
   it("a floor look's scatter, materials and grade are known and well formed", () => {
-    for (const f of FLOORS) expect(validateLookExtras(f.look.name, f.look)).toEqual([]);
+    for (const f of FLOORS)
+      expect(validateLookExtras(f.look.name, { ...f.look, tesserae: f.look.floor.tesserae })).toEqual([]);
     expect(
       validateLookExtras('bad', {
         scatter: { lava: 2 },

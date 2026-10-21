@@ -73,8 +73,17 @@ export interface WallDress {
 }
 export interface FloorLook {
   name: string;
-  /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
-  floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash' | 'wax'; bones: number };
+  /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones; a mosaic's
+      tesserae in the floor's palette ('#rrggbb': the medallions' `ring`, `cross` and `pale` field, the `lattice`, the
+      `ground`), the room kit's warm ones where it names none. */
+  floor: {
+    base: RGB;
+    mortar: string;
+    stain: string;
+    decor: 'bones' | 'puddles' | 'ash' | 'wax';
+    bones: number;
+    tesserae?: { ring: string; cross: string; pale: string; lattice: string; ground: string };
+  };
   wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt'; dress?: WallDress };
   /** The floor's lights: the wall torch's flame and light, and the wax of its candles (a room's wall light is the kind
       it drew from `kit`). */
@@ -97,6 +106,8 @@ export interface FloorLook {
   /** What a plain fight or the start scatter over their floor (the themes' kinds, world/themes.ts), each kind's count
       varied a room. */
   scatter?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
+  /** A theme's floor on this floor, by theme id (its base colour, its stain), so themes that share a kit still differ. */
+  themeFloor?: Record<string, Partial<FloorLook['floor']>>;
   /** The made relics its `relics` scatter strews (prop ids, data/assets.json); floor 1's vault's when absent. */
   relics?: string[];
   /** The floor's own colours for the room kit's materials and objects, by name (world/kitColours.ts): '#rrggbb'. */

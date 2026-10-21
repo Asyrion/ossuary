@@ -119,6 +119,37 @@ function blotch() {
   patchTex = new THREE.CanvasTexture(c);
   return patchTex;
 }
+let rimeKept: THREE.Material | null = null;
+/** Rime on the floor: crystals of frost at the kit's texel (48 a unit), hard-edged, branching from a few seeds, made once. */
+function rimeMat() {
+  if (rimeKept) return rimeKept;
+  const N = 48,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!;
+  let s = 7;
+  const R = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 18; k++) {
+    // a crystal: a few straight spines from a seed, shorter toward the patch's edge, a pale core
+    const x0 = 10 + R() * 28,
+      y0 = 10 + R() * 28,
+      reach = 12 - Math.hypot(x0 - 24, y0 - 24) / 2.5;
+    for (let a = 0; a < 6; a++) {
+      const ang = (a / 6) * Math.PI * 2 + R() * 0.4,
+        len = reach * (0.5 + R() * 0.5);
+      for (let t = 0; t < len; t++) {
+        g.fillStyle = t < 2 ? '#ffffff' : t < len * 0.6 ? '#c8c8c8' : '#8a8a8a';
+        g.fillRect(Math.round(x0 + Math.cos(ang) * t), Math.round(y0 + Math.sin(ang) * t), 1, 1);
+      }
+    }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return (rimeKept = markShared(
+    new THREE.MeshBasicMaterial({ color: 0xc8e8ff, alphaMap: t, transparent: true, depthWrite: false, opacity: 0.95 }),
+  ));
+}
 const patchMats = new Map<string, THREE.Material>();
 const patchMat = (color: number, glowing = false, opacity = 0.8) => {
   const key = color + (glowing ? 'g' : '') + opacity;
@@ -352,7 +383,7 @@ const DRESS: Record<ScatterKind, Dress> = {
     return g;
   },
   rime(R) {
-    const m = new THREE.Mesh(GEO.patch, patchMat(0x9fd0f0, true, 0.22));
+    const m = new THREE.Mesh(GEO.patch, rimeMat()); // (frost in hard pixels: a soft glowing blob read as fog or a light)
     m.scale.setScalar(0.7 + R() * 0.5);
     m.position.y = 0.005;
     m.rotation.y = R() * 6;
@@ -369,8 +400,9 @@ const DRESS: Record<ScatterKind, Dress> = {
     }
     return g;
   },
-  stains(R) {
-    const m = new THREE.Mesh(GEO.patch, patchMat(0x3a2e0c, false, 0.7));
+  stains(R, look) {
+    const [r, g, b] = look.floor.stain.split(',').map(Number),
+      m = new THREE.Mesh(GEO.patch, patchMat((r << 16) | (g << 8) | b, false, 0.55)); // (the floor's own stain: a near-black one read as a hole)
     m.scale.setScalar(0.7 + R() * 0.7);
     m.position.y = 0.004;
     m.rotation.y = R() * 6;
