@@ -277,7 +277,7 @@ water and the floor's own stain, never a pit's black; the rubble wall cut four u
 collapsed crypt, the garth and the pilgrims' rest each on a floor of their own colour (`themeFloor` in the floor's
 look); the Storm Darter in storm indigo with a gold belly and a thicker body (a thin dark-teal one vanished).
 
-### 4.19 Floor 2's foes and bosses made in Tripo (built 2026-10-21; the last four accepted by the owner)
+### 4.19 Floor 2's foes and bosses made in Tripo (built and accepted by the owner 2026-10-21)
 
 The owner's call: foes may be made anew in Tripo where a better figure fits, as still models that code moves. The eight
 weakest looks of floor 2 (the mire toad, lantern jelly, thunderhead, walking wave, puffcap, rime snail, glass newt and
@@ -285,7 +285,8 @@ storm darter) are Tripo models from the owner's picks, worn as pixel art from th
 (`props/foe_<look>.glb`), in place of the look in code (`actors/madeFoes.ts`). Code moves each as a whole (`CFG.madeFoes`:
 it squats, floats, sways, crawls or banks), sizes it by its `span` across the floor (about one and a half times the
 foe's body, so it reads at its reach), hangs a flyer where its body was, and keeps the code look's lights and the parts
-its behaviour moves. Each foe wears its own copy of the surface, so a hit lights only it.
+its behaviour moves. Each foe wears its own copy of the surface, so a hit lights only it. The owner kept all eight at
+the sizes first set (2026-10-21).
 Then, from the owner's picks (2026-10-21, through the `tripo` CLI on the owner's Tripo Studio account), the kelpie and the
 brine serpent, which rise from their own pools (kept from the look in code, `keep`; the kelpie turned three-quarters to
 the camera, since a horse seen head-on is all mane), and the floor's two bosses (`actors/madeBosses.ts`), the Drowned
