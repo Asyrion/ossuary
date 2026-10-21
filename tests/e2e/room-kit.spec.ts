@@ -381,10 +381,10 @@ test("the room kit's artifacts: every one built in code, and the HUD's icons ren
   expect(errors).toEqual([]);
 });
 
-test("the room kit's pickups and special rooms: every drop, coffers and chests that still open, the shade, the library, the shrine's stones and the vault's lock built in code", async ({
+test("the room kit's pickups and special rooms: every drop (the coffers and chests made in Tripo), coffers and chests that still open, the shade, the library, the shrine's stones and the vault's lock built in code", async ({
   page,
 }) => {
-  type Mat = { vertexColors?: boolean };
+  type Mat = { vertexColors?: boolean; isMeshToonMaterial?: boolean };
   type O = { layers?: { mask: number }; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
   const painted = (o?: O) => {
     let n = 0;
@@ -393,17 +393,24 @@ test("the room kit's pickups and special rooms: every drop, coffers and chests t
     });
     return n;
   }; // (the room kit's pieces: colours in the vertices; an obol's coin face, on the fine layer)
+  const made = (o?: O) => {
+    let n = 0;
+    o?.traverse((q) => {
+      if ([q.material ?? []].flat().some((m) => m.isMeshToonMaterial)) n++;
+    });
+    return n;
+  }; // (a made model, its texture worn as pixel art)
   // (evaluated as strings, so the counting function goes along with them)
   const drops = () =>
     page.evaluate<{
-      laid: { kind: string; painted: boolean }[];
+      laid: { kind: string; painted: boolean; made: boolean }[];
       opened: number;
       boxes: number;
       spilled: number;
     }>(`(() => {
-    const g = window.__game, painted = ${painted.toString()};
+    const g = window.__game, painted = ${painted.toString()}, made = ${made.toString()};
     g.dropsHere(); g.sim(.8, true);
-    const laid = g.pickups.map(p => ({ kind: p.kind, painted: painted(p.m) > 0 }));
+    const laid = g.pickups.map(p => ({ kind: p.kind, painted: painted(p.m) > 0, made: made(p.m) > 0 }));
     g.loot({ keys: 3 });
     for (const p of g.pickups.filter(p => p.kind === 'coffer' || p.kind === 'chest')) { g.player.x = p.x; g.player.z = p.z + .5; g.sim(.1, true); }
     g.sim(.8, true);
@@ -431,7 +438,7 @@ test("the room kit's pickups and special rooms: every drop, coffers and chests t
     'rune',
     'shard',
   ]);
-  expect(kit.laid.every((d) => d.painted)).toBe(true);
+  expect(kit.laid.every((d) => (d.kind === 'coffer' || d.kind === 'chest' ? d.made : d.painted))).toBe(true);
   expect(kit).toMatchObject({ boxes: 3, opened: 3 });
   expect(kit.spilled).toBeGreaterThan(0); // (a key each for the chests; the gilded one's relic is an artifact, not a pickup)
   await page.screenshot({ path: 'test-results/room-kit-drops.png' });

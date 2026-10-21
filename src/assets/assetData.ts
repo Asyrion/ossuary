@@ -74,6 +74,11 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   thorn_hedge: 'prop',
   judgement_sword: 'prop',
   vigil_lantern: 'prop',
+  // the containers (items/pickupLooks.ts): a made one, its lid a node named `lid` on its hinge, takes the place of the one
+  // built in code
+  coffer: 'prop',
+  chest: 'prop',
+  chest_gilded: 'prop',
 };
 export const MANIFEST: Manifest = {
   props: raw.props,

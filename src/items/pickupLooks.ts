@@ -15,7 +15,7 @@ import { box, put } from '../world/objectLooks';
 import { WARD_COLOR as WARD } from '../world/rooms';
 import type { Item } from './loot';
 import { obolFaceNow, obolFaces } from './obolFace';
-import { coinFace, type CoinFace } from '../assets/models';
+import { coinFace, modelFor, type CoinFace } from '../assets/models';
 
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up. */
@@ -412,12 +412,14 @@ export function coinGallery(parent: THREE.Object3D, x: number, z: number) {
 }
 
 /** A coffer or a chest, merged, its lid on a hinge at the back (`lid`, turned to open) and a chest's ward seal on its
-    front (`ward`: its first child, the circle of runes, turns; gold on a gilded chest). As in pickups.ts. */
+    front (`ward`: its first child, the circle of runes, turns; gold on a gilded chest). A made model (data/assets.json:
+    props `coffer`, `chest`, `chest_gilded`, its lid a node named `lid` turning about its own origin at the hinge) takes
+    the place of the one built here. As in pickups.ts. */
 export function containerLook(kind: 'coffer' | 'chest', gilded = false) {
   const key = kind + (gilded ? ':gilded' : '');
   let t = boxes.get(key);
   if (!t) {
-    t = kind === 'coffer' ? coffer() : chest(gilded);
+    t = madeContainer(kind, gilded) ?? (kind === 'coffer' ? coffer() : chest(gilded));
     boxes.set(key, t);
   }
   const g = t.clone(),
@@ -430,6 +432,30 @@ export function containerLook(kind: 'coffer' | 'chest', gilded = false) {
   return { g, lid, ward };
 }
 const boxes = new Map<string, THREE.Object3D>();
+
+/** A container's made model, its ward seal (a chest's) standing before its front, or null where none is made or its lid
+    can't be found. */
+function madeContainer(kind: 'coffer' | 'chest', gilded: boolean) {
+  const model = modelFor('props', kind === 'coffer' ? 'coffer' : gilded ? 'chest_gilded' : 'chest');
+  if (!model) return null;
+  if (!model.getObjectByName('lid')) {
+    console.warn(`asset props.${kind}: the model has no node named lid; the one built in code stays`);
+    return null;
+  }
+  const g = new THREE.Group();
+  g.add(model, blob(kind === 'coffer' ? 0.8 : 1));
+  if (kind === 'chest') {
+    const front = new THREE.Box3().setFromObject(model).max.z,
+      ward = wardSeal(gilded);
+    ward.position.set(0, 0.24, front + 0.03);
+    g.add(ward);
+  }
+  g.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.isMesh && m.geometry) m.geometry.userData.shared = true;
+  }); // (its copies share it: taking one away frees nothing)
+  return g;
+}
 
 /** An offering coffer: a box of planks, iron bands and corners, a lid with a slot for coins and a hasp. */
 function coffer() {
@@ -495,11 +521,17 @@ function chest(gilded: boolean) {
       0,
       [1, 0.6, 1],
     );
+  const ward = wardSeal(gilded);
+  ward.position.set(0, 0.24, 0.26);
+  g.add(ward);
+  g.add(blob(1));
+  return keep(g, [lid], [ward]); // (the seal, merged above, turns on its own)
+}
+/** A chest's ward seal, standing tilted back a little: a circle of runes in ward blue (gold on a gilded chest), merged. */
+function wardSeal(gilded: boolean) {
   const ward = new THREE.Group();
   ward.name = 'ward';
-  ward.position.set(0, 0.24, 0.26);
   ward.rotation.x = -0.3;
-  g.add(ward);
   const seal = new THREE.Group(),
     light = glowTone(gilded ? GOLD : WARD);
   ward.add(seal);
@@ -511,8 +543,7 @@ function chest(gilded: boolean) {
     put(mesh(seal, SEAL_RUNE, light, Math.cos(a) * 0.16, Math.sin(a) * 0.16, 0), 0, 0, a - Math.PI / 2);
   }
   mergeStill(seal);
-  g.add(blob(1));
-  return keep(g, [lid], [ward]); // (the seal, merged above, turns on its own)
+  return ward;
 }
 const SEAL_RUNE = shared(runeStrokes(0.045));
 
