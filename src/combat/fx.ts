@@ -52,7 +52,14 @@ DGEO.userData.shared = true;
 export function addDecal(x: number, z: number, color: number, size: number) {
   const g = gradeNow(),
     c = new THREE.Color(color);
-  if (g.amount > 0) c.lerp(new THREE.Color(g.shadow), CFG.pixelLook.decalShade); // (a shadow, not a hole: CFG.pixelLook)
+  if (g.amount > 0) {
+    // (a shadow, not a hole: lifted to the floor's shadow's lightness in its own hue, then turned a little toward it, so a
+    // foe's stain keeps its colour)
+    const sh = new THREE.Color(g.shadow),
+      lum = (k: THREE.Color) => k.r * 0.2126 + k.g * 0.7152 + k.b * 0.0722;
+    c.multiplyScalar(Math.min(lum(sh) / Math.max(lum(c), 1e-4), 8));
+    c.lerp(sh, CFG.pixelLook.decalShade);
+  }
   const m = new THREE.Mesh(
     DGEO,
     new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.6, depthWrite: false }),

@@ -690,7 +690,7 @@ The light on an actor falls in `steps` steps even to the eye, its darks turned t
 and its lights toward the rim's warm colour (`warm`; `ramp` in the shade pass, art bible 4.2). The things (`markThing`: every pickup and
 container in `items/pickups.ts`, every artifact's visual in `makeArtifactVisual`) stamp the stencil with 2 and get the
 closed outline alone, their own colours kept; the mask pass draws them grey (one draw call more while one is shown).
-Marks on the floor (`addDecal` in `combat/fx.ts`: scorch, soot, stains) lean toward the floor's shadow colour
+Marks on the floor (`addDecal` in `combat/fx.ts`: scorch, soot, stains) are lifted to the floor's shadow colour's lightness in their own hue and turned a little toward it
 (`CFG.pixelLook.decalShade`).
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to

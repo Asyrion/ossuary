@@ -796,9 +796,10 @@ export const CFG = {
     // steady glow washed a dark foe out to a flat shape)
     tele: 0.28,
     telePulse: 6,
-    // a stain, a scorch or soot on the floor turned this far toward the floor's shadow colour (where the floor has one):
-    // a near-black mark read as a hole in the floor (art bible 4.2: black only in outlines)
-    decalShade: 0.55,
+    // a stain, a scorch or soot on the floor lifted to the floor's shadow colour's lightness in its own hue, then turned
+    // this far toward that colour (where the floor has one): a near-black mark read as a hole in the floor (art bible 4.2:
+    // black only in outlines)
+    decalShade: 0.3,
   },
   // alchemy (items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
