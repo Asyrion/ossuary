@@ -142,7 +142,7 @@ export function renderPurse() {
   el.purse.innerHTML = (['coins', 'keys', 'glyphs'] as const)
     .map(
       (k) =>
-        `<span class="${k}">${k === 'coins' ? `<svg viewBox="0 0 24 24" width="${12 * u}" height="${12 * u}" aria-hidden="true">${coinIconBody()}</svg>` : pixelResIcon(k, u)}<b>${String(player[k]).padStart(2, '0')}</b></span>`,
+        `<span class="${k}">${k === 'coins' ? `<svg viewBox="0 0 24 24" width="${CFG.hud.coin * u}" height="${CFG.hud.coin * u}" aria-hidden="true">${coinIconBody()}</svg>` : pixelResIcon(k, u)}<b>${String(player[k]).padStart(2, '0')}</b></span>`,
     )
     .join('');
   el.purse.setAttribute('aria-label', STR.purse(player.coins, player.keys, player.glyphs));
