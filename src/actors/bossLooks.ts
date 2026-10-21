@@ -27,6 +27,7 @@ import { EMBER_FIRE, makeFire, makeMotes, type FlameSpec } from '../render/fire'
 import { serpentLook } from './serpentLooks';
 import { anglerFierce, dragonHeadFierce, hartFierce, owlbear, tigerFierce } from './fantasyBosses';
 import { KAELITH_GALLERY } from './kaelithLooks';
+import { madeBossLook } from './madeBosses';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
     boss's own fight moves besides) and its school. */
@@ -36,6 +37,8 @@ export interface BossBuilt {
   shadow: number;
   parts: { eye: THREE.Object3D; ring: THREE.Object3D; halo: THREE.Sprite } & Record<string, THREE.Object3D>;
   school: School;
+  /** Its blob shadow lighter at the middle (a made model, the floor showing between its legs). */
+  openShadow?: boolean;
 }
 
 /** The ring of runes behind its head that the fight turns (in its own plane, facing the camera, tipped back a little; in
@@ -610,8 +613,8 @@ export const wardenLook = owlbear;
     and 5, then the bosses from the Eda lore. */
 export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [
   { id: 'warden', build: wardenLook },
-  { id: 'abbess', build: abbessLook },
-  { id: 'pyre', build: pyreKnightLook },
+  { id: 'abbess', build: () => (madeBossLook('abbess', abbessLook) ?? abbessLook)() },
+  { id: 'pyre', build: () => (madeBossLook('pyre', pyreKnightLook) ?? pyreKnightLook)() },
   { id: 'hart', build: hartLook },
   { id: 'angler', build: anglerLook },
   { id: 'tiger', build: tigerLook },

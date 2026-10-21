@@ -4,7 +4,7 @@
    `span`, so it matches the foe's reach, not the look in code), and the parts its behaviour moves by name. The part named `main` is the model; a
    part that is a light (a sprite) is kept as it is; the others are empty places, so a behaviour that turns a head or
    swells a throat moves nothing it can't see. Each foe wears its own copy of the model's surface, so a hit lights only
-   it. A model not loaded (data/assets.json props `foe_<look>`) leaves the look in code. */
+   it. The parts named in `keep` stay as built (a water foe's own pool, which stays at the floor while it dives). A model not loaded (data/assets.json props `foe_<look>`) leaves the look in code. */
 import * as THREE from 'three';
 import type { Built } from './beastParts';
 import { modelFor } from '../assets/models';
@@ -17,12 +17,14 @@ const box = new THREE.Box3(),
 
 /** The made look of `look` (wrapping its look in code, `code`), or undefined while it has none. */
 export function madeFoeLook(look: string, code: () => Built): (() => Built) | undefined {
-  const how = (CFG.madeFoes as Record<string, { motion: Motion; main: string; span: number }>)[look];
+  const how = (
+    CFG.madeFoes as Record<string, { motion: Motion; main: string; span: number; keep?: readonly string[] }>
+  )[look];
   if (!how || !modelFor('props', `foe_${look}`)) return undefined;
-  return () => build(look, code(), how.motion, how.main, how.span);
+  return () => build(look, code(), how.motion, how.main, how.span, how.keep ?? []);
 }
 
-function build(look: string, made: Built, motion: Motion, main: string, span: number): Built {
+function build(look: string, made: Built, motion: Motion, main: string, span: number, keep: readonly string[]): Built {
   made.idle(0);
   made.group.updateMatrixWorld(true);
   // (its solid body only: glows, auras and see-through films would make the box far larger than the foe)
@@ -53,7 +55,7 @@ function build(look: string, made: Built, motion: Motion, main: string, span: nu
   const parts: Record<string, THREE.Object3D> = {};
   for (const [name, p] of Object.entries(made.parts ?? {})) {
     if (name === main) parts[name] = body;
-    else if ((p as THREE.Sprite).isSprite) {
+    else if ((p as THREE.Sprite).isSprite || keep.includes(name)) {
       p.getWorldPosition(p.position);
       p.removeFromParent();
       g.add(p);

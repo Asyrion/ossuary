@@ -21,9 +21,9 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
   return list.map((o, i) => {
     const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2.9, z - 3);
     const b = o.build();
-    mergeRig(b.group, b.idle, 'boss:' + o.id);
+    mergeRig(b.group, b.idle, 'boss:' + o.id + (b.openShadow ? ':made' : '')); // (a made look's parts aren't its look in code's)
     b.group.position.set(at.x - room.cx, 0, at.z - room.cz);
-    b.group.add(blob(b.shadow));
+    b.group.add(blob(b.shadow, b.openShadow));
     room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };

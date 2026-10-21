@@ -83,6 +83,10 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   foe_rimeSnail: 'prop',
   foe_glassNewt: 'prop',
   foe_stormDarter: 'prop',
+  foe_cisternLurker: 'prop',
+  foe_brineSerpent: 'prop',
+  foe_abbess: 'prop',
+  foe_pyre: 'prop',
   // the solid parts of spells (magic/spellFx.ts): made models only, no placeholder; the spells draw their own without them
   ice_column: 'prop',
   bone_hand: 'prop',

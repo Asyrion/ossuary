@@ -540,6 +540,7 @@ export interface Enemy extends Circle {
   animRate?: number;
   tele?: number;
   shadow?: number;
+  /** Its blob shadow lighter at the middle: a made model on real legs shows the floor between them. */ openShadow?: boolean;
   /** Its model's parts its behaviour moves (a beetle's wing-cases, a mimic's lid); how open a lid or shell is (0 to 1);
       what it takes of a hit (a shut mimic, half); a behaviour's own clock (a salamander's trail); the glow of its telegraph. */
   parts?: Record<string, THREE.Object3D>;
