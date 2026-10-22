@@ -427,7 +427,7 @@ outlined, warned where they land), the radiant eye's ray as a stepped gold beam,
 deep tones, blob shadows capped, the vault's ward seal drawn dark, and pickups and artifacts on a dark halo with the key
 and the souls in deeper colours.
 
-### 4.29 Floor 5 in the game: its rooms (2026-10-23, accepted by the owner)
+### 4.29 Floor 5 in the game: its rooms (2026-10-22, accepted by the owner)
 
 Floor 5, the shore, in its palette (4.1: mist, frost and dark water, a lantern's amber): its floor lifted to the lightness
 this bible asks of a floor, deep-blue mortar and shadow (`#141f33`), the grade in that shadow, a fill light of 1.0, an
@@ -438,7 +438,7 @@ look and stand clear of rocks and walls. Its five relics are made in Tripo (a wr
 ferry lantern, a frozen cairn); four stand in the way and the net heap lies on the floor. The skiff's oars were dropped
 because the model stood upright.
 
-### 4.30 Floor 5's foes and the Deep Angler made in Tripo (2026-10-23, accepted by the owner)
+### 4.30 Floor 5's foes and the Deep Angler made in Tripo (2026-10-22, accepted by the owner)
 
 Ten foes of floor 5 wear Tripo models moved whole by code (4.19). The hydra stays built in code: its necks cut and its
 stumps seared are its fight, and a model cannot show them. The lantern tortoise is a shell alone, its head and legs kept
@@ -451,7 +451,7 @@ Deep Angler goes through the made-boss path (`madeBosses.ts`) at its drawn heigh
 and rears as it gapes. Its lamp, ring and halo are kept as code: the lamp amber in stepped bands, the ring kept facing
 the camera, the halo pool capped.
 
-### 4.31 Magic on a dark floor (2026-10-23, accepted by the owner)
+### 4.31 Magic on a dark floor (2026-10-22, accepted by the owner)
 
 On the shore light added to frost burns pale foes white, and black or pale effects are lost on its mist and dark water.
 The rule (`CFG.shoreFx`, floor 5 only, so floors 1 to 4 stay as accepted): dark effects get a violet or umbral band with a
