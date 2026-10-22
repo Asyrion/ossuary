@@ -28,7 +28,25 @@ const POSE: Record<string, (body: THREE.Object3D, p: Record<string, THREE.Object
     body.position.y = Math.abs(Math.sin(stride)) * 0.06;
     body.rotation.z = stride * 0.08;
   },
+  tiger(body, p) {
+    moved(body, p.body); // (its crouch, its pounce's arc, its shake when stunned)
+    const stride = p.legs.children[0]?.rotation.x ?? 0;
+    body.position.y += Math.abs(Math.sin(stride)) * 0.04;
+    body.rotation.x = -p.head.rotation.x * 0.25; // (its head comes up as it roars, down as it lunges)
+    body.rotation.z = p.head.rotation.z * 0.5;
+    body.rotation.y += (p.legs.children[1]?.rotation.x ?? 0) * 0.08; // (a paw swiped)
+  },
+  twins(body, p) {
+    moved(body, p.body); // (its bob and its shake)
+    body.rotation.x = p.body.rotation.x + Math.min(0, p.armR.rotation.x) * 0.1; // (rearing, and leaning back to raise a paw)
+    body.rotation.y += p.head.rotation.y * 0.35; // (its gaze following the mage)
+  },
 };
+/** The body moved as the fight moved its empty place, from that place's rest. */
+function moved(body: THREE.Object3D, place: THREE.Object3D) {
+  const rest = place.userData.rest as THREE.Vector3;
+  body.position.set(place.position.x - rest.x, place.position.y - rest.y, place.position.z - rest.z);
+}
 
 /** The made look of boss `id`, wrapping its look in code `code`, or undefined while it has none. */
 export function madeBossLook(id: string, code: () => BossBuilt): (() => BossBuilt) | undefined {
@@ -111,6 +129,8 @@ function build(
     } else {
       const o = new THREE.Object3D();
       o.position.copy(name === 'eye' ? face : p.getWorldPosition(o.position));
+      o.userData.rest = o.position.clone(); // (what a fight sets is measured from here: `moved`)
+      for (let i = 0; i < p.children.length; i++) o.add(new THREE.Object3D()); // (a fight that reaches for a child finds one)
       body.add(o);
       parts[name] = o;
     }

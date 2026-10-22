@@ -482,7 +482,7 @@ export function tigerFierce(): BossBuilt {
   part(brow, new THREE.BoxGeometry(0.05, 0.07, 0.36), bronze, [0, 0.1, 0]);
   rune(brow, F, [0, 0.115, 0.1], 0.12, [-Math.PI / 2, 0, 0], runeM);
   plates.push(brow);
-  circle(g, F, 1.5);
+  const floor = circle(g, F, 1.5); // (named in its parts, so a made look keeps it)
   const ring = haloRing(g, F, 0.9, 2.35, -0.2);
   const halo = glow(F, 3.4, 0.35);
   halo.position.set(0, 1.9, 0);
@@ -507,6 +507,7 @@ export function tigerFierce(): BossBuilt {
       plate1: plates[1],
       plate2: plates[2],
       plate3: plates[3],
+      floor,
     },
     idle: (t) => {
       const b = Math.sin(t * 1.8);

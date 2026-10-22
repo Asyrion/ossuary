@@ -245,6 +245,7 @@ export function hexImpFierce(): Built {
   return {
     group: g,
     shadow: 0.5,
+    parts: { ring }, // (its hex circle, named so a made look keeps it)
     idle: (t) => {
       float.position.y = Math.sin(t * 2.6) * 0.06;
       head.rotation.z = Math.sin(t * 1.1) * 0.1;

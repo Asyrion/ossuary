@@ -617,9 +617,9 @@ export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] =
   { id: 'pyre', build: () => (madeBossLook('pyre', pyreKnightLook) ?? pyreKnightLook)() },
   { id: 'hart', build: hartLook },
   { id: 'angler', build: anglerLook },
-  { id: 'tiger', build: tigerLook },
+  { id: 'tiger', build: () => (madeBossLook('tiger', tigerLook) ?? tigerLook)() },
   { id: 'dragon', build: dragonLook },
-  { id: 'twins', build: twinPairLook },
+  { id: 'twins', build: () => madeBossLook('twins', () => twinLook())?.() ?? twinPairLook() }, // (one made guardian, else the pair)
   { id: 'serpent', build: serpentLook },
   ...KAELITH_GALLERY,
 ];

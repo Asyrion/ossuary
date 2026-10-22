@@ -26,6 +26,7 @@ import { twinLook } from './bossLooks';
 import { unwardFoe, wardFoe } from './wardShield';
 import { makeEnemy } from './enemies';
 import { lerp } from '../util';
+import { madeBossLook } from './madeBosses';
 
 const C = CFG.enemy.twins,
   GOLD = SCHOOL_LIGHT.hallow,
@@ -36,13 +37,22 @@ let first: Enemy | null = null;
 /** Build a twin; the first built raises the second beside it, and each knows the other. */
 export function buildTwin(e: Enemy) {
   const second = !!first,
-    L = twinLook(second),
+    code = () => twinLook(second),
+    made = madeBossLook('twins', code), // (both wear the one made guardian, where it is in)
+    L = (made ?? code)(),
     P = L.parts;
-  e.mats = mergeRig(L.group, L.idle, 'boss:twin' + (second ? 2 : 1), [P.eye, P.ring, P.head, P.armL, P.armR]);
+  e.mats = mergeRig(L.group, L.idle, 'boss:twin' + (second ? 2 : 1) + (made ? ':made' : ''), [
+    P.eye,
+    P.ring,
+    P.head,
+    P.armL,
+    P.armR,
+  ]);
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group;
   e.idle = L.idle;
   e.shadow = L.shadow;
+  e.openShadow = L.openShadow;
   e.bossSchool = L.school;
   e.body.add(L.group);
   e.eye = P.eye;
