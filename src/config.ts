@@ -1006,6 +1006,8 @@ export const CFG = {
     // a made floor face's steps of light (render/pixelTextures.ts madeFloor): the room's base colour shaded from `dark`
     // (the step over the joints) to `light` (the brightest)
     floorFace: { dark: 0.7, light: 1.12 },
+    // a floor's own made urn set in a wall niche (world/wallLooks.ts), scaled from its height on the floor
+    nicheUrn: 0.42,
     // (the halo round an artifact built in code, its colour darkened by `dim`: a larger, brighter one washed a pale
     // artifact out and melted a green one into a green floor)
     artifactGlow: { size: 0.8, opacity: 0.4, dim: 0.75 },

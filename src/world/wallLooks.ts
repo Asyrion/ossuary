@@ -18,6 +18,8 @@ import { MAT, glowTone, mesh, runeStrokes, shade, shared, stoneOf, tone } from '
 import { C, URN_BODY, URN_LID, bone, box, put, skull } from './objectLooks';
 import { waxFor } from './fireLooks';
 import { DH, H_TALL, WT } from './dims';
+import { modelFor } from '../assets/models';
+import { CFG } from '../config';
 
 /** The black of the walls' tops (M.wallTop), for a door's tops. */
 const WALL_TOP = glowTone(0x0d0a08);
@@ -356,9 +358,17 @@ export function nicheLook(
   } else if (kind === 'bell') {
     put(mesh(g, GEO.handbell, tone(0xa27a3e, 0.05, 0.4), 0, on, 0.06), 0, 0, 0, 1.5);
   } else if (kind === 'urn') {
-    const clay = tone(new THREE.Color(look.urn.clay).getHex(), 0.06);
-    put(mesh(g, URN_BODY, clay, 0, on, 0.06), 0, R() * 6, 0, 0.32);
-    put(mesh(g, URN_LID, clay, 0, on, 0.06), 0, 0, 0, 0.32);
+    const made = modelFor('props', `urn_${look.name}`); // (the floor's own made urn, as on its floor: one urn a floor)
+    if (made) {
+      made.scale.multiplyScalar(CFG.roomKit.nicheUrn);
+      made.position.set(0, on, 0.06);
+      made.rotation.y = (R() - 0.5) * 0.8;
+      g.add(made);
+    } else {
+      const clay = tone(new THREE.Color(look.urn.clay).getHex(), 0.06);
+      put(mesh(g, URN_BODY, clay, 0, on, 0.06), 0, R() * 6, 0, 0.32);
+      put(mesh(g, URN_LID, clay, 0, on, 0.06), 0, 0, 0, 0.32);
+    }
   } else if (kind === 'bones') {
     for (const [a, dx] of [
       [0.4, -0.04],
