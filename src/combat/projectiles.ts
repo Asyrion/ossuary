@@ -13,7 +13,7 @@ import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { vigilHooks } from '../vigil/where';
 import { TILT, scene } from '../render/renderer';
-import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
+import { bandGlow, basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
@@ -62,6 +62,8 @@ interface BoltSpec {
   /** A spell's bolt, with the spell's statuses; `shard` makes it a splinter of ice instead of an orb. */ spell?: boolean;
   status?: Partial<Record<SpellStatus, number>>;
   shard?: boolean;
+  /** A dark school's orb (the Hex Bolt): its hot core in a deeper sheath ringed in dark (spellFx.ts boltLook). */
+  sheath?: boolean;
   /** The Pendulum of Hours: which side the bolt swings out to (1 or -1). */ swing?: number;
 }
 
@@ -71,7 +73,7 @@ function makeBolt(s: BoltSpec) {
   const shadow = blob(0.35 * Math.min(1.4, s.scale));
   shadow.position.y = -y + 0.015;
   // (its look, from spellFx.ts: the core, then its glow and shadow at 1 and 2, then rings, runes or a trail)
-  const look = boltLook(s.color, s.scale, !!s.shard);
+  const look = boltLook(s.color, s.scale, !!s.shard, !!s.sheath);
   mesh.add(look.core, glowShared(s.color, 0.75 * s.scale, look.glow ?? 0.9), shadow, ...look.extras);
   mesh.rotation.y = Math.atan2(s.vx, s.vz);
   animateBolt(mesh, 0, 0, 0);
@@ -272,6 +274,7 @@ export function fireSpellBolt(
     scale?: number;
     status?: Partial<Record<SpellStatus, number>>;
     shard?: boolean;
+    sheath?: boolean;
     shatter?: boolean;
     seek?: boolean;
   },
@@ -293,6 +296,7 @@ export function fireSpellBolt(
     spell: true,
     status: o.status,
     shard: o.shard,
+    sheath: o.sheath,
   });
   if (o.shatter) G.room.bolts[G.room.bolts.length - 1].shatter = true; // (fire catches these as molten glass)
 }
@@ -300,7 +304,7 @@ export function fireSpellBolt(
 const WHITE = new THREE.Color(0xffffff);
 /** A pale school's light, to the deeper tone its foes' shots are sheathed in (`CFG.pixelLook.shotSheath`). */
 const SHEATH = new Map<number, number>(
-  Object.entries(CFG.pixelLook.shotSheath).map(([k, v]) => [SCHOOL_LIGHT[k as 'frost' | 'storm'], v]),
+  Object.entries(CFG.pixelLook.shotSheath).map(([k, v]) => [SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT], v]),
 );
 /** A foe's shot's dark ring: the back of a sphere a little larger than its sheath, so it shows round its edge. */
 const SHOT_RIM = markShared(new THREE.MeshBasicMaterial({ color: 0x14101c, side: THREE.BackSide }));
@@ -338,7 +342,13 @@ export function spawnShot(
     sheath = new THREE.Mesh(sphereGeo((deep ? 0.13 : 0.12) * size), basicMat(deep ?? color)),
     rim = new THREE.Mesh(sphereGeo(0.16 * size), SHOT_RIM);
   if (deep) core.position.set(0, Math.sin(TILT), Math.cos(TILT)).multiplyScalar(0.1 * size); // (out through the sheath's face toward the camera, so the hot core shows in it rather than hidden inside)
-  mesh.add(rim, sheath, core, glowShared(color, 0.8 * size, 0.55), sh);
+  mesh.add(
+    rim,
+    sheath,
+    core,
+    bandGlow(color, 0.8 * size, CFG.pixelLook.shotHaloOpacity, CFG.pixelLook.shotHalo, true),
+    sh,
+  );
   scene.add(mesh);
   G.room.shots.push({
     x,

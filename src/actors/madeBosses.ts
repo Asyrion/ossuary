@@ -9,6 +9,7 @@ import type { BossBuilt } from './bossLooks';
 import { modelFor } from '../assets/models';
 import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
+import { madeSurface, type MadeSurface } from './madeFoes';
 
 const box = new THREE.Box3(),
   size = new THREE.Vector3(),
@@ -54,11 +55,11 @@ export function madeBossLook(id: string, code: () => BossBuilt): (() => BossBuil
   const how = (
     CFG.madeBosses as Record<
       string,
-      { size: number; keep: readonly string[]; fire?: string; tint?: number; eye?: number }
+      { size: number; keep: readonly string[]; fire?: string; eye?: number } & MadeSurface
     >
   )[id];
   if (!how || !modelFor('props', `foe_${id}`)) return undefined;
-  return () => build(id, code(), how.size, how.keep, how.fire, how.tint, how.eye);
+  return () => build(id, code(), how.size, how.keep, how.fire, how, how.eye);
 }
 
 function build(
@@ -66,8 +67,8 @@ function build(
   made: BossBuilt,
   scale: number,
   keep: readonly string[],
-  fire?: string,
-  tint = 1,
+  fire: string | undefined,
+  surface: MadeSurface,
   eye = 0.55,
 ): BossBuilt {
   made.idle(0);
@@ -89,13 +90,7 @@ function build(
   model.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    const was = m.material as THREE.MeshToonMaterial;
-    m.material = new THREE.MeshStandardMaterial({
-      map: was.map,
-      color: new THREE.Color().setScalar(tint),
-      roughness: 0.85,
-      metalness: 0,
-    }); // (its own: a hit lights it alone; `tint` darkens a pale one off a pale floor)
+    m.material = madeSurface((m.material as THREE.MeshToonMaterial).map, surface); // (`tint` darkens a pale one off a pale floor)
   });
   body.add(model);
   g.add(body);
