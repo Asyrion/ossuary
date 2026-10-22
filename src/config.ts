@@ -28,7 +28,7 @@ export const CFG = {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
     dummy: { hp: 1000, r: 0.34, speed: 0 }, // the dev menu's training dummy: stands still, never falls
     // bosses (each floor's boss block in data/floors.json scales them)
-    warden: { hp: 120, r: 0.78, speed: 1.15 },
+    warden: { hp: 120, r: 0.78, speed: 1.15, windUp: { windBurst: 0.75, windAim: 0.5 } }, // windUp: seconds of each wind-up
     abbess: { hp: 120, r: 0.7, speed: 0.95, dive: 2.7, under: 1.8, weak: 'storm' as const, resist: 'frost' as const }, // dive: speed of her ripple; under: seconds below
     pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2, weak: 'frost' as const, resist: 'ember' as const },
     // floors 4 and 5, built in code, with a weakness and a resistance like the foes: the hart's charge speed; the

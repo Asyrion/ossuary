@@ -505,7 +505,7 @@ test("floors 1 and 2's standing relics never cut a room in two: on several seeds
   expect(relics).toBeGreaterThan(3); // (the check saw some)
 });
 
-test("floor 2's made foes: the eight weakest wear their Tripo model (each its own surface, so a hit lights one)", async ({
+test("floor 2's made foes: the eight weakest, the kelpie and the brine serpent wear their Tripo model (each its own surface, so a hit lights one)", async ({
   page,
 }) => {
   type M = { isMesh?: boolean; material?: { map: unknown; uuid: string }; traverse(f: (o: M) => void): void };
@@ -523,6 +523,8 @@ test("floor 2's made foes: the eight weakest wear their Tripo model (each its ow
       'rimeSnail',
       'glassNewt',
       'stormDarter',
+      'cisternLurker',
+      'brineSerpent',
     ];
     const mats = (e: Foe) => {
       const out: { map: boolean; id: string }[] = [];
@@ -536,6 +538,8 @@ test("floor 2's made foes: the eight weakest wear their Tripo model (each its ow
     return { made, shared: a.filter((id) => b.includes(id)).length };
   });
   expect(r.made.sort()).toEqual([
+    'brineSerpent',
+    'cisternLurker',
     'glassNewt',
     'lanternJelly',
     'mireToad',
@@ -547,4 +551,60 @@ test("floor 2's made foes: the eight weakest wear their Tripo model (each its ow
   ]);
   expect(r.shared).toBe(0);
   expect(errors).toEqual([]);
+});
+
+test("floor 2's made bosses and rooms: the Abbess wears her Tripo model over an open shadow on the boss room's made floor face; the shrine's stele, the bone altar and the urns are floor 2's own", async ({
+  page,
+}) => {
+  type O = {
+    isMesh?: boolean;
+    userData: Record<string, unknown>;
+    material?: { map?: unknown };
+    traverse(f: (o: O) => void): void;
+  };
+  type GB = {
+    warp(id: number): void;
+    sim(t: number, draw?: boolean): void;
+    enemies: { isBoss?: boolean; model?: O; openShadow?: boolean }[];
+    current: { look: { floor: { face?: string } }; group: O };
+  };
+  const errors = await start(page, '?room=boss_open&boss=abbess&floor=2&seed=BOSS1');
+  const boss = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GB }).__game;
+    g.warp(1);
+    g.sim(1, true);
+    const b = g.enemies.find((e) => e.isBoss)!;
+    let textured = 0;
+    b.model?.traverse((o) => {
+      if (o.isMesh && o.material?.map) textured++;
+    });
+    return { textured, open: !!b.openShadow, face: g.current.look.floor.face };
+  });
+  expect(boss.textured).toBeGreaterThan(0); // (the made model wears its texture as pixel art; the look in code has none)
+  expect(boss.open).toBe(true);
+  expect(boss.face).toBe('boss');
+  expect(errors).toEqual([]);
+  // the shrine's stele and the bone altar: floor 2's made ones (a made model stands with its height in userData, at
+  // data/assets.json's 1.6 and 0.62; the ones built in code carry none)
+  for (const [room, height] of [
+    ['shrine_henge', 1.6],
+    ['altar_bones', 0.62],
+  ] as const) {
+    const errs = await start(page, `?room=${room}&floor=2&seed=K3F9QX`);
+    const heights = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GB }).__game;
+      g.warp(1);
+      g.sim(0.5, true);
+      const out: number[] = [];
+      g.current.group.traverse((o) => {
+        if (typeof o.userData.height === 'number') out.push(o.userData.height);
+      });
+      return out;
+    });
+    expect(
+      heights.some((h) => Math.abs(h - height) < 0.01),
+      room,
+    ).toBe(true);
+    expect(errs).toEqual([]);
+  }
 });
