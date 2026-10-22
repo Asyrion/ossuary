@@ -176,11 +176,14 @@
     "look": {
       "name": "shore",
       "kit": {"wall": {"slate": 3, "drystone": 2, "pilings": 2}, "floor": {"boards": 2, "shingle": 2, "flags": 1}, "torch": {"pole": 3, "cairn": 2, "witchlight": 1}, "brazier": {"boat": 2, "urn": 2, "basket": 1}},
-      "floor": {"base": [54, 58, 66], "mortar": "#0a0c10", "stain": "40,52,70", "decor": "puddles", "bones": 2},
-      "wall": {"brick": [52, 56, 62], "mortar": "#0c0e12", "stains": "salt", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 2, "urn": 2, "empty": 2}}},
-      "torch": {"flame": "#b8a8ff", "light": "#8fc8e8", "intensity": 0.9, "wax": "#9a9ab0"},
-      "urn": {"clay": "#4a4a56", "band": "#7a6aa8"},
-      "light": {"sky": "#7888a2", "ground": "#0c0e16", "moon": "#a8bcea"}
+      "floor": {"base": [74, 82, 90], "mortar": "#141f33", "stain": "38,54,74", "decor": "puddles", "bones": 2},
+      "wall": {"brick": [88, 100, 110], "mortar": "#141f33", "stains": "salt", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 2, "urn": 2, "empty": 2}}},
+      "torch": {"flame": "#ffd08a", "light": "#e8a84a", "intensity": 1.0, "wax": "#c8c4b8"},
+      "urn": {"clay": "#26364a", "band": "#e8a84a"},
+      "light": {"sky": "#8a9cb0", "ground": "#141f33", "moon": "#c8d8e8", "fill": 1.0},
+      "grade": {"shadow": "#141f33", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
+      "materials": {"wood": "#4a4c50", "oak": "#5a5c5e", "oakDark": "#2a3038", "iron": "#34404c", "blackIron": "#1e2632", "bronze": "#b08a4a", "darkBronze": "#6a5a3c", "bone": "#dce6e8", "boneOld": "#aab8bc", "skull": "#b8c4c8", "stone": "#6a7c88", "darkStone": "#26364a", "verdigris": "#6a9a92", "burlap": "#6e7468", "rope": "#a09a84"},
+      "scatter": {"pebbles": 4, "stains": 3, "rime": 2, "bones": 2, "lamps": 1, "ropes": 1}
     }
   },
   {
