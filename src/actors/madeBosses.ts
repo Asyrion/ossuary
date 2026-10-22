@@ -51,6 +51,11 @@ POSE.hart = (body, p) => {
   const charge = Math.max(0, Math.abs(stride) - 0.45) * 0.4; // (a wide stride is its charge: it lowers its antlers)
   body.rotation.x = p.body.rotation.x + p.head.rotation.x * 0.25 + charge;
 };
+POSE.warden = (body, p) => {
+  const k = p.eye.scale.x - 1; // (its eye swells as its shots come due: it rears back and puffs up)
+  body.rotation.x = -k * 0.35;
+  body.scale.set(1 + k * 0.12, 1 + k * 0.08, 1 + k * 0.12);
+};
 POSE.angler = (body, p, t) => {
   moved(body, p.body); // (its flinch's shake)
   body.position.y += CFG.madeBosses.angler.hover + Math.sin(t * 1.3) * 0.08; // (it swims above the floor, as its look in code)

@@ -97,6 +97,18 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   net_heap: 'prop',
   ferry_lantern: 'large-prop',
   frozen_cairn: 'large-prop',
+  // floor 1's foes and the Hollow Warden (actors/madeFoes.ts, madeBosses.ts)
+  foe_sporeling: 'prop',
+  foe_vesperMoth: 'prop',
+  foe_runeBeetle: 'prop',
+  foe_urnMimic: 'prop',
+  foe_cryptSpider: 'prop',
+  foe_inkOctopus: 'prop',
+  foe_fireflyBeetle: 'prop',
+  foe_choirLark: 'prop',
+  foe_stormMantis: 'prop',
+  foe_rubbleCrab: 'prop',
+  foe_warden: 'large-prop',
   // floor 2's foes made in Tripo (actors/madeFoes.ts): a still model in place of the look in code
   foe_mireToad: 'prop',
   foe_lanternJelly: 'prop',
@@ -165,6 +177,9 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   // a floor's own made urn, shrine stone and bone altar, by its look's name (world/rooms.ts, specialLooks.ts,
   // objectLooks.ts): in place of the one built in code, which keeps what lights or changes (the stone's runes, the
   // altar's candles)
+  urn_crypt: 'prop',
+  bargain_stone_crypt: 'prop',
+  altar_crypt: 'large-prop',
   urn_drowned: 'prop',
   bargain_stone_drowned: 'prop',
   altar_drowned: 'large-prop',

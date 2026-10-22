@@ -130,13 +130,15 @@ function buildBossBody(e: Enemy) {
   e.cycle = 0;
   e.summoned = false;
   if (e.type === 'warden') {
-    // built in code (the Owlbear, bossLooks.ts), its still parts merged
-    const L = wardenLook();
-    e.mats = mergeRig(L.group, L.idle, 'boss:warden', [L.parts.eye, L.parts.ring]);
+    // the Owlbear (bossLooks.ts): made in Tripo where a model is in (madeBosses.ts), else built in code, its still parts merged
+    const made = madeBossLook('warden', wardenLook),
+      L = (made ?? wardenLook)();
+    e.mats = mergeRig(L.group, L.idle, 'boss:warden' + (made ? ':made' : ''), [L.parts.eye, L.parts.ring]);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group;
     e.idle = L.idle;
     e.shadow = L.shadow;
+    e.openShadow = L.openShadow;
     e.bossSchool = L.school;
     e.body.add(L.group);
     e.eye = L.parts.eye;

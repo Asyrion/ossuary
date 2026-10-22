@@ -612,7 +612,7 @@ export const wardenLook = owlbear;
 /** Every boss built in code, for the Galleries tab: the Hollow Warden, the bosses of floors 2 and 3, of floors 4
     and 5, then the bosses from the Eda lore. */
 export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [
-  { id: 'warden', build: wardenLook },
+  { id: 'warden', build: () => (madeBossLook('warden', wardenLook) ?? wardenLook)() },
   { id: 'abbess', build: () => (madeBossLook('abbess', abbessLook) ?? abbessLook)() },
   { id: 'pyre', build: () => (madeBossLook('pyre', pyreKnightLook) ?? pyreKnightLook)() },
   { id: 'hart', build: () => (madeBossLook('hart', hartLook) ?? hartLook)() },
