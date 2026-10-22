@@ -21,7 +21,9 @@ import { G, after, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { markShared } from '../render/materials';
-import { glowTex } from '../render/textures';
+import { shoreFx } from '../world/paleFx';
+import { CFG } from '../config';
+import { ditherPuffTex, glowTex, rimmedDiscTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { frostAt, poolAt } from '../world/pools';
 import { hearGround } from '../world/groundHooks';
@@ -225,6 +227,7 @@ const hydra: Behaviour = {
     headsOf(e).forEach((h, i) => {
       p[`neck${i}`].visible = h.up;
       p[`stump${i}`].visible = !h.up && (h.cut > 0 || h.seared);
+      p[`sear${i}`].visible = h.seared; // (a seared stump capped in charcoal and embers: it won't grow back)
     });
     for (let i = 0; i < 5; i++) thrust(p[`head${i}`], i === (e.count ?? 0) ? (e.tele ?? 0) * 0.25 : 0); // (the head that strikes, thrust out)
   },
@@ -253,8 +256,25 @@ function lightNear(room: Room, x: number, z: number, r: number) {
   return best;
 }
 
-/** A gloom raven's darkness: a soft black disc on the floor round it (one shared look for all). */
+/** A gloom raven's darkness: a soft black disc on the floor round it (one shared look for all); on the shore, where black
+    was lost on its dark floor, deep umbral bands as wide as the gloom reaches inside a violet rim (CFG.shoreFx.gloom). */
 let gloomLook: { geo: THREE.BufferGeometry; mat: THREE.Material } | null = null;
+const shoreGloom = new Map<number, THREE.Material>();
+function shoreGloomMat(r: number) {
+  let m = shoreGloom.get(r);
+  if (m) return m;
+  const S = CFG.shoreFx.gloom,
+    N = Math.round(2 * r * CFG.roomKit.texel[0]); // (drawn at the texel: its rim `rimPx` game pixels thick)
+  m = markShared(
+    new THREE.MeshBasicMaterial({
+      map: rimmedDiscTex(N, S.rings, S.color, S.rimPx, S.rim, S.rimAlpha),
+      transparent: true,
+      depthWrite: false,
+    }),
+  );
+  shoreGloom.set(r, m);
+  return m;
+}
 
 const raven: Behaviour = {
   // the Gloom Raven
@@ -264,7 +284,7 @@ const raven: Behaviour = {
     e.fireT = span(P.cawEvery);
     e.cycle = Math.random() < 0.5 ? 1 : -1;
     gloomLook ??= {
-      geo: markShared(new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2)),
+      geo: markShared(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2)), // (round enough that its rim isn't cut by its edges)
       mat: markShared(
         new THREE.MeshBasicMaterial({
           map: glowTex,
@@ -275,9 +295,10 @@ const raven: Behaviour = {
         }),
       ),
     };
-    const m = new THREE.Mesh(gloomLook.geo, gloomLook.mat);
+    const shore = shoreFx(),
+      m = new THREE.Mesh(gloomLook.geo, shore ? shoreGloomMat(num(P.gloom)) : gloomLook.mat);
     m.position.y = 0.035;
-    m.scale.setScalar(num(P.gloom) * 1.3);
+    m.scale.setScalar(num(P.gloom) * (shore ? 1 : 1.3)); // (the shore's drawn as far as its gloom reaches, edge and all)
     m.renderOrder = 2;
     e.body.add(m);
     e.extra = m;
@@ -505,6 +526,7 @@ const pangolin: Behaviour = {
     e.st = num(P.daze);
     e.vx = e.vz = 0;
     burst(e.x, 0.4, e.z, 0x9a8a72, 30, 3, 0.08);
+    dustPuff(e, true);
     Sfx.at(e.x, e.z).rubbleSlam();
     counter(e, 'dazed');
     if (Math.hypot(player.x - e.x, player.z - e.z) < num(P.dust)) player.dim = Math.max(player.dim, num(P.dim));
@@ -518,18 +540,49 @@ const pangolin: Behaviour = {
   },
   pose(e) {
     const p = e.parts!,
-      ball = e.state === 'roll' || e.state === 'curl';
+      ball = e.state === 'roll' || e.state === 'curl',
+      R = CFG.foeLook.pangolin;
     p.head.visible = !ball;
+    if (e.state !== 'dazed') dustPuff(e, false);
     if (ball) {
       p.body.scale.set(0.85, 0.85, 0.7);
       p.body.position.y += 0.08;
-      if (e.state === 'roll') p.body.rotation.x = e.t * 14;
+      if (e.state === 'roll') p.body.rotation.x = Math.sin(e.t * R.rate) * R.swing; // (rocking as it tumbles: spun whole, its underside or its edge showed and it was gone)
     } else {
       p.body.scale.setScalar(1);
       p.body.rotation.x = 0;
     }
   },
 };
+
+/** A dazed pangolin's cloud of dust (one shared look), shown while it lies dazed. */
+const dusts = new WeakMap<Enemy, THREE.Sprite>();
+let dustMat: THREE.SpriteMaterial | null = null;
+function dustPuff(e: Enemy, on: boolean) {
+  let s = dusts.get(e);
+  if (!on) {
+    if (s) s.visible = false;
+    return;
+  }
+  const D = CFG.foeLook.pangolin.dust;
+  if (!s) {
+    dustMat ??= markShared(
+      new THREE.SpriteMaterial({
+        map: ditherPuffTex(D.art),
+        color: D.color,
+        transparent: true,
+        opacity: D.opacity,
+        depthWrite: false,
+      }),
+    );
+    s = new THREE.Sprite(dustMat);
+    s.scale.setScalar(D.size);
+    s.position.y = D.y;
+    e.group.add(s);
+    dusts.set(e, s);
+  }
+  s.visible = true;
+}
 
 const kiter: Behaviour = {
   // the Frost Jackalope

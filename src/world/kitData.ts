@@ -143,7 +143,7 @@ export function validateKit(name: string, kit: Partial<KitWeights> | undefined, 
 
 const HEX = /^#[0-9a-f]{6}$/i;
 /** A floor look's `items` (types.ts ItemTones): those that are colours, and those that are amounts from 0 to 1. */
-const ITEM_COLOURS = ['purse', 'clasp', 'pedestal', 'splashEdge', 'halo'],
+const ITEM_COLOURS = ['purse', 'clasp', 'pedestal', 'splashEdge', 'halo', 'lamp'],
   ITEM_AMOUNTS = ['haloLight', 'sealedLift'];
 /** Problems with a floor look's dressing and colours (`scatter` kinds the room kit strews, `materials` written as
     colours, the `grade`'s colour and amounts, the `items` tones, the made floor faces its floors name: `faces`, `name`'s in

@@ -116,6 +116,62 @@ export function edgedBandsTex(
   edgedTexs.set(key, t);
   return t;
 }
+/** A disc `N` pixels across (drawn at the texel, so a pixel is a game pixel) in bands of `inner` (`rings` as `bandsTex`),
+    its outermost `rimPx` pixels a rim of `rim` at `rimAlpha`: a darkness drawn on a dark floor, its edge lit so it reads
+    (the gloom raven's on the shore). Its colours are in the texture; one a set. */
+const rimmedTexs = new Map<string, THREE.Texture>();
+export function rimmedDiscTex(
+  N: number,
+  rings: readonly (readonly [number, number])[],
+  inner: number,
+  rimPx: number,
+  rim: number,
+  rimAlpha: number,
+) {
+  const key = JSON.stringify([N, rings, inner, rimPx, rim, rimAlpha]);
+  let t = rimmedTexs.get(key);
+  if (t) return t;
+  const [c, g] = makeCanvas(N, N),
+    img = g.createImageData(N, N),
+    rgb = (h: number) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const px = Math.hypot(x + 0.5 - N / 2, y + 0.5 - N / 2),
+        d = px / (N / 2),
+        edge = px >= N / 2 - rimPx,
+        a = d >= 1 ? 0 : edge ? rimAlpha : (rings.find(([e]) => d < e)?.[1] ?? 0);
+      img.data.set([...rgb(edge ? rim : inner), Math.round(a * 255)], (y * N + x) * 4);
+    }
+  g.putImageData(img, 0, 0);
+  t = canvasTex(c, true);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  rimmedTexs.set(key, t);
+  return t;
+}
+/** A puff of dust `N` pixels across in ordered dither (a 4 x 4 Bayer matrix): thinning from `most` of its pixels at
+    the middle to none at its rim, so it reads as a round cloud in pixel art, not a soft blur, and what lies in it shows
+    through (the dust pangolin's, dazed against a wall, open to harm). Made once a size. */
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+const puffTexs = new Map<string, THREE.Texture>();
+export function ditherPuffTex(N: number, most = 0.6) {
+  let t = puffTexs.get(`${N}_${most}`);
+  if (t) return t;
+  const [c, g] = makeCanvas(N, N),
+    img = g.createImageData(N, N);
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const d = Math.hypot(x + 0.5 - N / 2, y + 0.5 - N / 2) / (N / 2),
+        on = Math.min(most, (1 - d) * 1.4) > BAYER4[(y % 4) * 4 + (x % 4)];
+      img.data.set([255, 255, 255, on ? 255 : 0], (y * N + x) * 4);
+    }
+  g.putImageData(img, 0, 0);
+  t = canvasTex(c, true);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  puffTexs.set(`${N}_${most}`, t);
+  return t;
+}
 /** A puff of fog in hard bands (a miasma, a thrown Shadowstep Tincture's darkness): full inside `fogCore` of its radius,
     half outside, so where puffs overlap they make hard steps rather than a blur (art bible 3: no soft alpha). */
 export const fogTex = stepped('255,255,255', (d) => (d < CFG.pixelLook.fogCore ? 1 : 0.5), 2);

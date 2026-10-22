@@ -3,6 +3,7 @@
    in `parts`. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
+import { CFG } from '../config';
 import { SCHOOL_LIGHT, limb, lit, part, shine, sphere, std, type V3 } from '../render/arcane';
 import { batWing, featherWing, gloss, joint, slitEyes, spike, thin, tube, type Built } from './beastParts';
 
@@ -838,7 +839,11 @@ export function hydra(): Built {
     belly = std(0x8a8a5a),
     fang = std(0xf0ece0),
     claw = gloss(0x1a1414, 0.3, 0.3),
-    venom = lit(0xc58aff);
+    venom = lit(0xc58aff),
+    ST = CFG.foeLook.stump,
+    cutM = lit(ST.cut),
+    charM = std(ST.char, { roughness: 1 }),
+    emberM = lit(ST.ember);
   part(body, sphere(0.45, 12, 8), hide, [0, 0.55, -0.1], { scale: [1.1, 0.72, 1.3] });
   part(body, sphere(0.36, 10, 6), belly, [0, 0.42, 0.02], { scale: [1.15, 0.55, 1.25] });
   for (let i = 0; i < 6; i++)
@@ -924,19 +929,31 @@ export function hydra(): Built {
     }
     slitEyes(head, 0.075, 0.05, 0.1, 0.035, 0xc58aff, 0.6, 0.35);
     const drip = part(jaw, sphere(0.03, 5, 4), venom, [0, -0.05, 0.2], { scale: [1, 1.6, 1] });
+    // a stump: standing clear of the body, its cut face raw red (a dark one was lost on the black hide); seared, a
+    // charcoal cap with embers in it over the cut (`sear`, shown by the behaviour), so fire's work shows
     const stump = joint(body, [s * 0.22, 0.7, 0.3]);
     stump.visible = false;
-    part(stump, new THREE.CylinderGeometry(0.11, 0.16, 0.22, 8), hide, [s * 0.05, 0.1, 0.05]);
-    part(stump, new THREE.CircleGeometry(0.11, 8), std(0x6a1a2a), [s * 0.05, 0.215, 0.05], {
+    part(stump, new THREE.CylinderGeometry(ST.r, ST.r * 1.4, ST.tall, 8), hide, [s * 0.05, ST.tall / 2, 0.05]);
+    part(stump, new THREE.CircleGeometry(ST.r, 10), cutM, [s * 0.05, ST.tall + 0.005, 0.05], {
       rot: [-Math.PI / 2, 0, 0],
     });
-    return { n, head, jaw, drip, i, stump };
+    const sear = joint(stump, [s * 0.05, ST.tall, 0.05]);
+    sear.visible = false;
+    part(sear, new THREE.SphereGeometry(ST.r * 1.05, 10, 4, 0, Math.PI * 2, 0, Math.PI / 2), charM, [0, 0, 0], {
+      scale: [1, 0.45, 1],
+    });
+    for (let k = 0; k < ST.specks; k++) {
+      const a = (k / ST.specks) * Math.PI * 2 + k;
+      part(sear, sphere(ST.speck, 4, 3), emberM, [Math.cos(a) * ST.r * 0.55, ST.r * 0.4, Math.sin(a) * ST.r * 0.55]);
+    }
+    return { n, head, jaw, drip, i, stump, sear };
   });
   const heads = Object.fromEntries(
-    necks.flatMap(({ n, head, stump, i }) => [
+    necks.flatMap(({ n, head, stump, sear, i }) => [
       [`neck${i}`, n],
       [`head${i}`, head],
       [`stump${i}`, stump],
+      [`sear${i}`, sear],
     ]),
   );
   return {

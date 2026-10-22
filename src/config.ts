@@ -58,6 +58,25 @@ export const CFG = {
       bite: 2,
       spit: { count: 3, spread: 0.55, speed: 3.3, hex: 10 },
       ring: { count: 16, speed: 2.7, later: 2.3 },
+      // its lure (fantasyBosses.ts anglerFierce): an amber lamp (`core`, the shore's lantern accent) in a glow of hard bands
+      // (`rings`) of `color`, `size` across at rest and at most `most` as it brightens, from `opacity` up to `peak` (a soft
+      // added glow 3.5 across at full strength flooded the mage it draws in), `dim` when struck off its pull; its halo's
+      // pool at most `haloMost` as it winds up (at 0.95 it burnt near white)
+      lure: {
+        core: 0xe8a84a,
+        color: 0xe8a84a,
+        rings: [
+          [0.3, 0.9],
+          [0.6, 0.5],
+          [1, 0.22],
+        ] as readonly (readonly [number, number])[],
+        size: 1.3,
+        most: 2.4,
+        opacity: 0.35,
+        peak: 0.55,
+        dim: 0.15,
+      },
+      haloMost: 0.6,
     }, // half hearts a bite; its hexing volleys; its breath's ring
     // the War-Tiger (from the Eda lore): a statue until the mage comes within `wake` (or strikes it); its `plates` let
     // through only `guard` of a blow at first, more with each lost, until all of it; a plate falls to a glyph's blast, a
@@ -247,6 +266,13 @@ export const CFG = {
     },
     wax: { drips: 14, size: 0.06, colors: [0xf4e8cc, 0xe8b060, 0xd88a30] as readonly number[] },
     tintK: { saltGolem: 0.3 } as Partial<Record<string, number>>,
+    // a hydra's stump (actors/bestiaryCreatures.ts): its cut face `r` across in a raw red (`cut`) that reads on the dark
+    // body; a seared one capped in charcoal (`char`) with `specks` ember specks (`ember`), so fire's work shows
+    stump: { r: 0.16, tall: 0.32, cut: 0xc8404a, char: 0x3a3234, ember: 0xff8a2a, specks: 7, speck: 0.035 },
+    // the dust pangolin (actors/bestiaryFloor5.ts): rolling, it rocks `swing` radians fore and aft `rate` times a second
+    // (spun whole about its axle the made model showed its underside or its edge and was gone); dazed against a wall, a
+    // puff of dust `size` across in `color`, dithered (`art` pixels across, the texel), for as long as it lies dazed
+    pangolin: { rate: 14, swing: 0.5, dust: { size: 1.3, color: 0x9a8a72, art: 62, y: 0.35, opacity: 0.8 } },
   },
   /** The curve: a floor leans its library to a school its foes are weak to when that many of them are (`lean`), and
       walls off a school when that many resist or drink it (`wall`, its banner's line); a hex's debt lasts `hexDebt` s. */
@@ -356,6 +382,42 @@ export const CFG = {
     // frost blue, a coal charcoal round an ember core (`ember`, `core` of its size, out through its face toward the camera);
     // where it lands marked by the falling stone's ring (foeGround.fallWarn), `warn` across, in the deepened light
     lob: { snow: 0xcfe6f6, coal: 0x2c2428, ember: 0xff8a2a, core: 0.4, warn: 0.42 },
+  },
+  // foes' magic on floor 5's dark shore (the looks named in `looks`: world/paleFx.ts shoreFx), where what floor 1 to 4
+  // draw was lost or burnt white: a foe's telegraph drawn (not added) in its school's light in bands (`tele.rings`, as
+  // paleFx.tele) to an edge in the floor's shadow colour, at most `tele.opacity` (a school's own in `tele.school`: frost's
+  // pale blue at 0.85 burnt pale foes white), and over what stands round it (no depth test: the floor cut it into a lit
+  // box); rime a deeper frost (`rime`), its crystals `rimeStroke` pixels thick; the gloom raven's darkness deep umbral
+  // bands (`gloom`) inside a violet rim `rimPx` game pixels thick; a spore cloud's puffs each one flat disc (`spores`,
+  // overlapping in hard steps); the scorch under burning ground a charcoal of its own (`scorch`: shaded to the floor's
+  // shadow it was near black on the shore)
+  shoreFx: {
+    looks: ['shore'] as readonly string[],
+    tele: {
+      rings: [
+        [0.38, 0.2],
+        [0.62, 0.7],
+        [0.8, 0.5],
+      ] as readonly (readonly [number, number])[],
+      edge: 0.8,
+      edgeAlpha: 0.6,
+      opacity: 0.85,
+      school: { frost: 0.5 } as Partial<Record<'ember' | 'frost' | 'storm' | 'hallow' | 'umbral' | 'verdant', number>>,
+    },
+    rime: 0x6a9cc4,
+    rimeStroke: 2,
+    gloom: {
+      color: 0x2e1f4a,
+      rim: 0x8a5ad8,
+      rings: [
+        [0.55, 0.8],
+        [1, 0.6],
+      ] as readonly (readonly [number, number])[],
+      rimPx: 2,
+      rimAlpha: 0.9,
+    },
+    spores: [[1, 0.45]] as readonly (readonly [number, number])[],
+    scorch: 0x4a4448,
   },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
   foeWay: { turns: [0.6, 1.1, 1.6] },
@@ -775,6 +837,9 @@ export const CFG = {
     caveDamage: 8,
     daylightClear: 3,
     bedrollClear: 2,
+    // a lamp on its pole (the shore's): only where its tile's neighbours, and `lampNorth` tiles north of it, are free
+    // floor, and it keeps them to itself (its tall pole stood over rocks, pillars and the walls, scatter on its post)
+    lampNorth: 2,
     // a plain room's scatter (the floor's `scatter`): each kind's count times at least [0] and up to [0] + [1], so
     // rooms of one floor differ
     plainSpread: [0.4, 1.2] as [number, number],
@@ -1052,13 +1117,15 @@ export const CFG = {
     griffin: { motion: 'bank', main: 'body', span: 2.2, roll: 0.1 }, // (its wide wings roll less)
     // floor 5's (the hydra stays built in code: its necks cut and stumps seared are its fight; the lantern tortoise's
     // model is its shell alone, its head and legs kept as built, so it is seen to shut itself in)
-    rootling: { motion: 'squat', main: 'body', span: 0.9, keep: ['mound'] },
+    rootling: { motion: 'squat', main: 'body', span: 0.9, keep: ['mound'], tint: 1.3, lift: '#1e2a1c' }, // (its dark bark lifted off the shore)
     rimeWolf: { motion: 'crawl', main: 'body', span: 1.2 },
     frostJackalope: { motion: 'squat', main: 'body', span: 0.8, tint: 0.75 }, // (its pale fur held off the floor's mist)
     stormRay: { motion: 'bank', main: 'body', span: 1.0 },
-    voidMote: { motion: 'float', main: 'body', span: 0.85 },
-    gloomRaven: { motion: 'bank', main: 'body', span: 1.7, roll: 0.1 },
-    lanternTortoise: { motion: 'sway', main: 'body', span: 1.5, keep: ['head', 'legs'] },
+    voidMote: { motion: 'float', main: 'body', span: 0.85, lift: '#22163a', hot: 1.5 }, // (its maw's violet of its own)
+    gloomRaven: { motion: 'bank', main: 'body', span: 1.7, roll: 0.1, tint: 1.3, lift: '#1e1838' }, // (black wings lifted off the shore)
+    // (its shrine's glow set `atop` units over the shell's top: the made shell stands taller than the look in code's,
+    // which held the glow inside it)
+    lanternTortoise: { motion: 'sway', main: 'body', span: 1.5, keep: ['head', 'legs'], atop: 0.04 },
     glacierGolem: { motion: 'sway', main: 'torso', span: 1.9, tint: 0.85 },
     dustPangolin: { motion: 'crawl', main: 'body', span: 1.45 },
     manticore: { motion: 'crawl', main: 'body', span: 1.8 },
@@ -1075,7 +1142,7 @@ export const CFG = {
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
     hart: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.62 },
     // (its lamp kept as built, as the fight swells it; `hover`, how high it swims, as its look in code)
-    angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4 },
+    angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4, tint: 1.3, lift: '#1c1630' }, // (its black body lifted off the shore)
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

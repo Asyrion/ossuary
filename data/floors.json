@@ -182,7 +182,8 @@
       "urn": {"clay": "#26364a", "band": "#e8a84a"},
       "light": {"sky": "#8a9cb0", "ground": "#141f33", "moon": "#c8d8e8", "fill": 1.0},
       "grade": {"shadow": "#141f33", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
-      "materials": {"wood": "#4a4c50", "oak": "#5a5c5e", "oakDark": "#2a3038", "iron": "#34404c", "blackIron": "#1e2632", "bronze": "#b08a4a", "darkBronze": "#6a5a3c", "bone": "#dce6e8", "boneOld": "#aab8bc", "skull": "#b8c4c8", "stone": "#6a7c88", "darkStone": "#26364a", "verdigris": "#6a9a92", "burlap": "#6e7468", "rope": "#a09a84"},
+      "materials": {"wood": "#4a4c50", "oak": "#5a5c5e", "oakDark": "#2a3038", "iron": "#34404c", "blackIron": "#1e2632", "bronze": "#b08a4a", "darkBronze": "#6a5a3c", "bone": "#dce6e8", "boneOld": "#aab8bc", "skull": "#b8c4c8", "stone": "#52606c", "darkStone": "#26364a", "verdigris": "#6a9a92", "burlap": "#6e7468", "rope": "#a09a84"},
+      "items": {"halo": "#b8a8d8", "haloLight": 0.4, "lamp": "#e8a84a"},
       "scatter": {"pebbles": 4, "stains": 3, "rime": 2, "bones": 2, "lamps": 1, "ropes": 1, "relics": 1},
       "relics": ["wrecked_skiff", "mooring_post", "net_heap", "ferry_lantern", "frozen_cairn"]
     }

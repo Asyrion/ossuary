@@ -1,6 +1,7 @@
 /* Whether the floor in play is pale (floor 4's ivory and gold: `CFG.paleFx.looks`), where foes' magic is drawn in its
    school's deepened light over an edge in the floor's shadow colour rather than added (added light burnt white there).
-   Set with the floor's colours (kitColours.ts); every other floor keeps its own look. A module of its own, light to
+   Floor 5's dark shore has a switch of its own (`shoreFx`, `CFG.shoreFx`). Both are set with the floor's colours
+   (kitColours.ts); every other floor keeps its own look. A module of its own, light to
    import from the actors, combat and magic. */
 import type { FloorLook } from '../types';
 import { CFG } from '../config';
@@ -8,14 +9,19 @@ import { SCHOOL_LIGHT, deepen } from '../render/arcane';
 import { bandGlow, paleBlobs } from '../render/materials';
 
 let pale = false,
+  shore = false,
   shadow = 0;
 /** Whether the floor's foes' magic is drawn rather than added. */
 export const paleFx = () => pale;
+/** Whether the floor in play is floor 5's dark shore (`CFG.shoreFx.looks`), where foes' magic and what they leave keep
+    tones of their own (added frost burnt pale foes white, black and pale ones were lost on its mist and dark water). */
+export const shoreFx = () => shore;
 /** The floor's shadow colour (its grade's), the dark edge that magic drawn on a pale floor stands on. */
 export const paleShadow = () => shadow;
-/** Take the floor's look: pale or not, and its shadow colour; the blob shadows held lighter on a pale one. */
+/** Take the floor's look: pale or not, the shore or not, and its shadow colour; the blob shadows held lighter on a pale one. */
 export function setPaleFx(look: FloorLook) {
   pale = CFG.paleFx.looks.includes(look.name);
+  shore = CFG.shoreFx.looks.includes(look.name);
   shadow = parseInt((look.grade?.shadow ?? '#000000').slice(1), 16);
   paleBlobs(pale ? CFG.paleFx.blob.most : null);
 }

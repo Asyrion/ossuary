@@ -27,6 +27,11 @@ export interface MadeRoll {
   roll?: number;
 }
 const BANK_ROLL = 0.18;
+/** Its kept lights set this far over the model's top (units; where they were in the look in code when absent): a made
+    body taller than the look in code's held a light inside it (the lantern tortoise's shrine). */
+export interface MadeAtop {
+  atop?: number;
+}
 /** The surface of one made foe or boss (its own: a hit lights it alone; its `emissive` is the hit's and the
     telegraph's, so `lift` is where both start from). */
 export function madeSurface(map: THREE.Texture | null, how: MadeSurface) {
@@ -63,7 +68,7 @@ export function madeFoeLook(look: string, code: () => Built): (() => Built) | un
   const how = (
     CFG.madeFoes as Record<
       string,
-      { motion: Motion; main: string; span: number; keep?: readonly string[] } & MadeRoll & MadeSurface
+      { motion: Motion; main: string; span: number; keep?: readonly string[] } & MadeRoll & MadeSurface & MadeAtop
     >
   )[look];
   if (!how || !modelFor('props', `foe_${look}`)) return undefined;
@@ -77,7 +82,7 @@ function build(
   main: string,
   span: number,
   keep: readonly string[],
-  surface: MadeSurface & MadeRoll,
+  surface: MadeSurface & MadeRoll & MadeAtop,
 ): Built {
   made.idle(0);
   made.group.updateMatrixWorld(true);
@@ -104,6 +109,7 @@ function build(
   });
   body.add(model);
   g.add(body);
+  const top = surface.atop === undefined ? 0 : box.setFromObject(model, true).max.y + surface.atop;
   // the parts its behaviour moves: the model, its lights as they were, empty places for the rest
   const parts: Record<string, THREE.Object3D> = {},
     places: THREE.Object3D[] = [];
@@ -111,6 +117,7 @@ function build(
     if (name === main) parts[name] = body;
     else if ((p as THREE.Sprite).isSprite || keep.includes(name)) {
       p.getWorldPosition(p.position);
+      if ((p as THREE.Sprite).isSprite && surface.atop !== undefined) p.position.y = top;
       p.removeFromParent();
       g.add(p);
       parts[name] = p;
