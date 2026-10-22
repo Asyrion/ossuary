@@ -615,7 +615,7 @@ export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] =
   { id: 'warden', build: wardenLook },
   { id: 'abbess', build: () => (madeBossLook('abbess', abbessLook) ?? abbessLook)() },
   { id: 'pyre', build: () => (madeBossLook('pyre', pyreKnightLook) ?? pyreKnightLook)() },
-  { id: 'hart', build: hartLook },
+  { id: 'hart', build: () => (madeBossLook('hart', hartLook) ?? hartLook)() },
   { id: 'angler', build: anglerLook },
   { id: 'tiger', build: () => (madeBossLook('tiger', tigerLook) ?? tigerLook)() },
   { id: 'dragon', build: dragonLook },

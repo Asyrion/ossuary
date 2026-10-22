@@ -146,7 +146,8 @@
       "light": {"sky": "#b0b0c8", "ground": "#1f2546", "moon": "#e0dcc8", "fill": 1.0},
       "grade": {"shadow": "#1f2546", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
       "materials": {"wood": "#4a3a34", "oak": "#5a4636", "oakDark": "#2e2430", "iron": "#3a3a52", "blackIron": "#22223a", "bronze": "#c0a060", "darkBronze": "#7a6440", "bone": "#f0e8d4", "boneOld": "#c8bca0", "skull": "#d8ccb4", "stone": "#9a8e7a", "darkStone": "#3a3352", "verdigris": "#7a9a8a", "burlap": "#8a7a5c", "rope": "#c0a878"},
-      "scatter": {"candles": 3, "coins": 2, "pages": 2, "stains": 2, "bones": 1}
+      "scatter": {"candles": 3, "coins": 2, "pages": 2, "stains": 2, "bones": 1, "relics": 1},
+      "relics": ["gilded_reliquary", "fallen_saint", "candle_stand", "coin_heap", "bell_fallen", "prayer_book_stand"]
     }
   },
   {

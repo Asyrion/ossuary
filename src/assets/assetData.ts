@@ -84,6 +84,13 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   brimstone_cluster: 'large-prop',
   scorched_bones: 'prop',
   slag_heap: 'prop',
+  // floor 4's relics (its look's `relics`): made models only, no placeholder
+  gilded_reliquary: 'prop',
+  fallen_saint: 'large-prop',
+  candle_stand: 'prop',
+  coin_heap: 'prop',
+  bell_fallen: 'large-prop',
+  prayer_book_stand: 'large-prop',
   // floor 2's foes made in Tripo (actors/madeFoes.ts): a still model in place of the look in code
   foe_mireToad: 'prop',
   foe_lanternJelly: 'prop',
@@ -112,6 +119,19 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   foe_tiger: 'prop',
   foe_twins: 'prop',
   foe_twins2: 'prop', // (the second guardian: greyer, a forked beard, a crest)
+  // floor 4's foes and the Hart (actors/madeFoes.ts, madeBosses.ts)
+  foe_wickmouse: 'prop',
+  foe_chimeBat: 'prop',
+  foe_gargoyleWhelp: 'prop',
+  foe_moonstagFawn: 'prop',
+  foe_radiantEye: 'prop',
+  foe_harpy: 'prop',
+  foe_lodestoneGolem: 'prop',
+  foe_hearthGolem: 'prop',
+  foe_shadowFox: 'prop',
+  foe_rimeScarab: 'prop',
+  foe_griffin: 'prop',
+  foe_hart: 'large-prop',
   // the solid parts of spells (magic/spellFx.ts): made models only, no placeholder; the spells draw their own without them
   ice_column: 'prop',
   bone_hand: 'prop',
@@ -132,6 +152,8 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   altar_drowned: 'large-prop',
   urn_burning: 'prop',
   altar_burning: 'large-prop',
+  urn_reliquary: 'prop',
+  altar_reliquary: 'large-prop',
 };
 export const MANIFEST: Manifest = {
   props: raw.props,

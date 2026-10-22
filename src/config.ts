@@ -717,6 +717,11 @@ export const CFG = {
       'toppled_brazier',
       'wax_mound',
       'brimstone_cluster',
+      'gilded_reliquary',
+      'fallen_saint',
+      'candle_stand',
+      'bell_fallen',
+      'prayer_book_stand',
     ],
     relicFit: 0.8,
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
@@ -951,6 +956,18 @@ export const CFG = {
     basilisk: { motion: 'crawl', main: 'body', span: 2.0, tint: 1.5, lift: '#1c1a24', hot: 1.2 },
     saltGolem: { motion: 'sway', main: 'torso', span: 1.3 },
     rubbleGolem: { motion: 'sway', main: 'torso', span: 1.5, tint: 1.4, lift: '#201a1c', hot: 1.2 },
+    // floor 4's (the wick mouse's flame is its model's own, not kept: its behaviour grows it each frame)
+    wickmouse: { motion: 'squat', main: 'body', span: 0.7, hot: 2 },
+    chimeBat: { motion: 'float', main: 'bell', span: 1.0 },
+    gargoyleWhelp: { motion: 'squat', main: 'body', span: 0.95 },
+    moonstagFawn: { motion: 'sway', main: 'body', span: 0.9 },
+    radiantEye: { motion: 'float', main: 'core', span: 1.2, tint: 1.35, lift: '#201c34' },
+    harpy: { motion: 'bank', main: 'body', span: 1.7 },
+    lodestoneGolem: { motion: 'sway', main: 'body', span: 1.3 },
+    hearthGolem: { motion: 'sway', main: 'body', span: 1.3, keep: ['flames'] },
+    shadowFox: { motion: 'crawl', main: 'body', span: 1.3 },
+    rimeScarab: { motion: 'crawl', main: 'body', span: 1.15, keep: ['ball'] },
+    griffin: { motion: 'bank', main: 'body', span: 2.2 },
   },
   // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
   // look kept as built (the rune ring and the halo the fight turns and lights), the part whose fire is set on the
@@ -962,6 +979,7 @@ export const CFG = {
     tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
     twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
+    hart: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.62 },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

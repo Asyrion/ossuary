@@ -602,7 +602,7 @@ export function radiantEye(): Built {
   return {
     group: g,
     shadow: 1,
-    parts: { core, eye, lidTop: lids[0].l, lidBottom: lids[1].l },
+    parts: { core, eye, lidTop: lids[0].l, lidBottom: lids[1].l, halo }, // (its halo named, so a made look keeps its light)
     idle: (t) => {
       core.position.y = 1.05 + Math.sin(t * 1.5) * 0.05;
       wheels.forEach((w, i) => {
