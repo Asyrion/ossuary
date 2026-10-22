@@ -686,7 +686,7 @@ floor without one is drawn as it is; the dawn outside clears it. The floor's `li
 moonlight (`lightState.fill`). The grade's `ink` draws the outlines toward a near black tinted by the shadow colour,
 and its `gap` sets how far a nearer surface must stand before a farther one to be outlined (art bible 4.4). A floor's
 `materials` recolours the room kit's shared materials (`MAT`) and the objects' colours (`C`) by name, before its rooms
-are built (`applyKitColours`, world/kitColours.ts). A look's `relics` names the made relics its `relics` scatter strews (`relicsOf` in world/themes.ts; floor 1's vault's when absent); A look's `themeFloor` gives a theme its own floor colours on that floor (`themedLook`), and `floor.tesserae` a mosaic's; `bossKit` the kinds its boss rooms draw from in place of `kit`'s (world/rooms.ts: a calm floor). `validateLookExtras` (world/kitData.ts) checks a look's scatter, materials, grade, tesserae and bossKit. Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
+are built (`applyKitColours`, world/kitColours.ts). A look's `relics` names the made relics its `relics` scatter strews (`relicsOf` in world/themes.ts; floor 1's vault's when absent); A look's `themeFloor` gives a theme its own floor colours on that floor (`themedLook`), and `floor.tesserae` a mosaic's; `floor.face` a made floor face laid in place of the kit's paving, and `bossFloor` a boss room's own floor (world/rooms.ts: a calm one, a face of its own). `validateLookExtras` (world/kitData.ts) checks a look's scatter, materials, grade and tesserae, and that every face its floors name is one of its `floorFaces` in data/assets.json. Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
 
 The actors (`markActor`: the mage's root in `actors/hero.ts`, every foe and boss in `actors/enemies.ts`): while the grid is
 drawn, their solid meshes stamp the stencil where they pass the depth test (`stamp`, set on each mesh's
@@ -713,7 +713,12 @@ Everything in a room is drawn in code in the floor's colours.
   kinds the room drew; a made floor tile (data/assets.json) paints the floor instead (`floorTexture` in `textures.ts`),
   and a look's made wall face for a kind (`walls.<look>.<kind>`, `wallTile` in `assets/models.ts`, made by
   `tools/art/walltile.py` at the texel in the floor's colours) takes the place of the drawn one (`wallMaterials` in
-  `materials.ts`, `pixelWallTexture`); the look's stains are laid on either.
+  `materials.ts`, `pixelWallTexture`); the look's stains are laid on either. A made floor face (`floorFaces.<look>.<name>`,
+  `floorFace` in `assets/models.ts`, made by `tools/art/floortile.py`: steps of light at the texel) takes the place of
+  the paving where the room's `floor.face` names it (`madeFloor`), painted in the room's own floor colours
+  (`CFG.roomKit.floorFace`), so a theme's floor or a boss room's still differs.
+- Pits (`drawPits` in `world/rooms.ts`): one hole over each stretch of pit tiles, its edge cut hard, its depth the
+  room's floor darkened and its inner wall under a lit lip along its far side (`CFG.surface.pit`).
   `textures.ts`: special rooms' marks (`drawMarks`) and stepped glows.
 - Variety: each floor's `look.kit` lists weighted kinds of wall, floor, torch and brazier; each room draws one of
   each on its seed (`pickKinds` in pure `world/kitData.ts`, into `room.look.kinds`); a theme may pin some. Dev:
@@ -739,8 +744,12 @@ round bases; `tools/prepare-asset.ts` shares them. Clips: `standing_relax`, `run
 ### Made assets and Tripo creatures
 
 - Made assets: `data/assets.json` holds budgets per kind and which file replaces which placeholder (props,
-  artifacts, floor tiles, wall faces, icons, coins, models); pure `assets/assetData.ts`; `assets/models.ts` loads them at boot
-  (hooks `modelFor`, `floorTile`, `wallTile`, `iconUrl`); a missing file leaves the placeholder. `tools/make-standins.ts` makes
+  artifacts, floor tiles, wall faces, floor faces, icons, coins, models); pure `assets/assetData.ts`; `assets/models.ts`
+  loads them at boot (hooks `modelFor`, `floorTile`, `wallTile`, `floorFace`, `iconUrl`); a missing file leaves the
+  placeholder. A floor's own urn, bargain stone and bone altar are props named by its look (`urn_<look>`,
+  `bargain_stone_<look>`, `altar_<look>`): the made one replaces the body built in code, which keeps what lights or
+  changes (the stone's runes, the altar's candles). The merchant's ward circle is a mask from a made picture
+  (`textures/items/ward_circle.png`, `tools/art/sigil.py`). `tools/make-standins.ts` makes
   the test stand-ins. `docs/assets.md` has the house style, budgets and log. `?assets=off` keeps placeholders.
   Dev: Made assets section; `__game.assets`, `useAssets(false)`, `showAssets()`.
 - Tripo creatures animated in code (guide: `docs/creatures.md`): `tools/animate-creature.ts` simplifies the mesh to

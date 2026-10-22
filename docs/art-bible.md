@@ -297,6 +297,35 @@ helm (his painted flames don't light). Under a made boss the blob shadow is ligh
 its dark middle showed between the knight's legs as a hole. Thin glowing marks (the kelpie's lightning, the serpent's
 throat) are lost at 128 px; the kelpie reads less well on dark water than its look in code did, accepted by the owner.
 
+### 4.20 Floor 2's spells, foes' magic and items (2026-10-21 and 22, accepted by the owner)
+
+As F1 and G1 did for floor 1, a survey of every spell, floor 2's foes' magic, its pools and statuses, and every item,
+container and special room on floor 2's floors found what didn't read on its pale sea-green and slate. The owner took
+every fix; those for the spells hold on every floor.
+- **Spells:** Hallow drawn in a deeper gold with dark-edged rings (it washed to white); lightning and Rime Shards in
+  their school's colour round a thin white core; the Grasp's and the Thorn Snare's ground shaded toward the floor's
+  shadow colour, never black (`floorShade`); the Living Wall greener, lit lime from within; Eclipse's suns in the
+  floor's shadow; miasma and the Shadowstep's fog in hard bands (`fogTex`).
+- **Foes' magic and water:** sparks on the floor as hard storm crosses, the thunderhead's rain bolt thick and gold with a
+  circle on the floor as it gathers; the rime snail's trail in pixel frost crystals; frost and storm shots in a deeper
+  sheath round a hot core; pools one flat deep-water tone with a hard edge, blue ice, a shocked pool's crackling rim,
+  steam a stepped dither thinner round the mage; open shadows under flyers and a swimming newt; the Abbess darkened;
+  the mire toad's gathering cold and the newt's spray shown.
+- **Items and rooms, from Tripo** (the owner's call: solve with Tripo what a model or a picture solves): floor 2's own
+  urn in warm clay with a lime band, its bargain stele of dark basalt veined in lime (its cap's pale texels recoloured to
+  the basalt, the game's runes on its blank face), its bone altar under a cloth with a red hem (the code's candles kept,
+  the blood runes gone under the cloth), all three by look name (`urn_<look>`); made floor faces (`floorFaces`,
+  `tools/art/floortile.py`: the picture's steps of light, painted in the room's own floor colours) for the boss rooms
+  (large calm slabs, `bossFloor`) and the collapsed crypt (irregular broken stones; a first face of slabs in a grid fell
+  on the tiles' and read as a grid); the merchant's ward circle a mask from a made picture, its runes the Wardens'
+  glyphs, drawn rather than added, under a fainter column. No splash picture could be made (Tripo refused every
+  wording), so a splash keeps a stepped dark edge under its ring, its glass in the floor's shadow.
+- **Kept from code:** a thing's inner lines only at a deeper step (`thingGap`: a bottle's edge pixel sat outside its
+  line), darker bottle glass, the lodestone shard's pale cyan veins, artifacts' smaller darker halos and thin parts two
+  pixels, the lighter blob under the pedestal and the briar, Fen-Nex outlined.
+- **Pits, on every floor** (from the room inspection): a hole with a hard edge, the room's floor darkened in its depth and
+  its inner wall under a lit lip along the far side (`CFG.surface.pit`); a soft black blur read as a blot, not a pit.
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
