@@ -267,7 +267,7 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   model instead (`madeFoes.ts`: code moves it whole, sized by `span`; the code look still gives its lights and moved parts,
   and the parts named in `keep`, such as a water foe's pool, as built). Its surface (`madeSurface`, shared with
   `madeBosses.ts`) takes a `tint`, a `lift` (a light of its own, for a dark body on a dark floor) and `hot` (its warm
-  texels glow), from its `CFG.madeFoes` entry. Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  texels glow), from its `CFG.madeFoes` entry. A banking flyer's `roll` (`MadeRoll`, `BANK_ROLL` when absent) sets how far it rolls either side: a wide-winged one rolled far reads as a wing stood on end from the camera. Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a
@@ -371,7 +371,7 @@ rune ring, halo and named part's fire it keeps; what its fight does to the parts
 model as a whole, and its blob shadow is the open one (`blob(size, true)`, lighter where the floor shows between legs).
 The Abbess, the Pyre Knight, the War-Tiger and both Twin Guardians wear one (`twins2`, the second, its own); an entry's
 `eye` sets its eyes' height on the model (a crouched guardian's face is high), and its surface takes `tint`, `lift` and
-`hot` as the foes' do. A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
+`hot` as the foes' do. The Hallowed Hart wears one too (`POSE.hart`: its legs' stride bobs the body, and a wide stride, its charge, lowers the antlers), keeping its floor circle, ring and halo. A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
 `render/textures.ts`, `haloOnFloor` in `bosses.ts`): a sprite stood up behind it cut into the floor and the wall.
 
 | Boss | Id | Fight |
@@ -692,7 +692,7 @@ floor without one is drawn as it is; the dawn outside clears it. The floor's `li
 moonlight (`lightState.fill`). The grade's `ink` draws the outlines toward a near black tinted by the shadow colour,
 and its `gap` sets how far a nearer surface must stand before a farther one to be outlined (art bible 4.4). A floor's
 `materials` recolours the room kit's shared materials (`MAT`) and the objects' colours (`C`) by name, before its rooms
-are built (`applyKitColours`, world/kitColours.ts). A look's `relics` names the made relics its `relics` scatter strews (`relicsOf` in world/themes.ts; floor 1's vault's when absent); A look's `themeFloor` gives a theme its own floor colours on that floor (`themedLook`), and `floor.tesserae` a mosaic's; `floor.face` a made floor face laid in place of the kit's paving, and `bossFloor` a boss room's own floor (world/rooms.ts: a calm one, a face of its own). A look's `items` gives the things lying on its floor tones of their own where its ground swallows the shared ones (`itemTones()`, world/kitColours.ts: the purse's leather and clasp, a tint over the made pedestal, a splash's edge, a halo for its dark and red artifacts, a lighter sealed urn). `validateLookExtras` (world/kitData.ts) checks a look's scatter, materials, grade, tesserae and item tones, and that every face its floors name is one of its `floorFaces` in data/assets.json. Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
+are built (`applyKitColours`, world/kitColours.ts). A look's `relics` names the made relics its `relics` scatter strews (`relicsOf` in world/themes.ts; floor 1's vault's when absent); A look's `themeFloor` gives a theme its own floor colours on that floor (`themedLook`), and `floor.tesserae` a mosaic's; `wall.cap` the kind of wall whose face the tops of carved blocks wear (floor 4's marble; else a stone a shade under the bricks, `cappedWallMaterials`), `floor.face` a made floor face laid in place of the kit's paving, and `bossFloor` a boss room's own floor (world/rooms.ts: a calm one, a face of its own). A look's `items` gives the things lying on its floor tones of their own where its ground swallows the shared ones (`itemTones()`, world/kitColours.ts: the purse's leather and clasp, a tint over the made pedestal, a splash's edge, a halo for its dark and red artifacts, a lighter sealed urn). `validateLookExtras` (world/kitData.ts) checks a look's scatter, materials, grade, tesserae and item tones, and that every face its floors name is one of its `floorFaces` in data/assets.json. Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
 
 The actors (`markActor`: the mage's root in `actors/hero.ts`, every foe and boss in `actors/enemies.ts`): while the grid is
 drawn, their solid meshes stamp the stencil where they pass the depth test (`stamp`, set on each mesh's
@@ -710,6 +710,14 @@ Burning ground (a foe's fire, a spell's, burning oil) is drawn by `render/pixelF
 frames over a charcoal scorch shaded toward the floor's shadow colour, a pale core (`CFG.foeGround.fire`,
 `CFG.surface.burnFrames`). A foe's telegraph and its shots' halos are drawn in hard bands (`bandGlow`, `bandsTex`;
 `CFG.pixelLook.teleRings`, `shotHalo`).
+On a light floor (`CFG.paleFx`, `looks: ['reliquary']`, floor 4's ivory and gold) added glow burns white, so foes' magic is
+drawn instead, in a deep school tone over an edge in the floor's shadow colour (`world/paleFx.ts`: `setPaleFx` takes the
+look from `applyKitColours` on every floor and the Vigil; `paleFx()`, `paleShadow()`, `paleTone()`, `paleStripTone`,
+`paleHalo`). It switches telegraph bands (`bandGlow`'s `drawn` option, `edgedBandsTex`), `ringFx`'s `drawn` rings, the
+`paleStrip` of the Hart's lane and the griffin's line, hallow shots sheathed in deep gold with drawn halos, black ice in
+hard steps, lobs (`paleLob`: shaded and outlined, with `fallWarn`), the radiant eye's ray (`beamFx`), the stun tint, the
+rime, web and pollen tones, capped blob shadows (`paleBlobs`), the vault's ward seal, and a dark halo under pickups and
+artifacts with the key and the souls in deeper colours.
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
