@@ -160,6 +160,7 @@ export function validateLookExtras(
     bossFloor?: { face?: string };
     themeFloor?: Record<string, { face?: string }>;
     items?: object;
+    wall?: { cap?: string };
   },
   faces: Readonly<Record<string, string>> = {},
 ): string[] {
@@ -172,6 +173,9 @@ export function validateLookExtras(
   for (const [where, face] of named)
     if (face !== undefined && !faces[face])
       errs.push(`look "${name}": ${where}.face "${face}" is no floor face of its (data/assets.json floorFaces)`);
+  const cap = look.wall?.cap;
+  if (cap !== undefined && !(WALL_KINDS as readonly string[]).includes(cap))
+    errs.push(`look "${name}": wall.cap "${cap}" is no kind of wall (${WALL_KINDS.join(', ')})`);
   for (const [k, v] of Object.entries(look.scatter ?? {})) {
     if (!(SCATTER_KINDS as readonly string[]).includes(k))
       errs.push(`look "${name}": scatter names unknown kind "${k}"`);

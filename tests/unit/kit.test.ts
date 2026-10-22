@@ -80,6 +80,9 @@ describe("the room kit's kinds", () => {
         grade: { shadow: '#123', amount: 2 },
       }),
     ).toHaveLength(4);
+    expect(validateLookExtras('bad', { wall: { cap: 'velvet' } })).toEqual([
+      expect.stringContaining('look "bad": wall.cap "velvet" is no kind of wall'),
+    ]);
   });
   it("a floor look's item tones are known colours and amounts", () => {
     expect(validateLookExtras('ok', { items: { purse: '#3a2c2a', halo: '#b8a8d8', haloLight: 0.4 } })).toEqual([]);

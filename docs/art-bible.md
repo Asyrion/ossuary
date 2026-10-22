@@ -396,6 +396,37 @@ too); every foe's telegraph and its shots' halos are drawn in hard bands; the He
 core in a deep violet sheath ringed in dark (4.15's rule); the Thorn Snare's brambles lit lime as the Living Wall's;
 the Lantern of Vigil larger and lit; the Wardlight's motes in Hallow's gold with a dark edge.
 
+### 4.26 Floor 4 in the game: its rooms (2026-10-22, accepted by the owner)
+
+Floor 4, the reliquary, in its palette (4.1: ivory and gold over deep blue): its floor toned to the lightness this bible
+asks of a floor, deep-blue mortar and shadow (`#1f2546`), the grade in that shadow, a fill light of 1.0, a warm pale
+flame, the kit's materials in its ramps, and plain rooms strewn with candles, coins, pages, stains, bones and a relic. Its
+walls are made faces: ivory marble, gilded panels (their own navy and gold kept, since the floor's wall tone washed them
+out) and gothic tracery; the tops of blocks carved inside a room wear the marble (`wall.cap`). It has its own urn (deep
+blue clay with a gold band) and bone altar, made in Tripo. Its six relics are made in Tripo (a gilded reliquary, a fallen
+saint, a candle stand, a coin heap, a fallen bell, a prayer-book stand); five stand in the way and one lies on the floor.
+The fallen saint was laid down and the gilded reliquary brightened after the survey.
+
+### 4.27 Floor 4's foes and the Hart made in Tripo (2026-10-22, accepted by the owner)
+
+Eleven foes of floor 4 wear Tripo models moved whole by code (4.19). The wick mouse's pale fur is darkened off the ivory
+floor (`tint`) while its candle flame glows of itself, as dark bodies with bright features read at play distance.
+The frost scarab was made without a ball, so its snowball stays the code's. The radiant eye was remade in gold rings with
+slate wings, the candle stand with lit candles, the wick mouse with a big candle flame. The griffin faces its heading and
+rolls less (`roll`): rolled far, a wide wing stood on end under the camera. The Hallowed Hart goes through the
+made-boss path (`madeBosses.ts`), its floor circle, ring and halo kept, its texture baked at its drawn height; its stride
+bobs it and its charge lowers its antlers.
+
+### 4.28 Magic on a pale floor (2026-10-22, accepted by the owner)
+
+On a light floor added light burns white and a pale body shows only its outline. The rule (`CFG.paleFx`, floor 4 only, so
+floors 1 to 3 stay as accepted): effects are drawn, in a deep school tone over an edge in the floor's shadow colour,
+stepped, never added. Drawn this way: foes' telegraphs and ground rings, the Hart's lane (in its own gold) and the
+griffin's line, hallow shots in deep gold with drawn halos, black ice in hard steps, lobbed snowballs and coals (shaded,
+outlined, warned where they land), the radiant eye's ray as a stepped gold beam, a deep-gold stun, rime, webs and pollen in
+deep tones, blob shadows capped, the vault's ward seal drawn dark, and pickups and artifacts on a dark halo with the key
+and the souls in deeper colours.
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
