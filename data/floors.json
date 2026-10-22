@@ -68,8 +68,8 @@
       "grade": {"shadow": "#1b2440", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
       "materials": {"wood": "#4e5c50", "oak": "#5c6a58", "oakDark": "#36423a", "iron": "#3c4a58", "blackIron": "#222c3a", "bronze": "#8aa070", "darkBronze": "#55684a", "bone": "#d6e4d6", "boneOld": "#aabcae", "skull": "#a2b2a2", "stone": "#6c847c", "darkStone": "#33454c", "verdigris": "#7fb39a", "burlap": "#74846a", "rope": "#a8b890"},
       "scatter": {"glowmoss": 3, "moss": 3, "pebbles": 4, "stains": 2, "bones": 1, "rime": 1, "relics": 1},
-      "bossKit": {"floor": {"flags": 1}},
-      "themeFloor": {"collapsed": {"base": [72, 70, 62], "stain": "56,50,42"}, "garth": {"base": [72, 102, 64], "stain": "60,90,40"}, "pilgrims": {"base": [86, 98, 100]}},
+      "bossFloor": {"face": "boss"},
+      "themeFloor": {"collapsed": {"base": [72, 70, 62], "stain": "56,50,42", "face": "collapsed"}, "garth": {"base": [72, 102, 64], "stain": "60,90,40"}, "pilgrims": {"base": [86, 98, 100]}},
       "relics": ["toppled_font", "pillar_stump", "fungus_log", "sunken_bell", "rotten_planks", "rimed_bones"]
     }
   },

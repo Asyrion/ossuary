@@ -28,6 +28,7 @@ import {
   tone,
 } from './kitParts';
 import { torchPalette, waxFor } from './fireLooks';
+import { modelFor } from '../assets/models';
 
 type R = () => number;
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
@@ -1476,10 +1477,14 @@ export function altarLook(look: FloorLook | undefined) {
   const g = new THREE.Group(),
     st = stoneOf(look, 0.9),
     blood = glowTone(C.blood),
-    red = tone(0x7a1410, 0.05);
-  box(g, 1, 0.5, 0.6, tone(st, 0.1), 0, 0.25, 0);
-  for (const x of [-0.3, 0, 0.3]) mesh(g, GEO.warnRune, blood, x, 0.27, 0.305);
-  box(g, 1.08, 0.08, 0.68, tone(C.bone, 0.06), 0, 0.54, 0);
+    red = tone(0x7a1410, 0.05),
+    made = look && modelFor('props', `altar_${look.name}`); // (the floor's own: its cloth hangs where the runes were)
+  if (made) g.add(made);
+  else {
+    box(g, 1, 0.5, 0.6, tone(st, 0.1), 0, 0.25, 0);
+    for (const x of [-0.3, 0, 0.3]) mesh(g, GEO.warnRune, blood, x, 0.27, 0.305);
+    box(g, 1.08, 0.08, 0.68, tone(C.bone, 0.06), 0, 0.54, 0);
+  }
   for (let i = 0; i < 3; i++) bone(g, -0.3 + i * 0.3, 0.05, 0.38, 0.4 - i * 0.4 + Math.PI / 2, 0, i === 1);
   skull(g, 0.12, 0.1, 0.42, -0.3, -0.2, 0.9);
   const specs: FlameSpec[] = [];

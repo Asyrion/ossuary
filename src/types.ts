@@ -83,6 +83,8 @@ export interface FloorLook {
     decor: 'bones' | 'puddles' | 'ash' | 'wax';
     bones: number;
     tesserae?: { ring: string; cross: string; pale: string; lattice: string; ground: string };
+    /** A made floor face laid in place of the kit's paving (data/assets.json `floorFaces` of this look, by name). */
+    face?: string;
   };
   wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt'; dress?: WallDress };
   /** The floor's lights: the wall torch's flame and light, and the wax of its candles (a room's wall light is the kind
@@ -108,8 +110,8 @@ export interface FloorLook {
   scatter?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
   /** A theme's floor on this floor, by theme id (its base colour, its stain), so themes that share a kit still differ. */
   themeFloor?: Record<string, Partial<FloorLook['floor']>>;
-  /** The kinds a boss room draws from in place of `kit`'s, by part (a calm floor, so a boss's shots read on it). */
-  bossKit?: Partial<KitWeights>;
+  /** A boss room's floor on this floor (its colours, a made `face`): a calm one, so a boss's shots read on it. */
+  bossFloor?: Partial<FloorLook['floor']>;
   /** The made relics its `relics` scatter strews (prop ids, data/assets.json); floor 1's vault's when absent. */
   relics?: string[];
   /** The floor's own colours for the room kit's materials and objects, by name (world/kitColours.ts): '#rrggbb'. */

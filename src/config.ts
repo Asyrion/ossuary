@@ -496,8 +496,18 @@ export const CFG = {
   // floor generation: how many walks may be retried to leave spare dead ends for a wanted altar or vault
   generator: { optionalTries: 400 },
   // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
-  // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
-  merchant: { shadeAt: -1.9, waresAt: 0.9, spacing: 2.3, reach: 0.45, boltFizzle: 0.6, panelReach: 1.5 }, // (panelReach: how near a ware its panel shows)
+  // close the mage must come to buy, how far a bolt flies in the warded shop before it fizzles, and how strong a ward
+  // circle is drawn on the floor and its column of light (items/merchant.ts: a brighter column washed a pale ware out)
+  merchant: {
+    shadeAt: -1.9,
+    waresAt: 0.9,
+    spacing: 2.3,
+    reach: 0.45,
+    boltFizzle: 0.6,
+    panelReach: 1.5,
+    ward: 0.85,
+    column: 0.05,
+  }, // (panelReach: how near a ware its panel shows)
   // the lore card on pickup: seconds on screen, at least, a little more per word of lore, and at most
   lore: { least: 4, perWord: 0.04, most: 6 },
   // water and oil (world/pools.ts): wading speed (the mage and walking foes), seconds oil burns and water stays
@@ -904,8 +914,10 @@ export const CFG = {
     thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 },
     retort: { splashMul: 1.5, cut: 6 },
     split: 2,
-    // a splash's glass shards (items/potionThrow.ts) `shard` of the way to the floor's shadow colour, drawn over the
-    // floor (in front of it they were outlined to near-black specks)
+    // a splash's look (items/potionThrow.ts): a dark edge under its ring, fading in `steps` flat steps from `opacity`
+    // (the ring alone vanished on a floor of its own colour), and its glass shards `shard` of the way to the floor's
+    // shadow colour, drawn over the floor (in front of it they were outlined to near-black specks)
+    splashEdge: { opacity: 0.5, steps: 3, inner: 0.72, outer: 1.1 },
     shard: 0.6,
   },
   // the soundscapes and the music (docs/archive/sound-plan.md, audio/director.ts): scheduled `ahead` seconds before they sound
@@ -991,6 +1003,9 @@ export const CFG = {
     glowDark: 0.5,
     artifactScale: 1.2,
     artifactClear: 0.24,
+    // a made floor face's steps of light (render/pixelTextures.ts madeFloor): the room's base colour shaded from `dark`
+    // (the step over the joints) to `light` (the brightest)
+    floorFace: { dark: 0.7, light: 1.12 },
     // (the halo round an artifact built in code, its colour darkened by `dim`: a larger, brighter one washed a pale
     // artifact out and melted a green one into a green floor)
     artifactGlow: { size: 0.8, opacity: 0.4, dim: 0.75 },

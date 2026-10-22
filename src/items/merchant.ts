@@ -11,7 +11,6 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, disposeTree, markShared } from '../render/materials';
 import { crowWareLook, shadeLook } from '../world/specialLooks';
-import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
 import { renderMinimap, toast, itemLore } from '../notify';
 import { WARD_COLOR as WARD } from '../world/rooms';
@@ -31,6 +30,17 @@ const C = CFG.merchant;
 
 /* ---------- looks ---------- */
 
+/** The ward circle drawn on the floor as pixel art (public/assets/textures/items/ward_circle.png, made by
+    tools/art/sigil.py from a made picture, its rune band in the Wardens' glyphs): drawn, not added light, so the floor
+    shows between its lines and the ware over it reads (an added one washed a pale ware out). */
+function wardTex() {
+  const t = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}assets/textures/items/ward_circle.png`);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+
 let parts: ReturnType<typeof makeParts> | null = null;
 function makeParts() {
   const shared = <T extends THREE.BufferGeometry>(g: T) => {
@@ -48,19 +58,18 @@ function makeParts() {
     column,
     runeMat: markShared(
       new THREE.MeshBasicMaterial({
-        map: glyphTexture(),
+        map: wardTex(),
         color: WARD,
         transparent: true,
-        opacity: 0.55,
+        opacity: C.ward,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
       }),
     ),
     columnMat: markShared(
       new THREE.MeshBasicMaterial({
         color: WARD,
         transparent: true,
-        opacity: 0.09,
+        opacity: C.column,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
@@ -69,7 +78,7 @@ function makeParts() {
   };
 }
 
-/** The ward circle a ware floats in: a rune on the floor, a ring and a faint column of light. */
+/** The ward circle a ware floats in: its circle drawn on the floor, a ring and a faint column of light. */
 function wardCircle() {
   const P = (parts ??= makeParts()),
     g = new THREE.Group();

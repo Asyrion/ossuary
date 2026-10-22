@@ -12,6 +12,7 @@ import { mulberry } from '../util';
 import type { FloorKind, WallKind } from '../world/kitData';
 import { renderer } from './renderer';
 import { MARKED_ROOMS, cacheFloor, cachedFloor, drawMarks } from './textures';
+import { floorFace } from '../assets/models';
 
 type RGB = [number, number, number];
 const hex = (s: string): RGB => {
@@ -983,6 +984,25 @@ function brassStar(px: Px, x: number, y: number, brass: RGB) {
     }
 }
 
+/** A made floor face (tools/art/floortile.py: steps of light at the texel) laid over the room, repeating, in the room's
+    own colours: its darkest step the mortar, the rest its base shaded from `CFG.roomKit.floorFace.dark` to `light`. */
+function madeFloor(f: FloorCtx, img: HTMLImageElement) {
+  const { px, cw, ch, TX, TY, inside, base, mortar } = f,
+    { dark, light } = CFG.roomKit.floorFace,
+    c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const g = c.getContext('2d', { willReadFrequently: true })!;
+  g.drawImage(img, 0, 0);
+  const { data, width: w, height: h } = g.getImageData(0, 0, c.width, c.height);
+  for (let y = 0; y < ch; y++)
+    for (let x = 0; x < cw; x++) {
+      if (!inside(Math.floor(x / TX), Math.floor(y / TY))) continue;
+      const t = data[((y % h) * w + (x % w)) * 4] / 255;
+      px.set(x, y, t < 0.01 ? mortar : scale(base, dark + (light - dark) * t));
+    }
+}
+
 /** Each kind of floor's paving, over the whole room. */
 const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
   flags(f, mask) {
@@ -1445,7 +1465,9 @@ export function pixelFloorTexture(
   px.fill(mortar);
   glow?.fill([0, 0, 0]);
   const f: FloorCtx = { px, glow, R, cw, ch, TX, TY, inside, base, mortar, look, n };
-  PAVING[paving](f, mask);
+  const face = look.floor.face ? floorFace(look.name, look.floor.face) : null;
+  if (face) madeFloor(f, face);
+  else PAVING[paving](f, mask);
   // stains in dither: moss, damp or blood
   const stain = csv(kind === 'boss' ? '60,14,10' : look.floor.stain);
   for (let k = 0; k < n(7); k++) {

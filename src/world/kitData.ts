@@ -143,8 +143,9 @@ export function validateKit(name: string, kit: Partial<KitWeights> | undefined, 
 
 const HEX = /^#[0-9a-f]{6}$/i;
 /** Problems with a floor look's dressing and colours (`scatter` kinds the room kit strews, `materials` written as
-    colours, the `grade`'s colour and amounts, the `bossKit`'s kinds); empty when valid. The names `materials` may change belong to the renderer
-    (kitColours.ts reports an unknown one as the floor is built). */
+    colours, the `grade`'s colour and amounts, the made floor faces its floors name: `faces`, `name`'s in
+    data/assets.json); empty when valid. The names `materials` may change belong to the renderer (kitColours.ts reports an
+    unknown one as the floor is built). */
 export function validateLookExtras(
   name: string,
   look: {
@@ -152,10 +153,21 @@ export function validateLookExtras(
     materials?: Record<string, string>;
     grade?: Record<string, unknown>;
     tesserae?: Record<string, string>;
-    bossKit?: Partial<KitWeights>;
+    floor?: { face?: string };
+    bossFloor?: { face?: string };
+    themeFloor?: Record<string, { face?: string }>;
   },
+  faces: Readonly<Record<string, string>> = {},
 ): string[] {
-  const errs: string[] = validateKit(`${name}: bossKit`, look.bossKit, false);
+  const errs: string[] = [];
+  const named = [
+    ['floor', look.floor?.face],
+    ['bossFloor', look.bossFloor?.face],
+    ...Object.entries(look.themeFloor ?? {}).map(([t, f]) => [`themeFloor.${t}`, f.face]),
+  ];
+  for (const [where, face] of named)
+    if (face !== undefined && !faces[face])
+      errs.push(`look "${name}": ${where}.face "${face}" is no floor face of its (data/assets.json floorFaces)`);
   for (const [k, v] of Object.entries(look.scatter ?? {})) {
     if (!(SCATTER_KINDS as readonly string[]).includes(k))
       errs.push(`look "${name}": scatter names unknown kind "${k}"`);
