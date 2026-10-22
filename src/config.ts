@@ -1115,6 +1115,18 @@ export const CFG = {
     shadowFox: { motion: 'crawl', main: 'body', span: 1.3 },
     rimeScarab: { motion: 'crawl', main: 'body', span: 1.15, keep: ['ball'] },
     griffin: { motion: 'bank', main: 'body', span: 2.2, roll: 0.1 }, // (its wide wings roll less)
+    // floor 1's (the grimoire mimic stays built in code: its covers are its jaws; the rune ram's plates, the urn mimic's
+    // lid and eyes, the helm hermit's claws are kept as built, so its fight still shows on them)
+    sporeling: { motion: 'squat', main: 'body', span: 0.85, hot: 1 },
+    vesperMoth: { motion: 'bank', main: 'body', span: 1.1 },
+    runeBeetle: { motion: 'crawl', main: 'body', span: 0.95, keep: ['halfL', 'halfR'] },
+    urnMimic: { motion: 'squat', main: 'body', span: 0.75, keep: ['lid', 'peek'] },
+    cryptSpider: { motion: 'crawl', main: 'body', span: 1.3 },
+    inkOctopus: { motion: 'sway', main: 'body', span: 1.2 },
+    fireflyBeetle: { motion: 'bank', main: 'body', span: 0.6, hot: 2, tint: 0.8 },
+    choirLark: { motion: 'float', main: 'body', span: 1.1, tint: 0.75 }, // (its white plumage held off the sandstone)
+    stormMantis: { motion: 'sway', main: 'chest', span: 1.1 },
+    rubbleCrab: { motion: 'crawl', main: 'body', span: 1.4, keep: ['big', 'small'] },
     // floor 5's (the hydra stays built in code: its necks cut and stumps seared are its fight; the lantern tortoise's
     // model is its shell alone, its head and legs kept as built, so it is seen to shut itself in)
     rootling: { motion: 'squat', main: 'body', span: 0.9, keep: ['mound'], tint: 1.3, lift: '#1e2a1c' }, // (its dark bark lifted off the shore)
@@ -1142,6 +1154,7 @@ export const CFG = {
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
     hart: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.62 },
     // (its lamp kept as built, as the fight swells it; `hover`, how high it swims, as its look in code)
+    warden: { size: 1, keep: ['ring', 'halo'], eye: 0.8, hot: 1.2, tint: 0.6 }, // (its brown fur held off floor 1's brown; its candle crown glows of itself)
     angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4, tint: 1.3, lift: '#1c1630' }, // (its black body lifted off the shore)
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
