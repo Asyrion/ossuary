@@ -3,7 +3,9 @@
    reads: the rune ring and the halo stay as built (lifted to the model's height), and the eye's glow is set on the
    model's face. The parts the fight moves (a jaw, gills, a sword arm, legs) become empty places, and what the fight did
    to them shows on the model as a whole a frame later: the Abbess rears and swells as she wails, the Pyre Knight leans
-   into his blade and bobs as he strides. Its size is the look in code's (`CFG.madeBosses`: `size` times it). */
+   into his blade and bobs as he strides. Its size is the look in code's (`CFG.madeBosses`: `size` times it). A boss whose
+   look is a head alone (the Pillar Dragon's, the jelly serpent's: their bodies are chains built in code) is `centre`d on
+   its look in code rather than stood on the floor, and its glows set `at` points of the model (its eyes, its maw). */
 import * as THREE from 'three';
 import type { BossBuilt } from './bossLooks';
 import { modelFor } from '../assets/models';
@@ -13,7 +15,19 @@ import { madeSurface, type MadeSurface } from './madeFoes';
 
 const box = new THREE.Box3(),
   size = new THREE.Vector3(),
-  had = new THREE.Vector3();
+  had = new THREE.Vector3(),
+  mid = new THREE.Vector3(),
+  off = new THREE.Vector3();
+
+/** How a boss's made look is fitted (`CFG.madeBosses`): see the config's note. */
+interface MadeBoss extends MadeSurface {
+  size: number;
+  keep: readonly string[];
+  fire?: string;
+  eye?: number;
+  centre?: boolean;
+  at?: Readonly<Record<string, readonly number[]>>; // (x, y, z: 0 to 1 across its box)
+}
 
 /** How the fight's parts move the model as a whole, by boss: from the empty places it moves (`p`) onto the body. */
 const POSE: Record<string, (body: THREE.Object3D, p: Record<string, THREE.Object3D>, t: number) => void> = {
@@ -56,6 +70,31 @@ POSE.warden = (body, p) => {
   body.rotation.x = -k * 0.35;
   body.scale.set(1 + k * 0.12, 1 + k * 0.08, 1 + k * 0.12);
 };
+POSE.dragon = (body, p, t) => {
+  const gape = Math.max(0, p.jaw.rotation.x); // (a still can't open its jaw: it rears a little and swells as it would)
+  body.rotation.x = p.head.rotation.x - gape * 0.25 + Math.sin(t * 0.9) * 0.05; // (its head dropping to breathe, as built)
+  body.rotation.z = p.head.rotation.z + Math.sin(t * 1.2) * 0.06; // (its thrash when knocked down)
+  body.scale.set(1 + gape * 0.06, 1 + gape * 0.14, 1);
+};
+POSE.serpent = (body, p, t) => {
+  moved(body, p.head); // (drawn back before its lunge)
+  const gape = Math.max(0, p.jaw.rotation.x);
+  body.rotation.x = -gape * 0.3 + Math.sin(t * 1.1) * 0.05; // (it rears as its jaw drops to spit or bite)
+  body.rotation.z = p.head.rotation.z + Math.sin(t * 1.4) * 0.07; // (its twitch when trapped)
+  const fin = p.fins.scale.y - 1; // (its crest raised as it winds up, lowered as it dives)
+  body.scale.set(1 + gape * 0.05, 1 + gape * 0.1 + fin * 0.12, 1);
+};
+POSE.kaelith = (body, p) => {
+  moved(body, p.body); // (it sinks into shadow and rises; it shakes as it reels; it bows to hold the seal)
+  const spread = p.mantle.scale.x - 1;
+  // (leaning back to raise its blade, then into the sweep; bowed forward over the seal its hand holds)
+  body.rotation.x = p.blade.rotation.x * 0.12 - p.hand.rotation.x * 0.2;
+  body.scale.set(1 + spread * 0.25, 1, 1 + spread * 0.1); // (its wings spread in the sweep's tell, folded as it sinks)
+  // (the code look's idle put these back each step, so a state that stops setting them lets them go; so does this)
+  const rest = p.body.userData.rest as THREE.Vector3;
+  p.body.position.y = rest.y;
+  p.mantle.scale.x = 1;
+};
 POSE.angler = (body, p, t) => {
   moved(body, p.body); // (its flinch's shake)
   body.position.y += CFG.madeBosses.angler.hover + Math.sin(t * 1.3) * 0.08; // (it swims above the floor, as its look in code)
@@ -72,25 +111,13 @@ function moved(body: THREE.Object3D, place: THREE.Object3D) {
 
 /** The made look of boss `id`, wrapping its look in code `code`, or undefined while it has none. */
 export function madeBossLook(id: string, code: () => BossBuilt): (() => BossBuilt) | undefined {
-  const how = (
-    CFG.madeBosses as Record<
-      string,
-      { size: number; keep: readonly string[]; fire?: string; eye?: number } & MadeSurface
-    >
-  )[id];
+  const how = (CFG.madeBosses as Record<string, MadeBoss>)[id];
   if (!how || !modelFor('props', `foe_${id}`)) return undefined;
-  return () => build(id, code(), how.size, how.keep, how.fire, how, how.eye);
+  return () => build(id, code(), how);
 }
 
-function build(
-  id: string,
-  made: BossBuilt,
-  scale: number,
-  keep: readonly string[],
-  fire: string | undefined,
-  surface: MadeSurface,
-  eye = 0.55,
-): BossBuilt {
+function build(id: string, made: BossBuilt, how: MadeBoss): BossBuilt {
+  const { size: scale, keep, fire, eye = 0.55, centre = false, at = {} } = how;
   made.idle(0);
   made.group.updateMatrixWorld(true);
   // (its solid body only, as madeFoes.ts measures it)
@@ -102,6 +129,7 @@ function build(
       box.expandByObject(m, true);
   });
   box.getSize(had);
+  box.getCenter(mid);
   const g = new THREE.Group(),
     body = new THREE.Group(),
     model = modelFor('props', `foe_${id}`)!;
@@ -110,14 +138,29 @@ function build(
   model.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    m.material = madeSurface((m.material as THREE.MeshToonMaterial).map, surface); // (`tint` darkens a pale one off a pale floor)
+    m.material = madeSurface((m.material as THREE.MeshToonMaterial).map, how); // (`tint` darkens a pale one off a pale floor)
   });
   body.add(model);
   g.add(body);
   box.setFromObject(model, true);
-  const tall = box.max.y,
-    lift = tall / Math.max(had.y, 1e-3),
-    face = new THREE.Vector3(0, tall * eye, box.max.z * 0.9); // (its eyes' height: eye of its own)
+  if (centre) {
+    // (a head: on the look in code's middle, where its body's chain meets it, not on the floor)
+    model.position.add(off.copy(mid).sub(box.getCenter(off)));
+    box.setFromObject(model, true);
+  }
+  // its kept parts' heights are scaled from the floor, or from its middle when centred
+  const base = centre ? mid.y : 0,
+    tall = box.max.y,
+    lift = (centre ? box.max.y - box.min.y : tall) / Math.max(had.y, 1e-3),
+    spot = (f: readonly number[]) =>
+      new THREE.Vector3(
+        THREE.MathUtils.lerp(box.min.x, box.max.x, f[0]),
+        THREE.MathUtils.lerp(box.min.y, box.max.y, f[1]),
+        THREE.MathUtils.lerp(box.min.z, box.max.z, f[2]),
+      ),
+    face = at.eye
+      ? spot(at.eye)
+      : new THREE.Vector3(0, centre ? THREE.MathUtils.lerp(box.min.y, box.max.y, eye) : tall * eye, box.max.z * 0.9); // (its eyes' height: eye of its own)
   // the fire of its part `fire` (a texture's painted flames don't light, the code's do): at the same height on the model
   const flames: THREE.Object3D[] = [];
   made.parts[fire ?? '']?.traverse((o) => {
@@ -142,9 +185,15 @@ function build(
     }
     if (keep.includes(name)) {
       p.getWorldPosition(p.position);
-      p.position.y *= lift;
+      p.position.y = base + (p.position.y - base) * lift;
       p.removeFromParent();
       g.add(p);
+      parts[name] = p;
+    } else if ((p as THREE.Sprite).isSprite && at[name]) {
+      // (a glow of its own place on the model: the dragon's maw at its mouth, not its eyes)
+      p.removeFromParent();
+      p.position.copy(spot(at[name]));
+      body.add(p);
       parts[name] = p;
     } else if ((p as THREE.Sprite).isSprite) {
       // (on the eye's place when there is one, so what the fight does to the eye shows in its glow)

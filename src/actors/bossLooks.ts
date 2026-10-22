@@ -171,7 +171,7 @@ export function dragonBody(n = 22, spacing = 0.2): DragonBody {
 
 /** The Pillar Dragon for the gallery: coiled round a stone column, leaning out (the same path its fight lays it on). */
 export function dragonLook(): BossBuilt {
-  const L = dragonHead(),
+  const L = (madeBossLook('dragon', dragonHead) ?? dragonHead)(),
     g = new THREE.Group(),
     B = dragonBody(),
     stone = std(0x8a8478);

@@ -1156,6 +1156,15 @@ export const CFG = {
     // (its lamp kept as built, as the fight swells it; `hover`, how high it swims, as its look in code)
     warden: { size: 1, keep: ['ring', 'halo'], eye: 0.8, hot: 1.2, tint: 0.6 }, // (its brown fur held off floor 1's brown; its candle crown glows of itself)
     angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4, tint: 1.3, lift: '#1c1630' }, // (its black body lifted off the shore)
+    // (the Pillar Dragon's and the jelly serpent's heads alone, their bodies chains built in code: `centre`d on the head in
+    // code, where the chain meets it, rather than stood on the floor; `at`, points of the model's box (0 to 1 across, up and
+    // front to back) where a glow is set: their eyes, and the dragon's maw where its breath comes out)
+    dragon: { size: 0.65, keep: ['ring', 'halo'], centre: true, at: { eye: [0.5, 0.7, 0.62], maw: [0.5, 0.3, 0.95] } },
+    serpent: { size: 1.4, keep: ['ring', 'halo'], centre: true, at: { eye: [0.5, 0.62, 0.62] }, tint: 0.8 }, // (its pale bone held toward the jelly's green floor)
+    // (Kaelith's violet-black plate lifted in the Seal's dark violet, so it reads on the Seal's floor; kneeling at the end,
+    // its own model; its floor's circle and its eyes' glow kept)
+    kaelith: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.88, lift: '#221a3e' },
+    kaelith_kneel: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.8, lift: '#221a3e' },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

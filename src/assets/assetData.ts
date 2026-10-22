@@ -109,6 +109,13 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   foe_stormMantis: 'prop',
   foe_rubbleCrab: 'prop',
   foe_warden: 'large-prop',
+  // the bosses of the floors' end and the Seal still built in code before (actors/madeBosses.ts): the Pillar Dragon's and
+  // the jelly serpent's heads (their bodies stay code), Kaelith standing and kneeling (a still of the rigged
+  // creature's clips each)
+  foe_dragon: 'large-prop',
+  foe_serpent: 'large-prop',
+  foe_kaelith: 'large-prop',
+  foe_kaelith_kneel: 'large-prop',
   // floor 2's foes made in Tripo (actors/madeFoes.ts): a still model in place of the look in code
   foe_mireToad: 'prop',
   foe_lanternJelly: 'prop',
