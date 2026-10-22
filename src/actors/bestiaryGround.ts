@@ -14,7 +14,7 @@ import { basicMat, glowShared, markShared } from '../render/materials';
 import { markThing } from '../render/pixelLook';
 import { TILT } from '../render/renderer';
 import { SCHOOL_LIGHT } from '../render/arcane';
-import { paleFx, paleShadow, paleTone } from '../world/paleFx';
+import { paleFx, paleShadow, paleStripTone, paleTone } from '../world/paleFx';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { layBlackFire } from './foes';
@@ -158,6 +158,10 @@ function splatGeometry() {
   for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) + 1) / 2, (uv.getY(i) + 1) / 2); // (its edge fades as a disc's)
   return mergeGeometries([body, ...drops]).rotateX(-Math.PI / 2);
 }
+/** A web's and rime's own colours (a pale floor's are `CFG.paleFx.ground`, set as it is drawn: `updateGround`). */
+const WEB = 0xd8d0e8,
+  WEB_OPACITY = 0.55,
+  RIME = 0xa8d4f4;
 function meshOf(kind: GroundKind) {
   const had = meshes[kind];
   if (had) return had;
@@ -171,10 +175,10 @@ function meshOf(kind: GroundKind) {
   // crystals in hard pixels, which overlapping patches don't stack into a white plank)
   const mat =
     kind === 'web'
-      ? new THREE.MeshBasicMaterial({ color: 0xd8d0e8, transparent: true, opacity: 0.55, depthWrite: false })
+      ? new THREE.MeshBasicMaterial({ color: WEB, transparent: true, opacity: WEB_OPACITY, depthWrite: false })
       : kind === 'rime'
         ? new THREE.MeshBasicMaterial({
-            color: 0xa8d4f4,
+            color: RIME,
             alphaMap: rimeTex(),
             transparent: true,
             opacity: 0.95,
@@ -494,10 +498,11 @@ function fallWarn(x: number, z: number, r: number, color: number = CFG.foeGround
     colour, at the strip's full strength. */
 export function paleStrip(w: number, color: number, shared = false) {
   const S = CFG.paleFx.strip,
+    [tone, alpha] = paleStripTone(color),
     e = S.edge / Math.min(...CFG.roomKit.texel),
     make = (c: number) =>
-      new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: S.alpha, depthWrite: false }),
-    pair = (): [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial] => [make(paleShadow()), make(paleTone(color))];
+      new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: alpha, depthWrite: false }),
+    pair = (): [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial] => [make(paleShadow()), make(tone)];
   let mats: [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial];
   if (shared) {
     const key = `${color}_${paleShadow()}`;
@@ -519,7 +524,7 @@ export function paleStrip(w: number, color: number, shared = false) {
       top.scale.z = len;
     },
     setOpacity = (a: number) => {
-      const k = (Math.ceil(Math.min(1, a) * S.steps) / S.steps) * S.alpha;
+      const k = (Math.ceil(Math.min(1, a) * S.steps) / S.steps) * alpha;
       mats[0].opacity = mats[1].opacity = k;
     };
   setLength(1);
@@ -559,6 +564,14 @@ export function updateGround(dt: number) {
         ),
       );
     });
+    if (kind === 'web' || kind === 'rime') {
+      // a pale floor's in a dark tone (pale, they washed into floor 4's ivory), every other floor's as they were
+      const mat = mesh.material as THREE.MeshBasicMaterial,
+        P = CFG.paleFx.ground,
+        pale = paleFx();
+      mat.color.setHex(kind === 'web' ? (pale ? P.web : WEB) : pale ? P.rime : RIME);
+      if (kind === 'web') mat.opacity = pale ? P.webOpacity : WEB_OPACITY;
+    }
     if (kind === 'blackice') {
       const mat = mesh.material as THREE.MeshStandardMaterial,
         edge = paleFx() ? steppedEdgeTex() : edgeTex();

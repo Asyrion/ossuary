@@ -21,6 +21,12 @@ export interface MadeSurface {
   lift?: string;
   hot?: number;
 }
+/** How far a banking flyer rolls either side (radians, `BANK_ROLL` when absent: a wide-winged one rolled so far reads as
+    a wing stood on end from the 45° camera). */
+export interface MadeRoll {
+  roll?: number;
+}
+const BANK_ROLL = 0.18;
 /** The surface of one made foe or boss (its own: a hit lights it alone; its `emissive` is the hit's and the
     telegraph's, so `lift` is where both start from). */
 export function madeSurface(map: THREE.Texture | null, how: MadeSurface) {
@@ -57,7 +63,7 @@ export function madeFoeLook(look: string, code: () => Built): (() => Built) | un
   const how = (
     CFG.madeFoes as Record<
       string,
-      { motion: Motion; main: string; span: number; keep?: readonly string[] } & MadeSurface
+      { motion: Motion; main: string; span: number; keep?: readonly string[] } & MadeRoll & MadeSurface
     >
   )[look];
   if (!how || !modelFor('props', `foe_${look}`)) return undefined;
@@ -71,7 +77,7 @@ function build(
   main: string,
   span: number,
   keep: readonly string[],
-  surface: MadeSurface,
+  surface: MadeSurface & MadeRoll,
 ): Built {
   made.idle(0);
   made.group.updateMatrixWorld(true);
@@ -140,7 +146,7 @@ function build(
       } else if (motion === 'crawl') body.scale.set(1 - s * 0.02, 1 + s * 0.015, 1 + s * 0.05);
       else {
         body.position.y = s * 0.05;
-        body.rotation.z = c * 0.18;
+        body.rotation.z = c * (surface.roll ?? BANK_ROLL);
       }
       model.position.y = lift;
     },

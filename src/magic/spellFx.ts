@@ -16,11 +16,11 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CFG } from '../config';
 import type { Vec2 } from '../types';
-import { scene } from '../render/renderer';
+import { camera, scene } from '../render/renderer';
 import { bandGlow, basicMat, disposeTree, glow, markShared, mergeStill, sphereGeo } from '../render/materials';
 import { modelFor } from '../assets/models';
 import { floorShade, markThing } from '../render/pixelLook';
-import { paleShadow, paleTone } from '../world/paleFx';
+import { paleFx, paleShadow, paleTone } from '../world/paleFx';
 import {
   SCHOOL_LIGHT,
   box,
@@ -375,6 +375,67 @@ function stepStrike(s: Strike, dt: number) {
   s.bolt.sheath.opacity = CFG.spellFx.lightning.sheathOpacity * k;
   for (const e of s.ends) e.material.opacity = 0.85 * k;
   return false;
+}
+
+/* ---------- a drawn ray ---------- */
+
+interface Beam {
+  root: THREE.Group;
+  core: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  edge: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  t: number;
+  life: number;
+}
+const beams: Beam[] = [],
+  idleBeams: Beam[] = [],
+  bY = new THREE.Vector3(),
+  bX = new THREE.Vector3(),
+  bZ = new THREE.Vector3(),
+  toCam = new THREE.Vector3(),
+  bM = new THREE.Matrix4();
+/** A ray from a to b on a pale floor (the radiant eye's, `CFG.paleFx.beam`): straight, in `color`'s deep tone inside an
+    edge of the floor's shadow colour, drawn rather than added and turned flat to the camera, fading in steps over
+    `life` seconds (lightning there read as a storm's bolt, and its added light burnt white). */
+export function beamFx(a: P3, b: P3, color: number, life: number = CFG.spellFx.strike) {
+  let s = idleBeams.pop();
+  if (!s) {
+    const plane = keep('fx.beam', () => new THREE.PlaneGeometry(1, 1)),
+      mat = () => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }),
+      root = new THREE.Group(),
+      edge = new THREE.Mesh(plane, mat()),
+      core = new THREE.Mesh(plane, mat());
+    edge.renderOrder = 4;
+    core.renderOrder = 5;
+    core.position.z = 0.002;
+    root.add(edge, core);
+    scene.add(root);
+    s = { root, core, edge, t: 0, life };
+  }
+  const B = CFG.paleFx.beam,
+    px = 1 / Math.min(...CFG.roomKit.texel),
+    len = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
+  s.core.material.color.setHex(paleTone(color));
+  s.edge.material.color.setHex(paleShadow());
+  s.core.scale.set(B.width * px, len, 1);
+  s.edge.scale.set((B.width + 2 * B.edge) * px, len + 2 * B.edge * px, 1);
+  // its length along a to b, its face turned as near the camera as that lets it
+  bY.set(b.x - a.x, b.y - a.y, b.z - a.z).normalize();
+  camera.getWorldDirection(toCam).negate();
+  bX.crossVectors(bY, toCam).normalize();
+  bZ.crossVectors(bX, bY);
+  s.root.quaternion.setFromRotationMatrix(bM.makeBasis(bX, bY, bZ));
+  s.root.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+  Object.assign(s, { t: 0, life });
+  s.root.visible = true;
+  stepBeam(s, 0);
+  beams.push(s);
+}
+function stepBeam(s: Beam, dt: number) {
+  s.t += dt;
+  const B = CFG.paleFx.beam,
+    k = Math.ceil((1 - Math.min(1, s.t / s.life)) * B.steps) / B.steps;
+  s.core.material.opacity = s.edge.material.opacity = B.alpha * k;
+  return s.t >= s.life;
 }
 
 /* ---------- the Cinder Lance ---------- */
@@ -1085,18 +1146,33 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   scene.add(g);
+  // (on a pale floor drawn, not added: its circle in a deep Verdant green on a dark edge, its haze laid over the floor,
+  // no glow; added, its lime washed into floor 4's ivory)
+  const P = CFG.paleFx.pollen,
+    pale = paleFx(),
+    hazeColor = 0x8ac840; // (green-gold, the Verdant's: a cream haze read as Hallow)
   const haze = new THREE.Mesh(
     keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)),
-    shine(0x8ac840, 0.16), // (green-gold, the Verdant's: a cream haze read as Hallow)
+    pale
+      ? new THREE.MeshBasicMaterial({ color: P.tone, transparent: true, opacity: P.haze, depthWrite: false })
+      : shine(hazeColor, 0.16),
   );
   haze.scale.setScalar(radius);
   haze.position.y = 0.012;
   g.add(haze);
-  const lineMat = lit(SCHOOL_LIGHT.verdant, 0.7),
+  const lineMat = pale
+      ? new THREE.MeshBasicMaterial({ color: P.tone, transparent: true, depthWrite: false })
+      : lit(SCHOOL_LIGHT.verdant, 0.7),
+    line = pale ? P.line : 0.7,
     circ = circle(g, color, radius, lineMat);
   mergeStill(circ);
+  const edgeMat = pale
+      ? new THREE.MeshBasicMaterial({ color: paleShadow(), transparent: true, depthWrite: false })
+      : null,
+    rims = edgeMat ? rimmed(g, circ, edgeMat) : [];
   const warm = glow(0xa8d850, radius * 2.4, 0.28);
   warm.position.y = 0.5;
+  warm.visible = !pale;
   g.add(warm);
   const grainMat = lit(0xf0e890),
     petalMat = lit(0xf8c8e0);
@@ -1110,10 +1186,12 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
   });
   return {
     update(t: number, fade: number) {
-      lineMat.opacity = 0.7 * fade;
-      haze.material.opacity = (0.12 + Math.sin(t * 3) * 0.03) * fade;
+      lineMat.opacity = line * fade;
+      if (edgeMat) edgeMat.opacity = line * P.edge * fade;
+      haze.material.opacity = (pale ? P.haze : 0.12 + Math.sin(t * 3) * 0.03) * fade;
       warm.material.opacity = 0.28 * fade;
       circ.rotation.y = t * 0.25;
+      for (const e of rims) e.rotation.y = circ.rotation.y;
       grains.forEach((m, i) => {
         const u = (t * 0.3 + i / 16) % 1,
           a = (m.userData.a as number) + t * 0.6,
@@ -1302,6 +1380,11 @@ export function updateSpellFx(dt: number) {
       strikes[i].root.visible = false;
       idleStrikes.push(strikes.splice(i, 1)[0]);
     }
+  for (let i = beams.length - 1; i >= 0; i--)
+    if (stepBeam(beams[i], dt)) {
+      beams[i].root.visible = false;
+      idleBeams.push(beams.splice(i, 1)[0]);
+    }
   for (const l of lances) if (l.on) stepLance(l, dt);
   for (let i = souls.length - 1; i >= 0; i--)
     if (stepSoul(souls[i], dt)) {
@@ -1322,6 +1405,11 @@ export function hideSpellFx() {
     idleStrikes.push(s);
   }
   strikes.length = 0;
+  for (const s of beams) {
+    s.root.visible = false;
+    idleBeams.push(s);
+  }
+  beams.length = 0;
   for (const l of lances) {
     l.on = false;
     l.root.visible = false;
@@ -1338,4 +1426,5 @@ export const fxShowing = () => ({
   lances: lances.filter((l) => l.on).length,
   rings: rings.length,
   strikes: strikes.length,
+  beams: beams.length,
 });

@@ -86,7 +86,15 @@ export interface FloorLook {
     /** A made floor face laid in place of the kit's paving (data/assets.json `floorFaces` of this look, by name). */
     face?: string;
   };
-  wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt'; dress?: WallDress };
+  /** `cap`: the kind of wall whose face the tops of blocks carved inside a room wear (floor 4's marble), else a plain
+      stone a shade under its bricks (render/materials.ts cappedWallMaterials). */
+  wall: {
+    brick: RGB;
+    mortar: string;
+    stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt';
+    dress?: WallDress;
+    cap?: import('./world/kitData').WallKind;
+  };
   /** The floor's lights: the wall torch's flame and light, and the wax of its candles (a room's wall light is the kind
       it drew from `kit`). */
   torch: {

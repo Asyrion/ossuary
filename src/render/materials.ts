@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
-import { bandsTex, glowTex, shadowTex } from './textures';
+import { bandsTex, cappedShadowTex, glowTex, shadowTex } from './textures';
 import { pixelWallTexture } from './pixelTextures';
 import { wallTile } from '../assets/models';
 import type { WallKind } from '../world/kitData';
@@ -66,16 +66,17 @@ export function wallMaterials(look: Pick<FloorLook, 'name' | 'wall'>, kind: Wall
 
 const cappedCache = new Map<string, THREE.Material[]>();
 /** Walls carved inside a room (a partition, a pier, a cut corner): brick sides under a cap of dressed stone, so a
-    low one reads as masonry rather than a hole in the floor. */
+    low one reads as masonry rather than a hole in the floor; the cap the face of the look's `wall.cap` kind where it
+    names one (floor 4's marble: its flat stone read as a dull floor tile). */
 export function cappedWallMaterials(look: Pick<FloorLook, 'name' | 'wall'>, kind: WallKind) {
   const key = JSON.stringify(look.wall) + kind + (wallTile(look.name, kind)?.src ?? '');
   let mats = cappedCache.get(key);
   if (!mats) {
     const [brick] = wallMaterials(look, kind),
       [r, g, b] = look.wall.brick.map((v) => Math.min(255, Math.round(v * 0.6)));
-    const cap = markShared(
-      new THREE.MeshStandardMaterial({ color: new THREE.Color(`rgb(${r},${g},${b})`), roughness: 0.9 }),
-    );
+    const cap = look.wall.cap
+      ? wallMaterials(look, look.wall.cap)[0]
+      : markShared(new THREE.MeshStandardMaterial({ color: new THREE.Color(`rgb(${r},${g},${b})`), roughness: 0.9 }));
     mats = [brick, brick, cap, cap, brick, brick];
     cappedCache.set(key, mats);
   }
@@ -115,6 +116,13 @@ const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, trans
       opacity: CFG.pixelLook.openShadow,
     }),
   );
+/** Every blob shadow held at most `most` dark (a pale floor's: `CFG.paleFx.blob`), or (null) as it was. */
+export function paleBlobs(most: number | null) {
+  const map = most === null ? shadowTex : cappedShadowTex(most);
+  if (shadowMat.map === map) return;
+  shadowMat.map = map;
+  shadowMat.needsUpdate = true;
+}
 /** Soft blob shadow on the floor; `open`, lighter and flat at the middle, for a figure whose legs show the floor between
     them, or a flyer above it (its dark middle read as a hole there). */
 export function blob(size: number, open = false) {

@@ -140,7 +140,7 @@
       "name": "reliquary",
       "kit": {"wall": {"marble": 3, "gilded": 2, "tracery": 2}, "floor": {"checker": 3, "inlay": 2, "mosaic": 1}, "torch": {"sconce": 3, "crown": 2, "candelabra": 1}, "brazier": {"chalice": 2, "censer": 2, "font": 1}},
       "floor": {"base": [66, 60, 56], "mortar": "#231f38", "stain": "70,60,90", "decor": "wax", "bones": 1},
-      "wall": {"brick": [124, 114, 98], "mortar": "#221e36", "stains": "gilt", "dress": {"pilaster": 4, "niches": {"candle": 4, "urn": 2, "skull": 1, "empty": 1}}},
+      "wall": {"brick": [124, 114, 98], "mortar": "#221e36", "stains": "gilt", "cap": "marble", "dress": {"pilaster": 4, "niches": {"candle": 4, "urn": 2, "skull": 1, "empty": 1}}},
       "torch": {"flame": "#fff0b8", "light": "#ffe6a8", "intensity": 1.0, "wax": "#f6ecd6"},
       "urn": {"clay": "#3a3a6a", "band": "#d4b469"},
       "light": {"sky": "#b0b0c8", "ground": "#1f2546", "moon": "#e0dcc8", "fill": 1.0},

@@ -27,7 +27,7 @@ import { spawnShot } from '../combat/projectiles';
 import { freeSpotNear } from '../world/rooms';
 import { fireAt, frostAt } from '../world/pools';
 import { hearGround } from '../world/groundHooks';
-import { ringFx, strikeFx } from '../magic/spellFx';
+import { beamFx, ringFx, strikeFx } from '../magic/spellFx';
 import { steamBetween } from '../magic/steam';
 import { mantleShields } from '../magic/shapes';
 import { hurtPlayer } from '../combat/damage';
@@ -253,7 +253,7 @@ const eye: Behaviour = {
     } else if (e.state === 'aim') {
       if (e.st <= 0) {
         const t = e.target!;
-        strikeFx({ x: e.x, y: 1.05, z: e.z }, { x: t.x, y: 0.05, z: t.z }, light(e), 0.3);
+        (paleFx() ? beamFx : strikeFx)({ x: e.x, y: 1.05, z: e.z }, { x: t.x, y: 0.05, z: t.z }, light(e), 0.3); // (a pale floor's a straight drawn ray: lightning read as a storm's)
         burst(t.x, 0.2, t.z, light(e), 14, 2.4, 0.05);
         Sfx.at(t.x, t.z).eyeRay();
         if (Math.hypot(player.x - t.x, player.z - t.z) < num(P.hit)) hurtPlayer(1, t.x, t.z);

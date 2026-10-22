@@ -33,6 +33,7 @@ import {
 } from './loot';
 import { gainSoul, soulsHere } from './souls';
 import { goldTaken } from '../world/themes';
+import { paleFx, paleHalo } from '../world/paleFx';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 import type { LoreItem } from '../types';
 import { gainMana } from '../magic/spells';
@@ -116,6 +117,7 @@ export function spawnPickup(
   const m = itemVisual(kind, potion ?? reagent ?? rune);
   m.position.y = 0.35;
   g.add(m, blob(0.55));
+  if (paleFx()) g.add(paleHalo(CFG.paleFx.halo.pickup, m.position.y)); // (a dark ground round it on the ivory)
   const p: Pickup = { kind, x, z, r: 0.3, g, m, t: Math.random() * 6, drop: 0.5, potion, reagent, rune };
   if (opts.rise) {
     p.rise = glow(0xd8e6ff, 0.8, 0.8);
