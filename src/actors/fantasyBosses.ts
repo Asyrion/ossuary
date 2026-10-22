@@ -242,7 +242,7 @@ export function hartFierce(): BossBuilt {
   antlers.add(candleGlow);
   const tail = joint(body, [0, 1.2, -0.85]);
   part(tail, new THREE.ConeGeometry(0.08, 0.26, 6), coat, [0, 0, -0.06], { rot: [-2.2, 0, 0] });
-  circle(g, H, 1.45);
+  const floor = circle(g, H, 1.45); // (named in its parts, so a made look keeps it)
   const ring = haloRing(g, H, 0.9, 2.7, 0.5);
   const halo = glow(H, 3.4, 0.35);
   halo.position.set(0, 2.2, 0);
@@ -252,7 +252,7 @@ export function hartFierce(): BossBuilt {
     group: g,
     shadow: 2.4,
     school: 'hallow',
-    parts: { eye, ring, halo, body, head, antlers, legs },
+    parts: { eye, ring, halo, body, head, antlers, legs, floor },
     idle: (t) => {
       head.position.y = 1.94 + Math.sin(t * 1.4) * 0.025;
       body.scale.y = 1 + Math.sin(t * 1.4) * 0.01;

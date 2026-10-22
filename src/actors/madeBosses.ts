@@ -44,6 +44,13 @@ const POSE: Record<string, (body: THREE.Object3D, p: Record<string, THREE.Object
   },
 };
 POSE.twins2 = POSE.twins; // (the second guardian fights as the first)
+POSE.hart = (body, p) => {
+  moved(body, p.body);
+  const stride = p.legs.children[0]?.rotation.x ?? 0;
+  body.position.y += Math.abs(Math.sin(stride)) * 0.05;
+  const charge = Math.max(0, Math.abs(stride) - 0.45) * 0.4; // (a wide stride is its charge: it lowers its antlers)
+  body.rotation.x = p.body.rotation.x + p.head.rotation.x * 0.25 + charge;
+};
 /** The body moved as the fight moved its empty place, from that place's rest. */
 function moved(body: THREE.Object3D, place: THREE.Object3D) {
   const rest = place.userData.rest as THREE.Vector3;

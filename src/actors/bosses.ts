@@ -148,16 +148,18 @@ function buildBossBody(e: Enemy) {
     e.state = 'walk';
     e.st = 2.2;
   } else if (e.type === 'hart' || e.type === 'angler') {
-    // built in code: the bosses of floors 4 and 5
-    const L = e.type === 'hart' ? hartLook() : anglerLook(),
+    // the bosses of floors 4 and 5: the Hart made in Tripo where a model is in (madeBosses.ts), else built in code
+    const made = e.type === 'hart' ? madeBossLook('hart', hartLook) : undefined,
+      L = e.type === 'hart' ? (made ?? hartLook)() : anglerLook(),
       P = L.parts,
       C = CFG.enemy[e.type];
     const keep = e.type === 'hart' ? [P.eye, P.ring, P.head, ...P.legs.children] : [P.eye, P.ring, P.lure];
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type, keep);
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type + (made ? ':made' : ''), keep);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group;
     e.idle = L.idle;
     e.shadow = L.shadow;
+    e.openShadow = L.openShadow;
     e.bossSchool = L.school;
     e.body.add(L.group);
     e.eye = P.eye;

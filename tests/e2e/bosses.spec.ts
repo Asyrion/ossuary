@@ -56,7 +56,7 @@ for (const boss of ['abbess', 'pyre'])
   );
 
 for (const boss of ['hart', 'angler'])
-  test(`the ${boss === 'hart' ? 'Hallowed Hart' : 'Deep Angler'}, built in code, fights as it should and can be beaten`, async ({
+  test(`the ${boss === 'hart' ? 'Hallowed Hart' : 'Deep Angler'} fights as it should and can be beaten`, async ({
     page,
   }) => {
     const errors = await start(page, `?room=boss_open&boss=${boss}&floor=${boss === 'hart' ? 4 : 5}&seed=BOSS2`);
