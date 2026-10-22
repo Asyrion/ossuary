@@ -619,7 +619,8 @@ export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] =
   { id: 'angler', build: anglerLook },
   { id: 'tiger', build: () => (madeBossLook('tiger', tigerLook) ?? tigerLook)() },
   { id: 'dragon', build: dragonLook },
-  { id: 'twins', build: () => madeBossLook('twins', () => twinLook())?.() ?? twinPairLook() }, // (one made guardian, else the pair)
+  { id: 'twins', build: () => madeBossLook('twins', () => twinLook())?.() ?? twinPairLook() }, // (the first made guardian, else the pair)
+  { id: 'twins2', build: () => (madeBossLook('twins2', () => twinLook(true)) ?? (() => twinLook(true)))() },
   { id: 'serpent', build: serpentLook },
   ...KAELITH_GALLERY,
 ];

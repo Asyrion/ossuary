@@ -878,7 +878,8 @@ export const CFG = {
     abbess: { size: 1, keep: ['ring', 'halo'], tint: 0.66 },
     pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm' },
     tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
-    twins: { size: 1, keep: ['ring', 'halo'] },
+    twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
+    twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

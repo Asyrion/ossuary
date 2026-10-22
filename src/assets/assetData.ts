@@ -111,6 +111,7 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   foe_rubbleGolem: 'prop',
   foe_tiger: 'prop',
   foe_twins: 'prop',
+  foe_twins2: 'prop', // (the second guardian: greyer, a forked beard, a crest)
   // the solid parts of spells (magic/spellFx.ts): made models only, no placeholder; the spells draw their own without them
   ice_column: 'prop',
   bone_hand: 'prop',

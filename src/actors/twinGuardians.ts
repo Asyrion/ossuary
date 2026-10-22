@@ -38,7 +38,7 @@ let first: Enemy | null = null;
 export function buildTwin(e: Enemy) {
   const second = !!first,
     code = () => twinLook(second),
-    made = madeBossLook('twins', code), // (both wear the one made guardian, where it is in)
+    made = madeBossLook(second ? 'twins2' : 'twins', code), // (each its own made guardian, where it is in)
     L = (made ?? code)(),
     P = L.parts;
   e.mats = mergeRig(L.group, L.idle, 'boss:twin' + (second ? 2 : 1) + (made ? ':made' : ''), [

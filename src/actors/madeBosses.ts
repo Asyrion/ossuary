@@ -42,6 +42,7 @@ const POSE: Record<string, (body: THREE.Object3D, p: Record<string, THREE.Object
     body.rotation.y += p.head.rotation.y * 0.35; // (its gaze following the mage)
   },
 };
+POSE.twins2 = POSE.twins; // (the second guardian fights as the first)
 /** The body moved as the fight moved its empty place, from that place's rest. */
 function moved(body: THREE.Object3D, place: THREE.Object3D) {
   const rest = place.userData.rest as THREE.Vector3;
@@ -51,10 +52,13 @@ function moved(body: THREE.Object3D, place: THREE.Object3D) {
 /** The made look of boss `id`, wrapping its look in code `code`, or undefined while it has none. */
 export function madeBossLook(id: string, code: () => BossBuilt): (() => BossBuilt) | undefined {
   const how = (
-    CFG.madeBosses as Record<string, { size: number; keep: readonly string[]; fire?: string; tint?: number }>
+    CFG.madeBosses as Record<
+      string,
+      { size: number; keep: readonly string[]; fire?: string; tint?: number; eye?: number }
+    >
   )[id];
   if (!how || !modelFor('props', `foe_${id}`)) return undefined;
-  return () => build(id, code(), how.size, how.keep, how.fire, how.tint);
+  return () => build(id, code(), how.size, how.keep, how.fire, how.tint, how.eye);
 }
 
 function build(
@@ -64,6 +68,7 @@ function build(
   keep: readonly string[],
   fire?: string,
   tint = 1,
+  eye = 0.55,
 ): BossBuilt {
   made.idle(0);
   made.group.updateMatrixWorld(true);
@@ -97,7 +102,7 @@ function build(
   box.setFromObject(model, true);
   const tall = box.max.y,
     lift = tall / Math.max(had.y, 1e-3),
-    face = new THREE.Vector3(0, tall * 0.55, box.max.z * 0.9);
+    face = new THREE.Vector3(0, tall * eye, box.max.z * 0.9); // (its eyes' height: eye of its own)
   // the fire of its part `fire` (a texture's painted flames don't light, the code's do): at the same height on the model
   const flames: THREE.Object3D[] = [];
   made.parts[fire ?? '']?.traverse((o) => {
