@@ -99,7 +99,7 @@
     "look": {
       "name": "burning",
       "kit": {"wall": {"bricks": 3, "basalt": 2, "beams": 2}, "floor": {"flags": 3, "basalt": 2, "herringbone": 2}, "torch": {"brazier": 3, "basket": 2, "mask": 1}, "brazier": {"tripod": 2, "plinth": 1, "cauldron": 1}},
-      "floor": {"base": [108, 78, 72], "mortar": "#1e1424", "stain": "70,36,26", "decor": "ash", "bones": 3},
+      "floor": {"base": [118, 86, 79], "mortar": "#1e1424", "stain": "70,36,26", "decor": "ash", "bones": 3},
       "wall": {"brick": [90, 62, 60], "mortar": "#1a1220", "stains": "soot", "dress": {"pilaster": 3, "niches": {"skull": 3, "bones": 3, "candle": 2, "empty": 1}}},
       "torch": {"flame": "#ffb050", "light": "#ffa05a", "intensity": 1.0, "wax": "#8a2e24"},
       "urn": {"clay": "#7a4a3a", "band": "#2d1f3d"},
