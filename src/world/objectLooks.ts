@@ -64,6 +64,7 @@ export const C = {
   earth: 0x2a221a,
   lichen: 0x7a8466,
   moss: 0x3a4a2a,
+  mossPatch: 0x1e2c16,
   hanging: 0x5a6a50,
   cane: 0x847a4c,
   thorn: 0xe0d0a8,
@@ -78,9 +79,12 @@ export const C = {
   green: 0x5e8a34,
   greenDark: 0x3e6424,
   greenLight: 0x86b048,
+  grassDark: 0x4a7428,
+  stalk: 0x6a9a3a,
   petal: 0xf0a8c8,
   petalPale: 0xfae6ee,
   heart: 0xf0d860,
+  bloomViolet: 0xc8a0f0,
   pollen: 0xf0e890,
   wood: 0x6e4c30,
   woodDark: 0x4e3622,
@@ -1376,9 +1380,12 @@ export function tombLook(R: R, long: number, wide: number, look: FloorLook | und
 /** A funerary urn: foot, belly, shoulder, neck and lip turned in the floor's clay (`urn` in the look), painted bands,
     two small handles, a lid with a knob. A rune-sealed one is dark stone, bound by a band of ward light with runes
     shining in it (`ward`, its colour). */
+/** A sealed urn's dark, bluish stone, `lift` of the way to a pale ward-grey (a floor's `items.sealedLift`: on floor 3's
+    dark red it was the darkest thing in the room). */
+const sealedClay = (lift: number) => new THREE.Color(0x4c4a54).lerp(new THREE.Color(0xb8c0d8), lift).getHex();
 export function urnLook(R: R, look: FloorLook, sealed: boolean, ward: number) {
   const g = new THREE.Group(),
-    clay = sealed ? 0x4c4a54 : hex(look.urn.clay),
+    clay = sealed ? sealedClay(look.items?.sealedLift ?? 0) : hex(look.urn.clay),
     band = sealed ? 0x2e2c34 : hex(look.urn.band);
   mesh(g, URN_BODY, tone(clay, 0.07));
   mesh(g, URN_LID, tone(shade(clay, 0.72), 0.06));

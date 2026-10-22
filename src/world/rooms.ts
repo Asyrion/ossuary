@@ -333,7 +333,7 @@ function addUrn(room: Room, c: number, r: number, sealed: boolean) {
   g.scale.setScalar(0.9 + R() * 0.2);
   const model = modelFor('props', `urn_${room.look.name}`) ?? modelFor('props', 'urn'); // (the floor's own made urn, else any)
   if (model) {
-    g.add(sealed ? sealedLook(model, SEALED_TINT) : model, blob(0.8));
+    g.add(sealed ? sealedLook(model, SEALED_TINT, room.look.items?.sealedLift ?? 0) : model, blob(0.8));
     if (sealed) {
       // the ward round its belly: sized to the model's width, so the band shows outside it
       const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());

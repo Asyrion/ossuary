@@ -25,7 +25,7 @@ import { mulberry } from '../util';
 import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
-import { OBJECT_LOOKS, candleFire, put } from './objectLooks';
+import { C as KC, OBJECT_LOOKS, candleFire, put } from './objectLooks';
 import { modelFor } from '../assets/models';
 import { PX, PZ } from './dims';
 import { SIDE_DIR, cellHalfExtents } from './shapes';
@@ -92,12 +92,13 @@ const GEO = {
   rope: shared(new THREE.CylinderGeometry(0.02, 0.02, 3.2, 4)),
   tuft: shared(new THREE.ConeGeometry(0.05, 0.16, 6)),
 };
-/** The garden's flowers: a blade of grass, a stem and a bloom, and the colours the blooms come in. */
+/** The garden's flowers: a blade of grass, a stem and a bloom, and the colours the blooms come in (the objects' colour
+    table's, which a floor's `materials` may change: floor 3's burnt garden). */
 const FLOWER = {
   blade: shared(new THREE.ConeGeometry(0.018, 0.16, 3).translate(0, 0.08, 0)),
   stem: shared(new THREE.CylinderGeometry(0.008, 0.01, 1, 4).translate(0, 0.5, 0)),
   head: shared(new THREE.SphereGeometry(0.03, 6, 4).scale(1, 0.6, 1)),
-  colours: [0xf0a8c8, 0xfae6ee, 0xf0d860, 0xc8a0f0],
+  colours: () => [KC.petal, KC.petalPale, KC.heart, KC.bloomViolet],
 };
 let patchTex: THREE.CanvasTexture | null = null;
 /** A soft round blotch, for moss and stains. */
@@ -310,7 +311,7 @@ const DRESS: Record<ScatterKind, Dress> = {
     return o;
   },
   moss(R) {
-    const m = new THREE.Mesh(GEO.patch, patchMat(0x1e2c16, false, 0.7));
+    const m = new THREE.Mesh(GEO.patch, patchMat(KC.mossPatch, false, 0.7)); // (a floor's own: floor 3's is ash)
     m.scale.setScalar(0.6 + R() * 0.6);
     m.position.y = 0.004;
     m.rotation.y = R() * 6;
@@ -449,7 +450,7 @@ const DRESS: Record<ScatterKind, Dress> = {
     const g = new THREE.Group();
     for (let i = 0; i < 3; i++)
       put(
-        mesh(g, FLOWER.blade, tone(i % 2 ? 0x5e8a34 : 0x4a7428, 0.1), (R() - 0.5) * 0.2, 0, (R() - 0.5) * 0.2),
+        mesh(g, FLOWER.blade, tone(i % 2 ? KC.green : KC.grassDark, 0.1), (R() - 0.5) * 0.2, 0, (R() - 0.5) * 0.2),
         (R() - 0.5) * 0.5,
         R() * 6,
         (R() - 0.5) * 0.5,
@@ -458,8 +459,9 @@ const DRESS: Record<ScatterKind, Dress> = {
       const x = (R() - 0.5) * 0.6,
         z = (R() - 0.5) * 0.6,
         h = 0.07 + R() * 0.1;
-      put(mesh(g, FLOWER.stem, tone(0x6a9a3a, 0.06), x, 0, z), 0, 0, 0, [1, h, 1]);
-      mesh(g, FLOWER.head, tone(FLOWER.colours[Math.floor(R() * FLOWER.colours.length)], 0.06), x, h, z);
+      put(mesh(g, FLOWER.stem, tone(KC.stalk, 0.06), x, 0, z), 0, 0, 0, [1, h, 1]);
+      const colours = FLOWER.colours();
+      mesh(g, FLOWER.head, tone(colours[Math.floor(R() * colours.length)], 0.06), x, h, z);
     }
     mergeStill(g);
     return g;

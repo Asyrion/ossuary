@@ -89,6 +89,21 @@ export function runePickupLook(id: RuneId) {
       m.material = was.emissiveIntensity > 1 ? glowTone(col) : tone(0x5a524a, 0.2);
       was.dispose();
     });
+    const K = CFG.runeDrops.core;
+    if (new THREE.Color(col).getHSL({ h: 0, s: 0, l: 0 }).l < K.below) {
+      // a dark glyph (the vein's red) gets a pale core down its strokes: on a red-brown floor its red alone sank
+      const core = new THREE.Group();
+      emblem(
+        core,
+        GLYPHS[rune(id).icon] ?? GLYPHS.quicken,
+        glowTone(new THREE.Color(col).lerp(new THREE.Color(0xffffff), K.pale).getHex()),
+        K.width,
+        0.24,
+        0.95,
+      ); // (in front of the glyph's face)
+      core.scale.setScalar(CFG.runeDrops.chip);
+      f.add(core);
+    }
     g.add(glowShared(col, 0.75, 0.45));
     chips.set(id, (t = keep(g)));
   }

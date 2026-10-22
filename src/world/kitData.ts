@@ -142,8 +142,11 @@ export function validateKit(name: string, kit: Partial<KitWeights> | undefined, 
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
+/** A floor look's `items` (types.ts ItemTones): those that are colours, and those that are amounts from 0 to 1. */
+const ITEM_COLOURS = ['purse', 'clasp', 'pedestal', 'splashEdge', 'halo'],
+  ITEM_AMOUNTS = ['haloLight', 'sealedLift'];
 /** Problems with a floor look's dressing and colours (`scatter` kinds the room kit strews, `materials` written as
-    colours, the `grade`'s colour and amounts, the made floor faces its floors name: `faces`, `name`'s in
+    colours, the `grade`'s colour and amounts, the `items` tones, the made floor faces its floors name: `faces`, `name`'s in
     data/assets.json); empty when valid. The names `materials` may change belong to the renderer (kitColours.ts reports an
     unknown one as the floor is built). */
 export function validateLookExtras(
@@ -156,6 +159,7 @@ export function validateLookExtras(
     floor?: { face?: string };
     bossFloor?: { face?: string };
     themeFloor?: Record<string, { face?: string }>;
+    items?: object;
   },
   faces: Readonly<Record<string, string>> = {},
 ): string[] {
@@ -178,6 +182,14 @@ export function validateLookExtras(
   }
   for (const [k, v] of Object.entries(look.tesserae ?? {}))
     if (!HEX.test(v)) errs.push(`look "${name}": floor.tesserae.${k} needs a colour like #a1b2c3`);
+  for (const [k, v] of Object.entries(look.items ?? {})) {
+    if (ITEM_COLOURS.includes(k)) {
+      if (typeof v !== 'string' || !HEX.test(v)) errs.push(`look "${name}": items.${k} needs a colour like #a1b2c3`);
+    } else if (ITEM_AMOUNTS.includes(k)) {
+      if (!(typeof v === 'number' && v >= 0 && v <= 1))
+        errs.push(`look "${name}": items.${k} needs a number from 0 to 1`);
+    } else errs.push(`look "${name}": items names unknown tone "${k}"`);
+  }
   const g = look.grade;
   if (g) {
     if (typeof g.shadow !== 'string' || !HEX.test(g.shadow))

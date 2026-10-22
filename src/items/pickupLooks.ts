@@ -16,6 +16,7 @@ import { WARD_COLOR as WARD } from '../world/rooms';
 import type { Item } from './loot';
 import { obolFaceNow, obolFaces } from './obolFace';
 import { coinFace, modelFor, type CoinFace } from '../assets/models';
+import { itemTones } from '../world/kitColours';
 
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up. */
@@ -44,7 +45,8 @@ const BLOOD = 0x8a1610,
   IRON = 0x6e6a72,
   GILT = 0xc49a4a,
   GOLD = 0xffd27a;
-const metal = (c: number) => tone(c, 0.05, 0.45);
+const metal = (c: number) => tone(c, 0.05, 0.45),
+  hex = (c: string) => parseInt(c.slice(1), 16);
 
 /** A heart's outline, .68 across: whole, or its left half broken off down the middle. */
 function heartShape(half: boolean) {
@@ -102,7 +104,9 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
   },
   purse(g) {
     // a squat leather pouch drawn shut with cord, its mouth gathered in a frill, obols showing at it and one
-    // sewn on each side
+    // sewn on each side; in the floor's own leather and clasp where it has them (floor 3's oxblood sank into its red)
+    const own = itemTones(),
+      leather = own.purse ? hex(own.purse) : LEATHER;
     mesh(
       g,
       rough(
@@ -128,11 +132,12 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
         0.02,
         5,
       ),
-      tone(LEATHER, 0.16),
+      tone(leather, 0.16),
     );
-    put(mesh(g, new THREE.TorusGeometry(0.07, 0.022, 4, 10), tone(CORD, 0.05), 0, 0.118, 0), Math.PI / 2);
+    const clasp = own.clasp ? glowTone(hex(own.clasp)) : tone(CORD, 0.05);
+    put(mesh(g, new THREE.TorusGeometry(0.07, own.clasp ? 0.03 : 0.022, 4, 10), clasp, 0, 0.118, 0), Math.PI / 2);
     for (const s of [-1, 1])
-      put(mesh(g, cyl(0.011, 0.009, 0.13, 4), tone(CORD), s * 0.06, 0.06, 0.1), 0.35, 0, s * 0.4);
+      put(mesh(g, cyl(0.014, 0.012, 0.13, 4), own.clasp ? clasp : tone(CORD), s * 0.06, 0.06, 0.1), 0.35, 0, s * 0.4);
     for (const [x, y, z, rx, rz] of [
       [0.02, 0.2, 0.05, -0.9, 0.2],
       [-0.05, 0.205, -0.03, -0.3, -0.5],
@@ -295,13 +300,16 @@ function soul(g: THREE.Group, body: number, core: number, dark = false) {
 }
 const GEO = { rune: shared(runeStrokes(0.26)), stamp: shared(runeStrokes(0.13)) };
 
-/** A heart of blood: its body dark, its face a glowing ruby, a glint on it; `half`, broken down the middle. */
+/** A heart of blood: its body dark, its face a glowing ruby, a glint on it, a small glow behind; `half`, broken down
+    the middle. */
 function heart(g: THREE.Group, half: boolean) {
   const f = facing(g),
     s = heartShape(half);
   mesh(f, extrude(s, 0.08, 0.03), tone(BLOOD, 0.08, 0.15));
   put(mesh(f, extrude(s, 0.06, 0.012), glowTone(RUBY), 0, 0.01, 0.04), 0, 0, 0, [0.74, 0.74, 1]);
   put(mesh(f, new THREE.SphereGeometry(0.035, 6, 4), glowTone(SHINE), -0.15, 0.12, 0.085), 0, 0, 0.6, [1.4, 0.7, 0.5]);
+  const H = CFG.pickups.heartGlow;
+  g.add(glowShared(H.color, H.size, H.opacity)); // (stepped: a lighter ground round it, as an obol's or a vial's)
 }
 /** An obol `s` times full size: the coin face it wears (a purse's coins too), or (`face` null) a disc with a raised rim
     and a rune stamped on both faces. */
@@ -363,9 +371,12 @@ function facedObol(g: THREE.Object3D, face: CoinFace & { id: string }, r: number
 
 const items = new Map<string, THREE.Object3D>();
 /** A pickup's look (a copy: its merged geometry and its materials shared with every other of the kind). An obol's and a
-    purse's are kept by the face they wear. */
+    purse's are kept by the face they wear (a purse's by its floor's leather too). */
 export function itemLook(kind: Exclude<Item, 'potion' | 'reagent' | 'rune'>) {
-  const key = kind === 'coin' || kind === 'purse' ? `${kind}:${obolFaceNow()?.id ?? 'rune'}` : kind;
+  const key =
+    kind === 'coin' || kind === 'purse'
+      ? `${kind}:${obolFaceNow()?.id ?? 'rune'}${kind === 'purse' ? `:${itemTones().purse}:${itemTones().clasp}` : ''}`
+      : kind;
   let t = items.get(key);
   if (!t) {
     const g = new THREE.Group();

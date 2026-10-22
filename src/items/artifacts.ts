@@ -15,7 +15,8 @@ import { HEART_PATH } from '../render/icons';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
 import { giveResources } from './pickups';
 import { dress } from '../actors/costume';
-import { modelFor } from '../assets/models';
+import { modelFor, tintedLook } from '../assets/models';
+import { itemTones } from '../world/kitColours';
 import { altarLook, pedestalLook } from '../world/objectLooks';
 import { CURSED_RED, artifactLook } from './artifactLooks';
 import { updateArc } from './arc';
@@ -166,6 +167,18 @@ export function offerSecondChoice(pool: Pool) {
 
 /* ---------- pedestals ---------- */
 
+/** An artifact's halo colour: `c`, or the floor's own `items.halo` where `c` would sink into its ground (darker than
+    `items.haloLight`, or in the warm hues, judged by its undimmed colour `base`, `artifactGlow.warm` the floor is made of: floor 3's dark red swallowed a dark
+    artifact's dark halo, and a red one's merged with it). */
+function halo(c: number, base = c) {
+  const own = itemTones();
+  if (!own.halo) return c;
+  const hsl = new THREE.Color(base).getHSL({ h: 0, s: 0, l: 0 }),
+    deg = hsl.h * 360,
+    [from, to] = CFG.roomKit.artifactGlow.warm;
+  return hsl.l < (own.haloLight ?? 0) || deg >= from || deg <= to ? parseInt(own.halo.slice(1), 16) : c;
+}
+
 /** What floats over an artifact's pedestal: its made model (data/assets.json) turning about its middle in its
     glow, or the room kit's (artifactLooks.ts: the artifact built in code as what it is). */
 export function makeArtifactVisual(def: ArtifactDef) {
@@ -174,7 +187,7 @@ export function makeArtifactVisual(def: ArtifactDef) {
     model = modelFor('artifacts', def.id);
   if (model) {
     model.position.y -= model.userData.height / 2; // (it stands on y = 0: lowered so it turns about its middle)
-    g.add(model, glow(def.kind === 'cursed' ? CURSED_RED : color, 1.1, 0.6));
+    g.add(model, glow(halo(def.kind === 'cursed' ? CURSED_RED : color), 1.1, 0.6));
   } else {
     const look = artifactLook(def.icon, def.color),
       K = CFG.roomKit;
@@ -186,7 +199,10 @@ export function makeArtifactVisual(def: ArtifactDef) {
     g.add(
       look,
       glowShared(
-        new THREE.Color(def.kind === 'cursed' ? CURSED_RED : color).multiplyScalar(H.dim).getHex(),
+        halo(
+          new THREE.Color(def.kind === 'cursed' ? CURSED_RED : color).multiplyScalar(H.dim).getHex(),
+          def.kind === 'cursed' ? CURSED_RED : color,
+        ),
         H.size,
         H.opacity,
       ),
@@ -244,9 +260,10 @@ export function placeArtifact(
     pedestal.add(tag);
     price = { hearts: 1, tag };
   } else {
-    const model = modelFor('props', 'pedestal'); // a made pedestal, or the room kit's
+    const model = modelFor('props', 'pedestal'), // a made pedestal, or the room kit's
+      stone = room.look.items?.pedestal; // (the floor's own tone over it: floor 3's cracks were its ochre)
     if (model)
-      pedestal.add(model, blob(1.3, true)); // (lighter: its dark middle read as a hole beside it)
+      pedestal.add(stone ? tintedLook(model, parseInt(stone.slice(1), 16)) : model, blob(1.3, true)); // (lighter: its dark middle read as a hole beside it)
     else {
       const look = pedestalLook(room.look);
       mergeStill(look);
