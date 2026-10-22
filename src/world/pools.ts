@@ -627,7 +627,10 @@ export function updatePools(dt: number, now: number, acting: boolean) {
       // the shock's rim, flickering in two steps of storm light while it crackles
       p.rim.visible = p.charged > 0 && Math.floor(now * 20) % 4 !== 0;
       (p.rim.material as THREE.MeshBasicMaterial).color.setHex(Math.floor(now * 30) % 2 ? SPARK : SPARK_HOT);
-    } else if (p.kind === 'water') p.mat.emissive.copy(glow).multiplyScalar(1 + Math.sin(now * 2 + p.tiles[0].z) * 0.4);
+    }
+    if (p.kind === 'water' && !(p.charged > 0))
+      // (shimmering again once the shock is spent)
+      p.mat.emissive.copy(glow).multiplyScalar(1 + Math.sin(now * 2 + p.tiles[0].z) * 0.4);
     if (!acting) continue;
     p.charged = Math.max(0, p.charged - dt);
     if (p.state === 'frozen' && (p.t -= dt) <= 0) {

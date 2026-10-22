@@ -52,7 +52,8 @@ function build(look: string, made: Built, motion: Motion, main: string, span: nu
   body.add(model);
   g.add(body);
   // the parts its behaviour moves: the model, its lights as they were, empty places for the rest
-  const parts: Record<string, THREE.Object3D> = {};
+  const parts: Record<string, THREE.Object3D> = {},
+    places: THREE.Object3D[] = [];
   for (const [name, p] of Object.entries(made.parts ?? {})) {
     if (name === main) parts[name] = body;
     else if ((p as THREE.Sprite).isSprite || keep.includes(name)) {
@@ -65,6 +66,7 @@ function build(look: string, made: Built, motion: Motion, main: string, span: nu
       p.getWorldPosition(o.position);
       body.add(o);
       parts[name] = o;
+      places.push(o);
     }
   }
   parts[main] ??= body;
@@ -80,6 +82,7 @@ function build(look: string, made: Built, motion: Motion, main: string, span: nu
       body.position.set(0, 0, 0);
       body.rotation.set(0, 0, 0);
       body.scale.setScalar(1);
+      for (const o of places) o.scale.setScalar(1); // (a behaviour that swells a part each frame grows it from here, as the look in code's idle resets it)
       if (motion === 'squat') body.scale.set(1 + s * 0.035, 1 - s * 0.05, 1 + s * 0.035);
       else if (motion === 'float') {
         body.position.y = s * 0.06;

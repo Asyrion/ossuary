@@ -86,7 +86,7 @@ function floorRing(e: Enemy, color: number, radius: number) {
 /** The Warden's circle of runes on the floor, by Warden. */
 const wardenFloor = new WeakMap<Enemy, { floor: THREE.Object3D; mat: THREE.MeshBasicMaterial }>();
 /** How long the Warden winds up before each attack (seconds): its burst, its aimed volley. */
-const WIND_UP = { windBurst: 0.75, windAim: 0.5 };
+const WIND_UP = CFG.enemy.warden.windUp;
 export function buildBoss(e: Enemy) {
   e.contact = 2;
   e.isBoss = true;
