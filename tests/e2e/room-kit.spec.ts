@@ -263,7 +263,10 @@ for (const floor of [1, 2, 3, 4, 5])
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
-    expect(kit).toMatchObject({ painted: 17, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
+    // (all but the cobweb, drawn in pixel art; two urns each from both buttons, built in code but on floor 2, which has
+    // its own made urn: data/assets.json urn_drowned)
+    const urnsPainted = floor === 2 ? 0 : 4;
+    expect(kit).toMatchObject({ painted: 17, urns: 4, urnsPainted, pedestal: true, burning: true, kitFire: true });
     expect(kit.calls).toBeLessThan(260);
     if (floor === 1) await page.screenshot({ path: 'test-results/room-kit-objects.png' });
     // a room of pillars and a tomb

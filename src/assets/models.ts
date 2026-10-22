@@ -26,6 +26,7 @@ const loader = new GLTFLoader();
 const models = new Map<string, THREE.Object3D>(),
   floors = new Map<string, HTMLImageElement>(),
   walls = new Map<string, HTMLImageElement>(),
+  floorFaces = new Map<string, HTMLImageElement>(),
   icons = new Map<string, string>();
 /** A coin's face as loaded: the image, and the colour round its edge (the coin's rim, for its edge in the room). */
 export interface CoinFace {
@@ -99,6 +100,8 @@ export async function loadAssets(search = location.search) {
         if (group === 'floors') floors.set(id, img);
         else if (group === 'walls')
           walls.set(f.where.slice(6), img); // (look.kind)
+        else if (group === 'floorFaces')
+          floorFaces.set(f.where.slice(11), img); // (look.name)
         else if (group === 'coins') {
           if (f.where.endsWith('.face')) faces.set(id, { img, rim: rimOf(img) });
           else coinIcons.set(id, url);
@@ -163,6 +166,8 @@ export function modelFor(group: Group, id: string): THREE.Object3D | null {
 export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null) : null);
 /** A floor look's made face for a kind of wall, or null for the one the room kit draws. */
 export const wallTile = (look: string, kind: string) => (enabled ? (walls.get(`${look}.${kind}`) ?? null) : null);
+/** A floor look's made floor face of that name (its look's `floor.face`), or null for the paving the room kit draws. */
+export const floorFace = (look: string, name: string) => (enabled ? (floorFaces.get(`${look}.${name}`) ?? null) : null);
 /** An artifact's painted icon (its URL), or null for the one rendered from its model (items/artifactIcons.ts). */
 export const iconUrl = (id: string) => (enabled ? (icons.get(id) ?? null) : null);
 

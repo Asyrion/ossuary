@@ -12,6 +12,7 @@ import { firePalette, makeFire } from '../render/fire';
 import { curve, glowTone, mesh, rough, runeStrokes, shade, shared, stoneOf, taperTube, tone } from './kitParts';
 import { C, box, candleFire, put, skull } from './objectLooks';
 import { waxFor } from './fireLooks';
+import { modelFor } from '../assets/models';
 
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up. */
@@ -345,13 +346,8 @@ export function offeringStoneLook(look: FloorLook, turn: number, curse: number) 
 
 /** The bargain stone's runes: dark while it waits, red with the price once cast into, gold once kept. */
 export const BARGAIN_RUNES = { idle: 0xa8503a, price: 0xd23a2a, kept: 0xffbe3a };
-/** The bargain stone at the circle's head: a tall stele in the floor's stone on a slab, a heart carved into its face and
-    runes down it, on one material of their own (`runes`, the colour its state gives). */
-export function bargainStoneLook(look: FloorLook) {
-  const g = new THREE.Group(),
-    st = stoneOf(look, 1.5),
-    stone = tone(st, 0.12),
-    runes = new THREE.MeshBasicMaterial({ color: BARGAIN_RUNES.idle });
+/** The bargain stone's stele built in code (a floor without a made one): a slab, the stone, its cap. */
+function stele(g: THREE.Group, st: number, stone: THREE.Material) {
   mesh(g, rough(new THREE.BoxGeometry(0.84, 0.12, 0.5).translate(0, 0.06, 0), 0.02, 3), tone(shade(st, 0.9), 0.1));
   mesh(
     g,
@@ -377,6 +373,18 @@ export function bargainStoneLook(look: FloorLook) {
     ),
     stone,
   );
+}
+
+/** The bargain stone at the circle's head: a tall stele in the floor's stone on a slab, a heart carved into its face and
+    runes down it, on one material of their own (`runes`, the colour its state gives). */
+export function bargainStoneLook(look: FloorLook) {
+  const g = new THREE.Group(),
+    st = stoneOf(look, 1.5),
+    stone = tone(st, 0.12),
+    runes = new THREE.MeshBasicMaterial({ color: BARGAIN_RUNES.idle }),
+    made = modelFor('props', `bargain_stone_${look.name}`); // (the floor's own made stele, its face blank for the runes)
+  if (made) g.add(made);
+  else stele(g, st, stone);
   const h = new THREE.Shape();
   h.moveTo(0, -0.09);
   h.bezierCurveTo(-0.13, 0.01, -0.09, 0.12, 0, 0.05);

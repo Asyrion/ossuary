@@ -45,6 +45,9 @@ export interface Manifest {
   /** A floor look's made wall faces, by look name and the room kit's kind of wall (tools/art/walltile.py): a PNG at the
       kit's texel in the floor's colours, as many units across as it is texels over 48; the kinds left out are drawn in
       code. */ walls?: Record<string, Record<string, string>>;
+  /** A floor look's made floor faces, by look name and a name of their own (tools/art/floortile.py): a grey PNG of steps
+      of light at the kit's texel, which a look's `floor.face` names and the room's floor colours paint. */
+  floorFaces?: Record<string, Record<string, string>>;
   /** An artifact's painted icon, by artifact id. */ icons: Record<string, { file: string }>;
   /** Coin faces, by a name of their own: the face drawn on a coin in the room, at
       the game's pixel (`images.coin.size` across), and its icon for the HUD and the lore card. */ coins?: Record<
@@ -99,12 +102,19 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   coffer: 'prop',
   chest: 'prop',
   chest_gilded: 'prop',
+  // a floor's own made urn, shrine stone and bone altar, by its look's name (world/rooms.ts, specialLooks.ts,
+  // objectLooks.ts): in place of the one built in code, which keeps what lights or changes (the stone's runes, the
+  // altar's candles)
+  urn_drowned: 'prop',
+  bargain_stone_drowned: 'prop',
+  altar_drowned: 'large-prop',
 };
 export const MANIFEST: Manifest = {
   props: raw.props,
   artifacts: raw.artifacts,
   floors: raw.floors,
   walls: raw.walls,
+  floorFaces: raw.floorFaces,
   icons: raw.icons,
   coins: raw.coins,
   obol: raw.obol,
@@ -160,6 +170,14 @@ export function validateManifest(m: Manifest, known: Known): string[] {
       file(`walls.${look}.${kind}`, f, /\.png$/);
     }
   }
+  for (const [look, faces] of Object.entries(m.floorFaces ?? {})) {
+    if (!known.looks.has(look)) errs.push(`floorFaces.${look}: no such floor look (${[...known.looks].join(', ')})`);
+    for (const [name, f] of Object.entries(faces ?? {})) {
+      if (!/^[a-z0-9_]+$/.test(name))
+        errs.push(`floorFaces.${look}.${name}: a face's name is lower case, digits and _`);
+      file(`floorFaces.${look}.${name}`, f, /\.png$/);
+    }
+  }
   for (const [id, e] of Object.entries(m.icons ?? {})) {
     if (!known.artifacts.has(id)) errs.push(`icons.${id}: no such artifact`);
     file(`icons.${id}`, e?.file, /\.png$/);
@@ -183,6 +201,9 @@ export function manifestFiles(m: Manifest): { where: string; file: string }[] {
     ...Object.entries(m.floors ?? {}).map(([look, e]) => ({ where: `floors.${look}.floor`, file: e.floor })),
     ...Object.entries(m.walls ?? {}).flatMap(([look, kinds]) =>
       Object.entries(kinds).map(([kind, file]) => ({ where: `walls.${look}.${kind}`, file })),
+    ),
+    ...Object.entries(m.floorFaces ?? {}).flatMap(([look, faces]) =>
+      Object.entries(faces).map(([name, file]) => ({ where: `floorFaces.${look}.${name}`, file })),
     ),
     ...Object.entries(m.icons ?? {}).map(([id, e]) => ({ where: `icons.${id}`, file: e.file })),
     ...Object.entries(m.coins ?? {}).flatMap(([id, e]) => [

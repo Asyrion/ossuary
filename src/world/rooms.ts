@@ -69,8 +69,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
       : plan.type === 'shrine'
         ? shrineLook(floorLook)
         : themedLook(floorLook, theme);
-  const kit = plan.type === 'boss' && dressed.bossKit ? { ...dressed.kit, ...dressed.bossKit } : dressed.kit; // (a boss's floor calm)
-  const look: RoomLook = { ...dressed, kinds: pickKinds(kit, plan.seed, DEV.kitKinds) }; // (the room kit's kinds, drawn on its seed)
+  const ground = plan.type === 'boss' && dressed.bossFloor ? { ...dressed.floor, ...dressed.bossFloor } : dressed.floor; // (a boss's floor calm)
+  const look: RoomLook = { ...dressed, floor: ground, kinds: pickKinds(dressed.kit, plan.seed, DEV.kitKinds) }; // (the room kit's kinds, drawn on its seed)
   const room: Room = {
     plan,
     template,
@@ -332,7 +332,7 @@ function addUrn(room: Room, c: number, r: number, sealed: boolean) {
   g.position.set(p.x - room.cx + (R() - 0.5) * 0.12, 0, p.z - room.cz + (R() - 0.5) * 0.12);
   g.rotation.y = R() * 6;
   g.scale.setScalar(0.9 + R() * 0.2);
-  const model = modelFor('props', 'urn');
+  const model = modelFor('props', `urn_${room.look.name}`) ?? modelFor('props', 'urn'); // (the floor's own made urn, else any)
   if (model) {
     g.add(sealed ? sealedLook(model, SEALED_TINT) : model, blob(0.8));
     if (sealed) {

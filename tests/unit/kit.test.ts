@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FLOORS } from '../../src/world/generate';
+import { MANIFEST } from '../../src/assets/assetData';
 import { THEME_DEFS, themedLook } from '../../src/world/themeData';
 import {
   KIT_PARTS,
@@ -65,7 +66,13 @@ describe("the room kit's kinds", () => {
   });
   it("a floor look's scatter, materials and grade are known and well formed", () => {
     for (const f of FLOORS)
-      expect(validateLookExtras(f.look.name, { ...f.look, tesserae: f.look.floor.tesserae })).toEqual([]);
+      expect(
+        validateLookExtras(
+          f.look.name,
+          { ...f.look, tesserae: f.look.floor.tesserae },
+          MANIFEST.floorFaces?.[f.look.name],
+        ),
+      ).toEqual([]);
     expect(
       validateLookExtras('bad', {
         scatter: { lava: 2 },
