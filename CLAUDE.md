@@ -33,9 +33,10 @@ systems, only cleaning, the look and the story.
   system, fully parallel, about 11 minutes), `npm run test:fast` (the 22 tagged `@fast`, under 2 minutes), `npm test`
   unit and e2e. In a cloud session set `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run and for
   `npm run inspect`, `foe-sheet` and `balance` (those three need the dev server running).
-- CI (`.github/workflows/deploy.yml`): a PR runs `build` (typecheck, unit tests, build), `lint` and the full suite in
-  three `e2e` shards (about 7 minutes); a push to `main` runs those two and the fast suite, and the Pages deploy waits
-  for `build` only (live 2 minutes later); `nightly.yml` runs the full suite on `main` and opens an issue if it fails.
+- CI (`.github/workflows/deploy.yml`) is lean on Actions minutes (the repo is private, its quota ran out once): a PR and
+  a push to `main` run one job, `build` (format, lint, unit tests, build), and `main` deploys from it (live 2 minutes
+  later); docs-only changes run nothing. The browser suite runs **locally before every PR** (the ship skill), on CI only
+  in a run started by hand with `browser` ticked. No nightly run.
 - Other tools: `npm run` lists them; `docs/architecture.md`, Tools, says what each is for.
 
 ## Code map

@@ -1,12 +1,21 @@
 name: Test and deploy to GitHub Pages
 
-# a push to main runs the fast browser suite, a pull request the full one in shards; the full suite also runs nightly
-# on main (nightly.yml). Other branches are tested by their pull request, so a push there doesn't run everything twice
+# Lean on Actions minutes (the owner's call, 2026-10-22: a private repo's quota ran out): a pull request and a push to
+# main run one job, `build` (format, lint, unit tests, the build), and main deploys from it. The browser suite runs
+# before every pull request on the machine that made it (the ship skill); here only when started by hand (`e2e`).
+# Changes to docs alone run nothing.
 on:
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
+    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Run the whole browser suite too (three shards)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -18,30 +27,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # typecheck, unit tests and the build; on main this is all the deploy waits for, since the pull request's run already
-  # tested the merge itself in the browser
+  # format and lint over the whole code, the unit tests and the build; on main the deploy waits for it
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - name: Unit tests
-        run: npm run test:unit
-      - name: Build
-        run: npm run build
-      - uses: actions/configure-pages@v6
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-      - uses: actions/upload-pages-artifact@v5
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        with:
-          path: dist
-
-  # lint and format over the whole code; beside the build, and the deploy does not wait for it
-  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -58,42 +45,20 @@ jobs:
         run: npm run format:check
       - name: Lint
         run: npm run lint
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Build
+        run: npm run build
+      - uses: actions/configure-pages@v6
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      - uses: actions/upload-pages-artifact@v5
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: dist
 
-  # the browser tests tagged @fast (npm run test:fast), on a push to main: a quick watch on what goes live, beside the
-  # build
-  e2e-fast:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - id: pw
-        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v6
-        id: browsers
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - if: steps.browsers.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-      - if: steps.browsers.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-      - name: Fast browser tests
-        run: npm run test:fast
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: test-results-fast
-          path: test-results/
-
-  # the whole browser suite in three shards side by side, on a pull request (and a run started by hand); the deploy never
-  # waits for it
+  # the whole browser suite in three shards side by side, only in a run started by hand with `browser` ticked
   e2e:
-    if: github.event_name != 'push'
+    if: github.event_name == 'workflow_dispatch' && inputs.browser
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

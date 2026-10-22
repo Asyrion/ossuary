@@ -920,9 +920,9 @@ ships. Install it once with `npm run lint:install`. Unused names are left to the
 goes into `.git-blame-ignore-revs` once it is on `main` (a rebase-merge gives it a new hash).
 
 Agents and skills (`.claude/`): subagents `rules-reviewer` (before opening a PR) and `room-inspector` (after changes
-to how rooms look); skills `ship`, `tripo-prompts`, `game-dev-board`. CI is `.github/workflows/deploy.yml`: `build`
-(typecheck, unit tests, build), `lint` (format check and ESLint) and three Playwright shards; on `main` the Pages
-deploy waits for `build` only.
+to how rooms look); skills `ship`, `tripo-prompts`, `game-dev-board`. CI is `.github/workflows/deploy.yml`: one job,
+`build` (format check, ESLint, unit tests, build), from which `main` deploys to Pages; three Playwright shards only in a
+run started by hand.
 
 ## Testing
 
@@ -947,9 +947,10 @@ deploy waits for `build` only.
   `runesAlways`, `reagentsAlways`) instead of hoping for it. A test that passes by luck is a bug in the test.
 - The fast suite: 22 light tests tagged `@fast` (`test(title, { tag: '@fast' }, ...)`), one or two a system;
   `npm run test:fast` runs them, about a minute and a half with two workers. Keep it under 3 minutes.
-- Cadence (CI): a pull request runs `build`, `lint` and the full suite in three shards (`e2e`); a push to `main` runs
-  `build`, `lint` and the fast suite (`e2e-fast`); `nightly.yml` runs the full suite on `main` every night and opens the issue
-  "Nightly e2e failed" (or comments on the open one) when it goes red. The Pages deploy waits for `build` only.
+- Cadence: the full browser suite runs locally before every pull request (the ship skill). CI is lean on Actions
+  minutes (the repo is private; the owner's call, 2026-10-22): a pull request and a push to `main` run `build` alone
+  (format, lint, unit tests, build), changes to docs alone run nothing, and the browser suite runs on CI only in a run
+  started by hand with `browser` ticked (three shards). There is no nightly run.
 - Fixtures: `tests/fixtures/assets/` (`?assets=/tests/fixtures/assets/assets.json`).
 - Verify a change in the browser before calling it done (Playwright screenshots are fine).
 

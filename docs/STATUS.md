@@ -13,15 +13,14 @@ cleaning, the look and the story.
 | --- | --- |
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
-| R2 Code that is kept | **Under way:** steps 1 to 6 done; its done-when check (a week of CI without a flake fix) runs again from 2026-10-19, after the fix for issue #63 |
-| R3 The look | **Floor 1 done:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured); floor 1: its rooms (steps A to D) and its actors (E1 to E3: outline and rim, light in steps, reading the foes) accepted 2026-10-19 and 20 (art bible 4.9 to 4.14), its spells and its foes' magic (F1 to F3) accepted 2026-10-20 and 21 (4.15); its items, item effects and artifacts done 2026-10-21 (4.16); the HUD and screens (step 5) built in framed panels (4.17); **floor 1 accepted by the owner 2026-10-21**, shipped the same day; floor 2 under way on `r3-floor2`: its rooms (A to D) built 2026-10-21 (4.18), its eight weakest foes made in Tripo (4.19), then the kelpie, the brine serpent and its two bosses (all accepted 2026-10-21), its spells, foes' magic and items accepted 2026-10-22 (4.20: the items and rooms from Tripo models and pictures, made floor faces, pits drawn as holes on every floor); next the owner's look at floor 2 as a whole, then floors 3 to 5 with Tripo models (floor 1 stays as accepted) |
+| R2 Code that is kept | **Under way:** steps 1 to 6 done; its done-when check (a week without a flake fix) runs on the full browser suite run locally before every PR, since CI was made lean on 2026-10-22 (no nightly, no browser suite on PRs) |
+| R3 The look | **Floor 1 done:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured); floor 1: its rooms (steps A to D) and its actors (E1 to E3: outline and rim, light in steps, reading the foes) accepted 2026-10-19 and 20 (art bible 4.9 to 4.14), its spells and its foes' magic (F1 to F3) accepted 2026-10-20 and 21 (4.15); its items, item effects and artifacts done 2026-10-21 (4.16); the HUD and screens (step 5) built in framed panels (4.17); **floor 1 accepted by the owner 2026-10-21**, shipped the same day; floor 2 shipped 2026-10-22 (PR #67; the deploy waits for Actions minutes): its rooms (A to D) built 2026-10-21 (4.18), its eight weakest foes made in Tripo (4.19), then the kelpie, the brine serpent and its two bosses (all accepted 2026-10-21), its spells, foes' magic and items accepted 2026-10-22 (4.20: the items and rooms from Tripo models and pictures, made floor faces, pits drawn as holes on every floor); next the owner's look at floor 2 as a whole, then floors 3 to 5 with Tripo models (floor 1 stays as accepted) |
 | R4 The story | Waits for R3 (its art bible is decided); holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** floor 1 is accepted in the new look (2026-10-21), which meets R3's done-when; its branch `r3-floor1` waits to be
-shipped when the owner asks. Then floors 2 to 5, a floor a step, in the same order (rooms, actors, spells, items). R2's
-done-when check runs beside it: a week of CI (the full suite on every PR and nightly, the fast one on `main`) without a
-flake fix.
+**Next:** the owner plays floor 2 as a whole; then floors 3 to 5, a floor a step, in the same order (rooms, actors,
+spells, items), with Tripo models. R2's done-when check runs beside it: a week without a flake fix in the full browser
+suite, run locally before every PR.
 
 ## What is live
 
