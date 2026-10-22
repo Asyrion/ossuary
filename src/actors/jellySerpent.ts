@@ -24,6 +24,7 @@ import { floodTiles } from '../world/flood';
 import { lob } from './bestiaryGround';
 import { lay, trim, type P3 } from './dragonPath';
 import { SERPENT, serpentBody, serpentHead, type SerpentBody } from './serpentLooks';
+import { madeBossLook } from './madeBosses';
 
 const C = CFG.enemy.serpent;
 interface Coil {
@@ -60,10 +61,17 @@ export function pourJelly(room: Room, x: number, z: number, n: number, rng: () =
 /** Build the serpent: its head as the boss's look, its body a chain of rings whose tail lies back along (`tx`, `tz`) (into
     its vat's window, when it breaks out); jelly poured round it if it has none; it rears up, then dives. */
 export function buildSerpent(e: Enemy, tx = 0, tz = -1) {
-  const L = serpentHead(),
+  const made = madeBossLook('serpent', serpentHead), // (its head made in Tripo where a model is in, else built in code)
+    L = (made ?? serpentHead)(),
     P = L.parts,
     body = serpentBody();
-  e.mats = mergeRig(L.group, L.idle, 'boss:serpentHead', [P.eye, P.ring, P.head, P.jaw, P.fins]);
+  e.mats = mergeRig(L.group, L.idle, 'boss:serpentHead' + (made ? ':made' : ''), [
+    P.eye,
+    P.ring,
+    P.head,
+    P.jaw,
+    P.fins,
+  ]);
   e.mats.push(...body.mats);
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group;

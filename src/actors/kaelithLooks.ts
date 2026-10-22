@@ -3,12 +3,15 @@
    about twice the mage's height on y = 0 facing +Z, a dark body with bright violet features (what reads at play distance),
    and carries the parts the fight (kaelith.ts) moves: `eye`, `ring` and `halo` (every boss's), `body` (it sinks into
    shadow and kneels at the end), `blade` (the sword: raised in the sweep's tell, swung through it), `mantle` (the wings:
-   spread in the sweep, folded in the step) and `hand` (the hand that holds the seal shut in the second phase). */
+   spread in the sweep, folded in the step) and `hand` (the hand that holds the seal shut in the second phase); `floor`
+   (its circle) and `eyeGlow` named so a made look keeps them. Made in Tripo where a model is in (madeBosses.ts): standing,
+   and kneeling at the end (its own model). */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, circle, limb, lit, part, rune, runeRing, sphere, std } from '../render/arcane';
 import { batWing, gloss, joint, jointed, slitEyes, spike, thin } from './beastParts';
 import type { BossBuilt } from './bossLooks';
+import { madeBossLook } from './madeBosses';
 
 const U = SCHOOL_LIGHT.umbral;
 
@@ -123,7 +126,7 @@ export function wingedWatcher(): BossBuilt {
     scale: [1, 1, 0.3],
   });
   for (const s of [-1, 1]) part(blade, new THREE.BoxGeometry(0.012, 1.35, 0.028), edge, [0.055 * s, 0.76, 0]); // (its edges, lit)
-  circle(g, U, 1.4);
+  const floor = circle(g, U, 1.4);
   const ring = haloRing(g, 0.7, 2.55);
   const halo = glow(U, 3.2, 0.35);
   halo.position.set(0, 2, -0.3);
@@ -132,7 +135,7 @@ export function wingedWatcher(): BossBuilt {
     group: g,
     shadow: 2.1,
     school: 'umbral',
-    parts: { eye, ring, halo, body, blade, mantle, hand, head },
+    parts: { eye, ring, halo, body, blade, mantle, hand, head, floor, eyeGlow },
     idle: (t) => {
       body.position.y = Math.sin(t * 1.1) * 0.03;
       head.rotation.y = Math.sin(t * 0.5) * 0.2;
@@ -142,9 +145,30 @@ export function wingedWatcher(): BossBuilt {
   };
 }
 
-/** Kaelith's look. */
-export const kaelithLook = (): BossBuilt => wingedWatcher();
-/** On a stand for the galleries, beside the other bosses. */
+/** Kaelith's look: made in Tripo where a model is in, else built in code. */
+export const kaelithMade = () => madeBossLook('kaelith', wingedWatcher);
+export const kaelithLook = (): BossBuilt => (kaelithMade() ?? wingedWatcher)();
+/** Kaelith kneeling at the end, still, its eyes dim and its ring gone: its own made model where one is in, else the look
+    in code posed kneeling. */
+export function kaelithKneeling(): BossBuilt {
+  const made = madeBossLook('kaelith_kneel', wingedWatcher),
+    L = (made ?? wingedWatcher)(),
+    P = L.parts;
+  L.idle(0);
+  if (!made) {
+    P.body.position.y = -0.5;
+    P.body.rotation.x = 0.28;
+    P.head.rotation.x = 0.55;
+    P.blade.rotation.x = 0.9;
+    P.hand.rotation.x = -0.6;
+  }
+  P.eye.scale.setScalar(0.35);
+  P.ring.visible = false;
+  P.halo.material.opacity = 0.12;
+  return { ...L, idle: () => {} }; // (it stays as it knelt)
+}
+/** On a stand for the galleries, beside the other bosses: standing, and kneeling. */
 export const KAELITH_GALLERY: readonly { id: string; build: () => BossBuilt }[] = [
-  { id: 'kaelith', build: wingedWatcher },
+  { id: 'kaelith', build: kaelithLook },
+  { id: 'kaelith_kneel', build: kaelithKneeling },
 ];

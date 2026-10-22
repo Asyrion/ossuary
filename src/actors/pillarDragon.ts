@@ -23,6 +23,7 @@ import { burst } from '../combat/fx';
 import { floatText } from '../magic/statusFx';
 import { PILLAR_TOP, freeSpotNear, isFreeAt, raisePillar, toWorld } from '../world/rooms';
 import { dragonBody, dragonHead, type DragonBody } from './bossLooks';
+import { madeBossLook } from './madeBosses';
 import { arc, heap, lay, neck, spiral, spiralStart, trim, type P3 } from './dragonPath';
 import { ease } from '../util';
 
@@ -55,14 +56,16 @@ const coils = new WeakMap<Enemy, Coil>();
 const ON_PILLAR = new Set(['coiled', 'windBreath', 'breath', 'windMove']);
 const light = (kind: 'fire' | 'frost') => (kind === 'fire' ? SCHOOL_LIGHT.ember : SCHOOL_LIGHT.frost);
 
-/** Build the Pillar Dragon: its head as the boss's look, its body as a chain; the room's pillars found (or raised); it
-    comes down from above onto the pillar nearest where it stands. */
+/** Build the Pillar Dragon: its head as the boss's look (made in Tripo where a model is in, madeBosses.ts, else built in
+    code), its body as a chain; the room's pillars found (or raised); it comes down from above onto the pillar nearest
+    where it stands. */
 export function buildDragon(e: Enemy) {
-  const L = dragonHead(),
+  const made = madeBossLook('dragon', dragonHead),
+    L = (made ?? dragonHead)(),
     P = L.parts,
     body = dragonBody(),
     room = G.room.current;
-  e.mats = mergeRig(L.group, L.idle, 'boss:dragonHead', [P.eye, P.ring, P.head, P.jaw, P.maw]);
+  e.mats = mergeRig(L.group, L.idle, 'boss:dragonHead' + (made ? ':made' : ''), [P.eye, P.ring, P.head, P.jaw, P.maw]);
   e.mats.push(...body.mats);
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group;

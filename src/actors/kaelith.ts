@@ -30,7 +30,7 @@ import { FLOORS } from '../world/generate';
 import { sealWard, wakeWard, wardHooks } from '../world/mechanisms';
 import { callFoe, type Role } from './foeData';
 import { makeEnemy } from './enemies';
-import { kaelithLook } from './kaelithLooks';
+import { kaelithKneeling, kaelithLook, kaelithMade } from './kaelithLooks';
 import { phaseOf, sealWards, type KaelithPhase } from './kaelithData';
 import { mulberry } from '../util';
 import { SPELL_DEFS } from '../magic/spellData';
@@ -62,9 +62,18 @@ export function resetKaelith() {
 
 /** Build Kaelith in its look; its hall's ward pillars go dormant until the seal cracks. */
 export function buildKaelith(e: Enemy) {
-  const L = kaelithLook(),
+  const made = !!kaelithMade(),
+    L = kaelithLook(),
     P = L.parts;
-  e.mats = mergeRig(L.group, L.idle, 'boss:kaelith', [P.eye, P.ring, P.body, P.blade, P.mantle, P.hand, P.head]);
+  e.mats = mergeRig(L.group, L.idle, 'boss:kaelith' + (made ? ':made' : ''), [
+    P.eye,
+    P.ring,
+    P.body,
+    P.blade,
+    P.mantle,
+    P.hand,
+    P.head,
+  ]);
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group;
   e.idle = L.idle;
@@ -463,12 +472,11 @@ function blackSun() {
   return g;
 }
 
-/** Kaelith kneels where it fell (`onBossDead`): a figure of its look, posed kneeling, its eyes dim, stays in its hall; the dark
-    lifts. */
+/** Kaelith kneels where it fell (`onBossDead`): a figure of its look kneeling (kaelithLooks.ts), its eyes dim, stays in its
+    hall; the dark lifts. */
 export function kaelithKneels(fell: { x: number; z: number }) {
   const room = G.room.current,
-    L = kaelithLook(),
-    P = L.parts;
+    L = kaelithKneeling();
   // (it kneels where it fell, unless that is where the way out, the heart, the page and the gifts are laid round the hall's
   // middle: then out past them, on its side of the middle, or north of it)
   let at = fell;
@@ -481,15 +489,6 @@ export function kaelithKneels(fell: { x: number; z: number }) {
       room.cx + (d > 0.5 ? dx / d : 0) * C.kneelClear,
       room.cz + (d > 0.5 ? dz / d : -1) * C.kneelClear,
     );
-  L.idle(0);
-  P.body.position.y = -0.5;
-  P.body.rotation.x = 0.28;
-  P.head.rotation.x = 0.55;
-  P.blade.rotation.x = 0.9;
-  P.hand.rotation.x = -0.6;
-  P.eye.scale.setScalar(0.35);
-  P.ring.visible = false;
-  P.halo.material.opacity = 0.12;
   L.group.position.set(at.x - room.cx, 0, at.z - room.cz);
   room.group.add(L.group);
   kneltAt = { x: at.x, z: at.z };

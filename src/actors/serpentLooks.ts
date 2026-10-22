@@ -8,6 +8,7 @@ import { sphere, std } from '../render/arcane';
 import { lay, neck, type P3 } from './dragonPath';
 import type { BossBuilt } from './bossLooks';
 import { serpentHeadFierce } from './fantasyBosses';
+import { madeBossLook } from './madeBosses';
 
 /** The serpent's colours: its jelly, the deeper green of its core, the pale green of its fins and glints. */
 export const SERPENT = { jelly: 0x6ad868, deep: 0x1e6a34, pale: 0xc8ffb0, core: 0x2a7a3a, glint: 0xe8ffe0 };
@@ -98,7 +99,7 @@ export function serpentBody(n = 16, spacing = 0.22): SerpentBody {
 
 /** The jelly serpent for the gallery: its head reared up, its body curled on the floor behind it. */
 export function serpentLook(): BossBuilt {
-  const L = serpentHead(),
+  const L = (madeBossLook('serpent', serpentHead) ?? serpentHead)(),
     g = new THREE.Group(),
     B = serpentBody();
   L.group.position.y = 0.55;
