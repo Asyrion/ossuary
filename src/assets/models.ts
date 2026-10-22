@@ -205,26 +205,33 @@ export const coinIds = () => (enabled ? coinOrder.filter((id) => faces.has(id)) 
 /** The face the manifest has the obols wear (data/assets.json `obol`), or null. */
 export const manifestObol = () => obol;
 
-/** The same model in the dark, bluish stone of a rune-sealed urn: its materials tinted once and shared. */
-const sealedMats = new Map<THREE.Material, THREE.Material>();
-function sealedMat(mat: THREE.Material, tint: number) {
-  let t = sealedMats.get(mat);
+/** A material tinted (its colour times `tint`), made once a tint and shared. */
+const tintedMats = new Map<number, Map<THREE.Material, THREE.Material>>();
+function tintedMat(mat: THREE.Material, tint: number) {
+  let byMat = tintedMats.get(tint);
+  if (!byMat) tintedMats.set(tint, (byMat = new Map<THREE.Material, THREE.Material>()));
+  let t = byMat.get(mat);
   if (!t) {
     t = mat.clone();
     (t as THREE.MeshStandardMaterial).color?.multiply(new THREE.Color(tint));
     t.userData.shared = true;
-    sealedMats.set(mat, t);
+    byMat.set(mat, t);
   }
   return t;
 }
-export function sealedLook(model: THREE.Object3D, tint: number) {
+/** The same model with its materials tinted (`tintedMat`; its glow untouched): a floor's own tone of a made prop. */
+export function tintedLook(model: THREE.Object3D, tint: number) {
   model.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    m.material = Array.isArray(m.material) ? m.material.map((t) => sealedMat(t, tint)) : sealedMat(m.material, tint);
+    m.material = Array.isArray(m.material) ? m.material.map((t) => tintedMat(t, tint)) : tintedMat(m.material, tint);
   });
   return model;
 }
+/** The same model in the dark, bluish stone of a rune-sealed urn, its tint `lift` of the way to white (a floor's
+    `items.sealedLift`: a dark urn tinted sank to near black). */
+export const sealedLook = (model: THREE.Object3D, tint: number, lift = 0) =>
+  tintedLook(model, new THREE.Color(tint).lerp(new THREE.Color(0xffffff), lift).getHex());
 
 /** Every asset named, with how it went. */
 export const assetList = (): readonly AssetInfo[] => info;

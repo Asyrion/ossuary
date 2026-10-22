@@ -81,4 +81,12 @@ describe("the room kit's kinds", () => {
       }),
     ).toHaveLength(4);
   });
+  it("a floor look's item tones are known colours and amounts", () => {
+    expect(validateLookExtras('ok', { items: { purse: '#3a2c2a', halo: '#b8a8d8', haloLight: 0.4 } })).toEqual([]);
+    expect(validateLookExtras('bad', { items: { purse: 'brown', sealedLift: 2, glitter: 1 } })).toEqual([
+      'look "bad": items.purse needs a colour like #a1b2c3',
+      'look "bad": items.sealedLift needs a number from 0 to 1',
+      'look "bad": items names unknown tone "glitter"',
+    ]);
+  });
 });

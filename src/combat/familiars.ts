@@ -13,6 +13,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { M, disposeTree, glow, markShared } from '../render/materials';
 import { firePalette, makeFire } from '../render/fire';
+import { markThing } from '../render/pixelLook';
 import { burst } from './fx';
 import { damageEnemy } from './damage';
 import { fireSecondary } from './projectiles';
@@ -40,7 +41,8 @@ function makeMoth(color = 0xf0e8c8): Moth {
     new THREE.MeshBasicMaterial({ color: 0xa89878 }),
   );
   body.rotation.x = Math.PI / 2;
-  g.add(...wings, body, glow(0xffe8a8, 0.9, 0.55));
+  g.add(...wings, body, glow(0xffe8a8, A.moth.glow, 0.55));
+  markThing(g); // (its closed outline, as Fen-Nex's: art bible 4.4)
   scene.add(g);
   return { g, wings, t: 0, cd: A.moth.every };
 }
@@ -55,7 +57,8 @@ function makeSkull() {
   eyes.position.set(0, -0.01, 0.14);
   const tear = glow(0x9fd0ff, 0.5, 0.8);
   tear.position.set(0.05, -0.06, 0.16);
-  g.add(head, jaw, eyes, tear, glow(0xa8c8e0, 0.9, 0.35));
+  g.add(head, jaw, eyes, tear, glow(0xa8c8e0, A.skull.glow, 0.35));
+  markThing(g);
   scene.add(g);
   return { g, tear, a: 0, bitten: new Map<Enemy, number>() };
 }

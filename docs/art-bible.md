@@ -326,6 +326,23 @@ every fix; those for the spells hold on every floor.
 - **Pits, on every floor** (from the room inspection): a hole with a hard edge, the room's floor darkened in its depth and
   its inner wall under a lit lip along the far side (`CFG.surface.pit`); a soft black blur read as a blot, not a pit.
 
+### 4.21 Floor 3's items (2026-10-22, awaiting the owner)
+
+A survey of every item on floor 3's red-brown floors with their orange cracks found what sank into them. Where a fix
+belongs to floor 3 alone it is in its look (`items` in data/floors.json, and its `materials`); the rest hold on every
+floor and were checked on floors 1 and 2.
+- **Floor 3's own:** the coin purse in a dark leather with a brimstone clasp (the oxblood was red on red); the made
+  pedestal tinted to a darker stone (its ochre was the cracks' colour); a splash's edge a deep violet near black under
+  its ring (the floor's shadow colour was the floor's own value); a pale lilac halo for the dark and red artifacts (a dark
+  halo vanished, a red one merged); the sealed urn's stone a little lighter (the darkest thing in the room); the garden
+  burnt: ashen leaves and stalks, ember, ash-pale, brimstone and violet blooms, ash where moss lay.
+- **On every floor:** a small stepped glow behind a heart; ember salt grown on a dark cinder lump; the warden's ash in
+  a grey stone urn; a dark rune glyph (the vein's red) with a pale core down its strokes; a splash's ring lifted to a
+  lightness of its own at least (the hex brew's dark violet now a lighter violet); the Candle Moth's and the Weeping
+  Skull's halos smaller, both outlined as Fen-Nex is.
+- **Left as they are:** the indigo shape at the mage's heel is Fen-Nex (the Rune Fox at the heel, its starry tail
+  long); the garden's slate-blue pool is the pools' (world/pools.ts).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta

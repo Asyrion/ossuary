@@ -351,9 +351,10 @@ export const CFG = {
     lineFirst: 4.5,
     lineCap: 4,
   }, // (how long the first insight's line and the cap's stay)
-  // runes as things: how often a dropped rune leans to the spells in the slots (else any of the seven), and the
-  // chip's size lying on the floor
-  runeDrops: { lean: 2 / 3, chip: 0.24 },
+  // runes as things: how often a dropped rune leans to the spells in the slots (else any of the seven), the
+  // chip's size lying on the floor, and the pale core down a dark glyph's strokes (a glyph under lightness `below`: the
+  // vein's red; `pale` of the way to white, `width` of the glyph's disc)
+  runeDrops: { lean: 2 / 3, chip: 0.24, core: { below: 0.6, pale: 0.6, width: 0.09 } },
   // the shrine's bargain: where its stone stands in the shrine (from the middle: the circle's head), how near (beside
   // its half-width) the mage must stand to cast into it, its blocker's half-width, how narrow a gap to the wall behind it
   // its blocker closes (no space to hide in), how far either side of a doorway's middle its lane runs (the stone stands
@@ -733,8 +734,15 @@ export const CFG = {
   camHallView: 1.2, // larger halls: the camera pulls back so the view is this much wider and deeper
   // obols drift to the mage from this close; a coin sways this far (radians) either way as it turns; a coin face's light
   // from within, and how many game pixels a coin wearing one is across (its face is drawn
-  // on the fine layer, pixelLook.fineLayer pixels to each of these)
-  pickups: { obolDrift: 1.8, coinSway: 0.45, coinGlow: 0.2, coinPixels: 24 },
+  // on the fine layer, pixelLook.fineLayer pixels to each of these); a heart's stepped glow (its colour, size and
+  // strength: a red heart on floor 3's red-brown read only by its outline)
+  pickups: {
+    obolDrift: 1.8,
+    coinSway: 0.45,
+    coinGlow: 0.2,
+    coinPixels: 24,
+    heartGlow: { color: 0xff6a4a, size: 1, opacity: 0.35 },
+  },
   /** Soul motes (items/souls.ts): most held; the hex a black one lays on every foe in the room when it goes; the
       chance a foe that falls with enough hex stacks (magic.json's `hex.soulAt`) leaves a black one. */
   souls: { max: 6, blackHex: 2, hexChance: 0.5 },
@@ -776,8 +784,10 @@ export const CFG = {
       bite: { every: 1.3, mul: [0.6, 0.85, 1.1] },
       breath: { every: 3.2, range: 3.2, count: 5, spread: 0.6, speed: 7, mul: 0.45, burn: 2 },
     },
-    moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7 }, // Candle Moth: seconds between stings, reach
-    skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest
+    // Candle Moth: seconds between stings, reach (and its halo's size: a larger one read as a white blot in a soft cloud)
+    moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7, glow: 0.5 },
+    // Weeping Skull: radius, radians/s, bite and its rest, its halo's size
+    skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34, glow: 0.5 },
     wardingBand: { fuse: 1 }, // Warding Band: the glyph's fuse (s)
     pedlar: { priceMul: 0.7 }, // Pedlar's Scale: merchant prices (rounded, at least 1)
     emberwood: { burn: 1.5 }, // Emberwood Wand: seconds of Burn a bolt sets
@@ -938,6 +948,8 @@ export const CFG = {
     // shadow colour, drawn over the floor (in front of it they were outlined to near-black specks)
     splashEdge: { opacity: 0.5, steps: 3, inner: 0.72, outer: 1.1 },
     shard: 0.6,
+    // the least lightness of a splash's ring, in the potion's hue (the hex brew's dark violet vanished into a dark floor)
+    splashLight: 0.45,
   },
   // the soundscapes and the music (docs/archive/sound-plan.md, audio/director.ts): scheduled `ahead` seconds before they sound
   // (`hiddenAhead` in a hidden tab, whose timers run once a second; the scheduler's own timer every `tick` ms); the music
@@ -1028,8 +1040,9 @@ export const CFG = {
     // a floor's own made urn set in a wall niche (world/wallLooks.ts), scaled from its height on the floor
     nicheUrn: 0.42,
     // (the halo round an artifact built in code, its colour darkened by `dim`: a larger, brighter one washed a pale
-    // artifact out and melted a green one into a green floor)
-    artifactGlow: { size: 0.8, opacity: 0.4, dim: 0.75 },
+    // artifact out and melted a green one into a green floor); a floor with its own
+    // halo (`items.halo`) gives it to the artifacts in the `warm` hues (degrees, from and to round red)
+    artifactGlow: { size: 0.8, opacity: 0.4, dim: 0.75, warm: [335, 30] as [number, number] },
     // a made chest's ward seal (items/pickupLooks.ts): how high it hovers over the lid, and how much wider it lies than the
     // seal that stands before a chest built in code
     sealHover: 0.1,

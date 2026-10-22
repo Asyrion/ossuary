@@ -22,6 +22,7 @@ import { layFire } from '../actors/foes';
 import { renderHearts } from '../notify';
 import { disposeTree } from '../render/materials';
 import { gradeNow } from '../render/pixelLook';
+import { itemTones } from '../world/kitColours';
 import { mesh, tone } from '../world/kitParts';
 import { potionHold } from '../input';
 import { POTIONS, type PotionDef, type PotionId, type ThrowEffect } from './alchemyData';
@@ -97,6 +98,13 @@ const near = (x: number, z: number, r: number) =>
 const mageIn = (x: number, z: number, r: number) => Math.hypot(player.x - x, player.z - z) < r + player.r;
 const num = (v: number | string | undefined) => Number(v ?? 0);
 const col = (def: PotionDef) => parseInt(def.color.slice(1), 16);
+/** A splash's colour: the potion's, lifted in its own hue to `splashLight` at least (the hex brew's dark violet was
+    the floor's shadow colour). */
+function ringCol(def: PotionDef) {
+  const c = new THREE.Color(col(def)),
+    hsl = c.getHSL({ h: 0, s: 0, l: 0 });
+  return hsl.l < A.splashLight ? c.setHSL(hsl.h, hsl.s, A.splashLight).getHex() : c.getHex();
+}
 
 /** Each throw, where it splashes (`r` across). */
 const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDef) => void> = {
@@ -193,7 +201,7 @@ export function breathe(id: PotionId) {
   if (def.throw.effect === 'healSplash') return;
   const x = player.x,
     z = player.z,
-    c = col(def),
+    c = ringCol(def),
     r = A.splash;
   ringFx(x, 0.08, z, c, 0.2, r, 0.45, true);
   burst(x, 0.5, z, c, 14, 2, 0.05);
@@ -217,7 +225,7 @@ interface Edge {
 const edges: Edge[] = [],
   idleEdges: Edge[] = [];
 let edgeGeo: THREE.RingGeometry | null = null;
-/** The dark edge under a splash's ring, in the floor's shadow colour: it grows with the ring and fades in flat steps. */
+/** The edge under a splash's ring, in the floor's shadow colour (or its own, `items.splashEdge`): it grows with the ring and fades in flat steps. */
 function splashEdge(x: number, z: number, to: number) {
   const E = A.splashEdge,
     g = gradeNow();
@@ -230,7 +238,7 @@ function splashEdge(x: number, z: number, to: number) {
     scene.add(m);
     e = { m, t: 0, to };
   }
-  e.m.material.color.set(g.amount > 0 ? g.shadow : '#101018');
+  e.m.material.color.set(itemTones().splashEdge ?? (g.amount > 0 ? g.shadow : '#101018')); // (a floor's own: floor 3's shadow sank into its dark red)
   e.m.position.set(x, 0.07, z);
   e.m.visible = true;
   e.t = 0;
@@ -260,7 +268,7 @@ const RING_LIFE = 0.45;
 /** A bottle lands: it shatters, its splash rings out in its colour over a dark edge, and its throw effect lands there. */
 function splash(f: Flight) {
   const def = POTIONS[f.id],
-    c = col(def),
+    c = ringCol(def),
     retort = player.stats.effects.has('retort'),
     r = A.splash * (retort ? A.retort.splashMul : 1);
   Sfx.at(f.x1, f.z1).bottleBreak();

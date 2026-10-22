@@ -24,8 +24,10 @@ const GLASS = 0x6a789c, // (a darker glass: a pale one was the drowned floor's o
   CORK = 0x8a6a44,
   WAX = 0xa83a2a,
   BONE = 0xe4d8bc,
-  CLAY = 0x8a5a3a,
-  LEATHER = 0x6e4a30;
+  LEATHER = 0x6e4a30,
+  CINDER = 0x3a3440, // (ember salt's crust: its orange crystals vanished on floor 3's orange-cracked cobble)
+  ASH_URN = 0x5e5c66, // (the warden's ash in grey stone: a brown urn sank into floor 3's red-brown)
+  ASH = 0xbcb8b0;
 
 /** Each bottle: its glass (outline from the bottom up), how far the draught fills it (from its first height to its last:
     `draught`), its stopper. */
@@ -268,7 +270,14 @@ const REAGENT_BUILD: Record<ReagentId, (g: THREE.Group, c: number) => void> = {
     mesh(g, rough(new THREE.ConeGeometry(0.07, 0.07, 7), 0.015, 4), tone(BONE, 0.1), 0.04, -0.01, 0.02);
   },
   emberSalt(g, c) {
-    // orange crystals, glowing at the core
+    // orange crystals, glowing at the core, grown on a dark lump of cinder
+    put(
+      mesh(g, rough(new THREE.OctahedronGeometry(0.13, 0), 0.02, 7), tone(CINDER, 0.12), 0, -0.07, 0),
+      0,
+      0.4,
+      0,
+      [1.2, 0.5, 1],
+    );
     for (const [x, z, h, a] of [
       [0, 0, 0.14, 0],
       [0.05, 0.03, 0.1, 0.4],
@@ -315,8 +324,8 @@ const REAGENT_BUILD: Record<ReagentId, (g: THREE.Group, c: number) => void> = {
     mesh(g, new THREE.SphereGeometry(0.03, 6, 4), glowTone(0xf0d860), 0, -0.02, 0);
     g.add(glowShared(c, 0.5, 0.35));
   },
-  wardensAsh(g, c) {
-    // a little urn of heavy grey ash, a ward-blue rune on it
+  wardensAsh(g) {
+    // a little urn of grey stone heaped with heavy pale ash, a ward-blue rune on it
     mesh(
       g,
       lathe(
@@ -331,9 +340,9 @@ const REAGENT_BUILD: Record<ReagentId, (g: THREE.Group, c: number) => void> = {
         ],
         9,
       ),
-      tone(CLAY, 0.14),
+      tone(ASH_URN, 0.14),
     );
-    mesh(g, cyl(0.06, 0.06, 0.01, 9), tone(c, 0.1), 0, 0.09, 0);
+    mesh(g, cyl(0.06, 0.06, 0.01, 9), tone(ASH, 0.1), 0, 0.09, 0);
     mesh(g, new THREE.BoxGeometry(0.03, 0.05, 0.01), glowTone(0x8ab8ff), 0, 0, 0.09);
   },
 };
