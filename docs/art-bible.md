@@ -427,6 +427,39 @@ outlined, warned where they land), the radiant eye's ray as a stepped gold beam,
 deep tones, blob shadows capped, the vault's ward seal drawn dark, and pickups and artifacts on a dark halo with the key
 and the souls in deeper colours.
 
+### 4.29 Floor 5 in the game: its rooms (2026-10-23, accepted by the owner)
+
+Floor 5, the shore, in its palette (4.1: mist, frost and dark water, a lantern's amber): its floor lifted to the lightness
+this bible asks of a floor, deep-blue mortar and shadow (`#141f33`), the grade in that shadow, a fill light of 1.0, an
+amber torch and lantern light, the kit's materials in its ramps, and rooms strewn with pebbles, stains, rime, bones, lamps
+on poles, ropes and a relic. Its walls are made faces: slate, dry stone and pilings. It has its own urn (dark blue clay
+with an amber band) and a boat-hull altar, darkened after the survey, the stone a shade deeper. Lamps burn amber from the
+look and stand clear of rocks and walls. Its five relics are made in Tripo (a wrecked skiff, a mooring post, a net heap, a
+ferry lantern, a frozen cairn); four stand in the way and the net heap lies on the floor. The skiff's oars were dropped
+because the model stood upright.
+
+### 4.30 Floor 5's foes and the Deep Angler made in Tripo (2026-10-23, accepted by the owner)
+
+Ten foes of floor 5 wear Tripo models moved whole by code (4.19). The hydra stays built in code: its necks cut and its
+stumps seared are its fight, and a model cannot show them. The lantern tortoise is a shell alone, its head and legs kept
+as built, so it is seen to shut itself in, and its lantern is lit above the shell. The gloom raven faces its heading. The
+frost jackalope and the glacier golem are toned down (`tint`) off the mist, and the dark ones (rootling, void mote, gloom
+raven, the Angler) are lifted (`lift`) with a light of their own, as dark bodies with bright features read at play
+distance. The hydra's stumps are larger with a raw red cut, a seared one capped in charcoal with embers; the rolling
+pangolin rocks instead of spinning (spun whole it showed its underside), and lies in a dithered dust puff when dazed. The
+Deep Angler goes through the made-boss path (`madeBosses.ts`) at its drawn height: it swims, swells as it calls its ring
+and rears as it gapes. Its lamp, ring and halo are kept as code: the lamp amber in stepped bands, the ring kept facing
+the camera, the halo pool capped.
+
+### 4.31 Magic on a dark floor (2026-10-23, accepted by the owner)
+
+On the shore light added to frost burns pale foes white, and black or pale effects are lost on its mist and dark water.
+The rule (`CFG.shoreFx`, floor 5 only, so floors 1 to 4 stay as accepted): dark effects get a violet or umbral band with a
+rim, frost is held deep, and nothing is a lit box. Drawn this way: foes' telegraphs in the school's light in bands to an
+edge in the floor's shadow colour, over what stands round them; rime a deeper frost in 2-pixel crystals; black ice in
+hard steps; spores in flat bands; the gloom raven's gloom in umbral bands with a violet rim; the scorch a charcoal of its
+own; the Deep Angler's lamp in amber bands; and pickups and artifacts on a pale lilac halo.
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta

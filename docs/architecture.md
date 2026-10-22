@@ -267,7 +267,7 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   model instead (`madeFoes.ts`: code moves it whole, sized by `span`; the code look still gives its lights and moved parts,
   and the parts named in `keep`, such as a water foe's pool, as built). Its surface (`madeSurface`, shared with
   `madeBosses.ts`) takes a `tint`, a `lift` (a light of its own, for a dark body on a dark floor) and `hot` (its warm
-  texels glow), from its `CFG.madeFoes` entry. A banking flyer's `roll` (`MadeRoll`, `BANK_ROLL` when absent) sets how far it rolls either side: a wide-winged one rolled far reads as a wing stood on end from the camera. Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  texels glow), from its `CFG.madeFoes` entry. A banking flyer's `roll` (`MadeRoll`, `BANK_ROLL` when absent) sets how far it rolls either side: a wide-winged one rolled far reads as a wing stood on end from the camera. An entry's `atop` (`MadeAtop`) sets its kept lights that far over the model's top, for a made body taller than the look in code's (the lantern tortoise's shrine glows above its shell, not inside it). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a
@@ -329,10 +329,10 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
 | `absorber` | voidMote (Void Maw) | Swallows the cantrip, spills it back as a ring | Spells hurt it |
 | `shell` | lanternTortoise (elite) | Hides, spins off walls, lies dizzy | Storm |
 | `glacier` | glacierGolem (elite) | Front turns blows; ice spikes in lines | Chill, then shock |
-| `hydra` | hydra (elite) | Heads in a `WeakMap`; a cut head regrows as two | Fire sears the stump |
+| `hydra` | hydra (elite) | Heads in a `WeakMap`; a cut head regrows as two | Fire sears the stump (`sear${i}`: a charcoal cap with embers over the cut, `CFG.foeLook.stump`) |
 | `raven` | gloomRaven | Gloom disc dims sight; hexing shots | Lights drive it off |
 | `wolf` | rimeWolf (Rime Warg) | Pack rings and lunges by turns; howl hastens | Fire scatters them |
-| `pangolin` | dustPangolin (Tarasque) | Rolls; the cantrip glances off | A wall dazes it |
+| `pangolin` | dustPangolin (Tarasque) | Rolls; the cantrip glances off | A wall dazes it (a dithered dust puff, `ditherPuffTex`; rolling, it rocks, `CFG.foeLook.pangolin`) |
 | `kiter` | frostJackalope | Bounds away, stamps shards and rime | Burning ground |
 | `manticore` | manticore | Tail volleys of hexing spikes, a pounce | Holy light stills it |
 | **Floor 0** | | | |
@@ -371,7 +371,7 @@ rune ring, halo and named part's fire it keeps; what its fight does to the parts
 model as a whole, and its blob shadow is the open one (`blob(size, true)`, lighter where the floor shows between legs).
 The Abbess, the Pyre Knight, the War-Tiger and both Twin Guardians wear one (`twins2`, the second, its own); an entry's
 `eye` sets its eyes' height on the model (a crouched guardian's face is high), and its surface takes `tint`, `lift` and
-`hot` as the foes' do. The Hallowed Hart wears one too (`POSE.hart`: its legs' stride bobs the body, and a wide stride, its charge, lowers the antlers), keeping its floor circle, ring and halo. A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
+`hot` as the foes' do. The Hallowed Hart wears one too (`POSE.hart`: its legs' stride bobs the body, and a wide stride, its charge, lowers the antlers), keeping its floor circle, ring and halo. So does the Deep Angler (`POSE.angler`: it hovers at `CFG.madeBosses.angler.hover` and swells as it calls its ring, and rears as its jaw gapes), keeping its ring, halo and lure; a part inside a kept part goes with it, so the lure keeps its glow. Its lure is an amber lamp in stepped bands (`CFG.enemy.angler.lure`, `bandGlow`, drawn over its face without depth test), its ring is turned back by the way its body faces so it keeps facing the camera, and its halo pool is capped (`haloMost`). A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
 `render/textures.ts`, `haloOnFloor` in `bosses.ts`): a sprite stood up behind it cut into the floor and the wall.
 
 | Boss | Id | Fight |
@@ -692,7 +692,7 @@ floor without one is drawn as it is; the dawn outside clears it. The floor's `li
 moonlight (`lightState.fill`). The grade's `ink` draws the outlines toward a near black tinted by the shadow colour,
 and its `gap` sets how far a nearer surface must stand before a farther one to be outlined (art bible 4.4). A floor's
 `materials` recolours the room kit's shared materials (`MAT`) and the objects' colours (`C`) by name, before its rooms
-are built (`applyKitColours`, world/kitColours.ts). A look's `relics` names the made relics its `relics` scatter strews (`relicsOf` in world/themes.ts; floor 1's vault's when absent); A look's `themeFloor` gives a theme its own floor colours on that floor (`themedLook`), and `floor.tesserae` a mosaic's; `wall.cap` the kind of wall whose face the tops of carved blocks wear (floor 4's marble; else a stone a shade under the bricks, `cappedWallMaterials`), `floor.face` a made floor face laid in place of the kit's paving, and `bossFloor` a boss room's own floor (world/rooms.ts: a calm one, a face of its own). A look's `items` gives the things lying on its floor tones of their own where its ground swallows the shared ones (`itemTones()`, world/kitColours.ts: the purse's leather and clasp, a tint over the made pedestal, a splash's edge, a halo for its dark and red artifacts, a lighter sealed urn). `validateLookExtras` (world/kitData.ts) checks a look's scatter, materials, grade, tesserae and item tones, and that every face its floors name is one of its `floorFaces` in data/assets.json. Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
+are built (`applyKitColours`, world/kitColours.ts). A look's `relics` names the made relics its `relics` scatter strews (`relicsOf` in world/themes.ts; floor 1's vault's when absent); A look's `themeFloor` gives a theme its own floor colours on that floor (`themedLook`), and `floor.tesserae` a mosaic's; `wall.cap` the kind of wall whose face the tops of carved blocks wear (floor 4's marble; else a stone a shade under the bricks, `cappedWallMaterials`), `floor.face` a made floor face laid in place of the kit's paving, and `bossFloor` a boss room's own floor (world/rooms.ts: a calm one, a face of its own). A look's `items` gives the things lying on its floor tones of their own where its ground swallows the shared ones (`itemTones()`, world/kitColours.ts: the purse's leather and clasp, a tint over the made pedestal, a splash's edge, a halo for its dark and red artifacts, a lighter sealed urn, and `lamp`, the light of the lamps on poles its scatter strews: the shore's lantern amber; a lamp stands only where its eight neighbours and `CFG.themes.lampNorth` tiles north of it are free floor, and keeps them to itself, `dressTheme`). `validateLookExtras` (world/kitData.ts) checks a look's scatter, materials, grade, tesserae and item tones, and that every face its floors name is one of its `floorFaces` in data/assets.json. Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
 
 The actors (`markActor`: the mage's root in `actors/hero.ts`, every foe and boss in `actors/enemies.ts`): while the grid is
 drawn, their solid meshes stamp the stencil where they pass the depth test (`stamp`, set on each mesh's
@@ -718,6 +718,7 @@ look from `applyKitColours` on every floor and the Vigil; `paleFx()`, `paleShado
 hard steps, lobs (`paleLob`: shaded and outlined, with `fallWarn`), the radiant eye's ray (`beamFx`), the stun tint, the
 rime, web and pollen tones, capped blob shadows (`paleBlobs`), the vault's ward seal, and a dark halo under pickups and
 artifacts with the key and the souls in deeper colours.
+Floor 5's dark shore has its own switch (`CFG.shoreFx`, `looks: ['shore']`; `shoreFx()` in the same module, set by `setPaleFx` with the floor's colours), where frost burnt pale foes white and black or pale effects were lost on its mist and dark water. It switches foes' telegraphs to edged bands (`edgedBandsTex`) in the floor's shadow colour, drawn without depth test so the floor cuts no lit box; rime a deeper frost in 2-pixel crystals (`rimeTex(stroke)` for foes' rime, `rimeMat(look)` for the scatter's); black ice in hard steps; spore clouds in flat bands (`addSpores`); the gloom raven's gloom as umbral bands inside a violet rim (`rimmedDiscTex`); and the scorch under burning ground in a charcoal of its own. Pickups and artifacts sit on a pale lilac halo (the look's `items.halo`).
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
