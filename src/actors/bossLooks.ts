@@ -616,7 +616,7 @@ export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] =
   { id: 'abbess', build: () => (madeBossLook('abbess', abbessLook) ?? abbessLook)() },
   { id: 'pyre', build: () => (madeBossLook('pyre', pyreKnightLook) ?? pyreKnightLook)() },
   { id: 'hart', build: () => (madeBossLook('hart', hartLook) ?? hartLook)() },
-  { id: 'angler', build: anglerLook },
+  { id: 'angler', build: () => (madeBossLook('angler', anglerLook) ?? anglerLook)() },
   { id: 'tiger', build: () => (madeBossLook('tiger', tigerLook) ?? tigerLook)() },
   { id: 'dragon', build: dragonLook },
   { id: 'twins', build: () => madeBossLook('twins', () => twinLook())?.() ?? twinPairLook() }, // (the first made guardian, else the pair)

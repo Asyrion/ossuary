@@ -51,6 +51,14 @@ POSE.hart = (body, p) => {
   const charge = Math.max(0, Math.abs(stride) - 0.45) * 0.4; // (a wide stride is its charge: it lowers its antlers)
   body.rotation.x = p.body.rotation.x + p.head.rotation.x * 0.25 + charge;
 };
+POSE.angler = (body, p, t) => {
+  moved(body, p.body); // (its flinch's shake)
+  body.position.y += CFG.madeBosses.angler.hover + Math.sin(t * 1.3) * 0.08; // (it swims above the floor, as its look in code)
+  body.scale.copy(p.body.scale); // (it swells as it calls its ring of shots)
+  const gape = Math.max(0, p.jaw.rotation.x);
+  body.rotation.x = -gape * 0.35; // (it rears as its jaw drops to pull or bite)
+  body.scale.y *= 1 + gape * 0.08;
+};
 /** The body moved as the fight moved its empty place, from that place's rest. */
 function moved(body: THREE.Object3D, place: THREE.Object3D) {
   const rest = place.userData.rest as THREE.Vector3;
@@ -118,8 +126,15 @@ function build(
     body.add(f);
   }
   // the parts its fight reads: the kept ones as built, at the model's height; the eye's glow on its face; empty places
-  const parts: Record<string, THREE.Object3D> = {};
+  const parts: Record<string, THREE.Object3D> = {},
+    kept = keep.map((k) => made.parts[k]).filter(Boolean);
   for (const [name, p] of Object.entries(made.parts)) {
+    let under: THREE.Object3D | null = p.parent;
+    while (under && !kept.includes(under)) under = under.parent;
+    if (under) {
+      parts[name] = p; // (inside a kept part, it goes with it: the Angler's lure keeps its glow)
+      continue;
+    }
     if (keep.includes(name)) {
       p.getWorldPosition(p.position);
       p.position.y *= lift;
