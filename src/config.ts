@@ -800,6 +800,10 @@ export const CFG = {
       'candle_stand',
       'bell_fallen',
       'prayer_book_stand',
+      'wrecked_skiff',
+      'mooring_post',
+      'ferry_lantern',
+      'frozen_cairn',
     ],
     relicFit: 0.8,
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
@@ -1046,6 +1050,18 @@ export const CFG = {
     shadowFox: { motion: 'crawl', main: 'body', span: 1.3 },
     rimeScarab: { motion: 'crawl', main: 'body', span: 1.15, keep: ['ball'] },
     griffin: { motion: 'bank', main: 'body', span: 2.2, roll: 0.1 }, // (its wide wings roll less)
+    // floor 5's (the hydra stays built in code: its necks cut and stumps seared are its fight; the lantern tortoise's
+    // model is its shell alone, its head and legs kept as built, so it is seen to shut itself in)
+    rootling: { motion: 'squat', main: 'body', span: 0.9, keep: ['mound'] },
+    rimeWolf: { motion: 'crawl', main: 'body', span: 1.2 },
+    frostJackalope: { motion: 'squat', main: 'body', span: 0.8, tint: 0.75 }, // (its pale fur held off the floor's mist)
+    stormRay: { motion: 'bank', main: 'body', span: 1.0 },
+    voidMote: { motion: 'float', main: 'body', span: 0.85 },
+    gloomRaven: { motion: 'bank', main: 'body', span: 1.7, roll: 0.1 },
+    lanternTortoise: { motion: 'sway', main: 'body', span: 1.5, keep: ['head', 'legs'] },
+    glacierGolem: { motion: 'sway', main: 'torso', span: 1.9, tint: 0.85 },
+    dustPangolin: { motion: 'crawl', main: 'body', span: 1.45 },
+    manticore: { motion: 'crawl', main: 'body', span: 1.8 },
   },
   // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
   // look kept as built (the rune ring and the halo the fight turns and lights), the part whose fire is set on the
@@ -1058,6 +1074,8 @@ export const CFG = {
     twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
     hart: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.62 },
+    // (its lamp kept as built, as the fight swells it; `hover`, how high it swims, as its look in code)
+    angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4 },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

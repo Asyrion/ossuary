@@ -150,9 +150,10 @@ function buildBossBody(e: Enemy) {
     e.state = 'walk';
     e.st = 2.2;
   } else if (e.type === 'hart' || e.type === 'angler') {
-    // the bosses of floors 4 and 5: the Hart made in Tripo where a model is in (madeBosses.ts), else built in code
-    const made = e.type === 'hart' ? madeBossLook('hart', hartLook) : undefined,
-      L = e.type === 'hart' ? (made ?? hartLook)() : anglerLook(),
+    // the bosses of floors 4 and 5: made in Tripo where a model is in (madeBosses.ts), else built in code
+    const code = e.type === 'hart' ? hartLook : anglerLook,
+      made = madeBossLook(e.type, code),
+      L = (made ?? code)(),
       P = L.parts,
       C = CFG.enemy[e.type];
     const keep = e.type === 'hart' ? [P.eye, P.ring, P.head, ...P.legs.children] : [P.eye, P.ring, P.lure];
