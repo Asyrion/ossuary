@@ -667,6 +667,10 @@ export const CFG = {
       'pillar_stump',
       'fungus_log',
       'sunken_bell',
+      'charred_beam',
+      'toppled_brazier',
+      'wax_mound',
+      'brimstone_cluster',
     ],
     relicFit: 0.8,
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
