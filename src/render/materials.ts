@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
-import { glowTex, shadowTex } from './textures';
+import { bandsTex, glowTex, shadowTex } from './textures';
 import { pixelWallTexture } from './pixelTextures';
 import { wallTile } from '../assets/models';
 import type { WallKind } from '../world/kitData';
@@ -158,6 +158,28 @@ export function glowShared(color: number, size: number, opacity: number) {
       }),
   );
   const s = new THREE.Sprite(mat);
+  s.scale.set(size, size, 1);
+  return s;
+}
+/** Additive glow sprite in hard bands (`bandsTex`), with its own material (opacity can be animated); `shared` gives
+    every sprite of that colour, size and strength one material (a projectile's). */
+export function bandGlow(
+  color: number,
+  size: number,
+  opacity: number,
+  rings: readonly (readonly [number, number])[],
+  shared = false,
+) {
+  const make = () =>
+    new THREE.SpriteMaterial({
+      map: bandsTex(rings),
+      color,
+      transparent: true,
+      opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+  const s = new THREE.Sprite(shared ? cached(`band${color}_${opacity}_${JSON.stringify(rings)}`, make) : make());
   s.scale.set(size, size, 1);
   return s;
 }

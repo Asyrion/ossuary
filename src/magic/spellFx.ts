@@ -17,7 +17,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CFG } from '../config';
 import type { Vec2 } from '../types';
 import { scene } from '../render/renderer';
-import { basicMat, disposeTree, glow, markShared, mergeStill } from '../render/materials';
+import { bandGlow, basicMat, disposeTree, glow, markShared, mergeStill, sphereGeo } from '../render/materials';
 import { modelFor } from '../assets/models';
 import { floorShade, markThing } from '../render/pixelLook';
 import {
@@ -182,6 +182,7 @@ export function boltLook(
   color: number,
   scale: number,
   shard: boolean,
+  sheathed = false,
 ): { core: THREE.Mesh; extras: THREE.Object3D[]; glow?: number } {
   if (shard) {
     // (its school's colour drawn deep along the splinter and its trail, white only as a thin core along its top, two game
@@ -202,6 +203,21 @@ export function boltLook(
   }
   const core = new THREE.Mesh(octa(), basicMat(whiter(color)));
   core.scale.set(0.075 * scale, 0.075 * scale, 0.15 * scale);
+  const sheath: THREE.Object3D[] = [];
+  if (sheathed) {
+    // (a dark school's orb, as a foe's shot is drawn (art bible 4.15, F3) but in the mage's rune ring: its colour drawn
+    // deep round the core, ringed in dark, the core out on its top where the camera sees it; a thin ring of added violet
+    // was lost on floor 3's maroon)
+    const S = CFG.spellFx.sheath,
+      deep = new THREE.Mesh(sphereGeo(S.size * scale), basicMat(deepen(color, S.deep))),
+      edge = new THREE.Mesh(
+        sphereGeo(S.edge * scale),
+        keep('fx.sheathEdge', () => new THREE.MeshBasicMaterial({ color: hexOf(S.edgeColor), side: THREE.BackSide })),
+      );
+    core.scale.multiplyScalar(S.core);
+    core.position.y = S.lift * scale;
+    sheath.push(deep, edge);
+  }
   const ring = new THREE.Mesh(ringGeo(), shineOf('ring', color, 0.85));
   ring.scale.setScalar(0.17 * scale);
   ring.userData.spin = 9;
@@ -212,7 +228,7 @@ export function boltLook(
     m.userData.spin = i ? -5 : 5;
     return m;
   });
-  return { core, extras: [ring, ...trail] };
+  return { core, extras: [...sheath, ring, ...trail], glow: sheathed ? CFG.spellFx.sheath.glow : undefined };
 }
 /** Every step, as a bolt moves by (dx, dz): it turns to where it flies, and its ring and runes turn to the camera,
     spinning. */
@@ -773,15 +789,29 @@ export function wardFx(count: number) {
   scene.add(g);
   // (gold crystals in a gold glow, closed in an outline: white-hot ones in added light came out cream-white on a bright
   // floor)
-  const gold = hallowGold(),
-    crystalMat = lit(gold);
+  // Each edged in Hallow's dark edge and lit by a pale heart, its glow in hard bands (floor 3's orange cracks swallowed a
+  // plain gold diamond)
+  const W = CFG.spellFx.wardMote,
+    gold = hallowGold(),
+    crystalMat = lit(gold),
+    heartMat = lit(whiter(gold, W.heart)),
+    edgeMat = keep(
+      'fx.wardEdge',
+      () => new THREE.MeshBasicMaterial({ color: hexOf(CFG.spellFx.hallow.edge), side: THREE.BackSide }),
+    );
   const motes = Array.from({ length: count }, () => {
     const m = new THREE.Group();
     g.add(m);
     const c = new THREE.Mesh(octa(), crystalMat);
-    c.scale.set(0.07, 0.12, 0.07);
-    m.add(c);
-    m.add(glow(gold, 0.6, CFG.spellFx.hallow.orbGlow));
+    c.scale.set(W.size[0], W.size[1], W.size[0]);
+    const edge = new THREE.Mesh(octa(), edgeMat);
+    edge.scale.copy(c.scale).multiplyScalar(W.edge);
+    const heart = new THREE.Mesh(octa(), heartMat);
+    heart.scale.copy(c.scale).multiplyScalar(0.45);
+    heart.position.set(0, W.size[1] * 0.25, W.size[0] * 0.5); // (toward the camera's side and up, where it shows)
+    c.add(heart);
+    m.add(c, edge);
+    m.add(bandGlow(gold, W.glow, CFG.spellFx.hallow.orbGlow, W.rings));
     return m;
   });
   markThing(g);
@@ -805,15 +835,19 @@ export function vigilLanternFx(color: number) {
   const g = new THREE.Group();
   scene.add(g);
   const model = made('vigil_lantern'); // (the made lantern of wrought iron; else one built in code)
+  const L = CFG.spellFx.lantern;
   if (model) {
-    model.scale.setScalar(1.4);
-    model.position.y = -0.22;
+    // (larger, its iron lit warm by its own texture, outlined: a tiny lantern in a soft white halo was lost on floor 3)
+    model.scale.setScalar(L.scale);
+    model.position.y = -0.22 * (L.scale / 1.4);
+    livingLight(model, L);
+    markThing(model);
     g.add(model);
   } else ironLantern(g);
   const flameMat = lit(whiter(color, 0.5)),
     flame = part(g, octa(), flameMat, [0, model ? -0.04 : 0, 0]);
-  flame.scale.set(0.045, 0.08, 0.045);
-  const halo = glow(color, 0.9, 0.8);
+  flame.scale.set(0.045 * L.flame, 0.08 * L.flame, 0.045 * L.flame);
+  const halo = bandGlow(deepen(color, L.deep), L.halo, L.haloOpacity, L.rings); // (in hard bands, its gold drawn deep)
   g.add(halo);
   let flare = 0;
   return {
@@ -822,7 +856,7 @@ export function vigilLanternFx(color: number) {
       g.rotation.z = Math.sin(t * 2.3) * 0.12;
       flame.rotation.y = t * 3;
       flare = Math.max(0, flare - 0.05);
-      halo.scale.setScalar(0.9 + flare * 0.7 + Math.sin(t * 9) * 0.05);
+      halo.scale.setScalar(L.halo * (1 + flare * 0.7) + (Math.sin(t * 9) > 0 ? 0.05 : 0)); // (its flicker a step)
     },
     flare() {
       flare = 1;
@@ -974,6 +1008,7 @@ export function thornFx(x: number, z: number, radius: number, color: number) {
     g.add(v);
     const thorns = made('thorn_vines'); // (the made cluster of thorny tendrils; else vines built in code)
     if (thorns) {
+      livingLight(thorns, CFG.spellFx.thorns); // (near-black brambles were lost on a dark floor: lime highlights)
       thorns.rotation.y = i * 2.1;
       thorns.scale.setScalar(1.5 + (i % 3) * 0.2);
       v.add(thorns);
@@ -1070,6 +1105,23 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
   };
 }
 
+/** A made part's surface (shared by every copy, so once) tinted `tint` and lit from within by its own texture in `glow`:
+    its lighter strands shine, its darks stay dark (the Living Wall's hedge, the Thorn Snare's brambles, the lantern). */
+function livingLight(model: THREE.Object3D, how: { tint: string; glow: string }) {
+  model.traverse((o) => {
+    const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+    if (m && !m.userData.living) {
+      m.color.setHex(hexOf(how.tint));
+      if (m.emissive) {
+        m.emissive.setHex(hexOf(how.glow));
+        m.emissiveMap = m.map;
+      }
+      m.needsUpdate = true;
+      m.userData.living = true;
+    }
+  });
+}
+
 /** A trunk of living wood for the Living Wall at (x, z), `h` tall: bark round a paler heart, roots spread at its foot and
     leaves bursting from its crown (iceColumn's way). */
 export function woodColumn(x: number, z: number, h: number, hedge = true) {
@@ -1081,20 +1133,9 @@ export function woodColumn(x: number, z: number, h: number, hedge = true) {
     // wall by the caller; the spots between keep only their moss)
     if (hedge) {
       model.scale.set(0.6, h / 0.75, 1); // (its length cut to two spots, its height the trunk's)
-      model.traverse((o) => {
-        const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
-        if (m && !m.userData.living) {
-          // (its grey weave tinted living green, the Verdant's, and its strands lit lime from within by the weave itself:
-          // tinted only, it was a near-black slab on a dark floor)
-          m.color.setHex(hexOf(CFG.spellFx.hedge.tint));
-          if (m.emissive) {
-            m.emissive.setHex(hexOf(CFG.spellFx.hedge.glow));
-            m.emissiveMap = m.map;
-          }
-          m.needsUpdate = true;
-          m.userData.living = true;
-        }
-      });
+      // (its grey weave tinted living green, the Verdant's, and its strands lit lime from within by the weave itself:
+      // tinted only, it was a near-black slab on a dark floor)
+      livingLight(model, CFG.spellFx.hedge);
       markThing(model); // (its closed outline, as a discrete thing's: art bible 4.4)
       g.add(model);
     }

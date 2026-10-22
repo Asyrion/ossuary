@@ -35,7 +35,7 @@ import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { mergeRig } from '../render/rig';
-import { glow } from '../render/materials';
+import { bandGlow, glow } from '../render/materials';
 import { scene } from '../render/renderer';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
@@ -91,8 +91,8 @@ export function buildFoe(e: Enemy, def: FoeDef) {
   e.flying = def.flying;
   e.contact = def.contact;
   e.body.add(b.group);
-  // its telegraph's glow, in its school's light (a pale foe's body alone barely shows it)
-  e.teleGlow = glow(SCHOOL_LIGHT[def.school], 1 + def.r * 2, 0);
+  // its telegraph's glow, in its school's light (a pale foe's body alone barely shows it), in hard bands
+  e.teleGlow = bandGlow(SCHOOL_LIGHT[def.school], 1 + def.r * 2, 0, CFG.pixelLook.teleRings);
   e.teleGlow.position.y = def.flying ? 0.7 : 0.4;
   e.teleGlow.visible = false;
   e.body.add(e.teleGlow);
@@ -171,7 +171,7 @@ export function poseFoe(e: Enemy) {
   e.model!.scale.set(1 + t * 0.22 + hit * 0.14, 1 + t * 0.14 - hit * 0.16, 1 + t * 0.22 + hit * 0.14);
   if (e.teleGlow) {
     e.teleGlow.visible = t > 0.02;
-    e.teleGlow.material.opacity = t * 0.85;
+    e.teleGlow.material.opacity = (Math.ceil(t * 3) / 3) * 0.85; // (brighter in steps as it nears, not a fade)
   }
   e.model!.position.x = t > 0 ? Math.sin(e.t * 55) * 0.02 * t : 0;
 }

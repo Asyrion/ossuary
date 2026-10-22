@@ -74,6 +74,16 @@ export const glowTex = stepped(
   ]),
   CFG.pixelLook.glowSteps,
 );
+/** A glow in a few hard bands, as pixel art draws a halo (a foe's telegraph, a foe's shot, a lantern's light): `rings`
+    gives each band's outer edge (0 the middle, 1 the rim) and its strength, from the middle out; one texture a set of
+    bands. A soft glow's faint outer steps read as a blur over a dark floor. */
+const ringTexs = new Map<string, THREE.Texture>();
+export function bandsTex(rings: readonly (readonly [number, number])[]) {
+  const key = JSON.stringify(rings);
+  let t = ringTexs.get(key);
+  if (!t) ringTexs.set(key, (t = stepped('255,255,255', (d) => rings.find(([edge]) => d < edge)?.[1] ?? 0, 255)));
+  return t;
+}
 /** A puff of fog in hard bands (a miasma, a thrown Shadowstep Tincture's darkness): full inside `fogCore` of its radius,
     half outside, so where puffs overlap they make hard steps rather than a blur (art bible 3: no soft alpha). */
 export const fogTex = stepped('255,255,255', (d) => (d < CFG.pixelLook.fogCore ? 1 : 0.5), 2);

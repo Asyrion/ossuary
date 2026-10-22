@@ -1081,6 +1081,7 @@ const boltShape: Cast = (def, dir) => {
       scale: P.scale,
       status,
       seek,
+      sheath: true, // (its violet lost on a dark floor as a thin ring: a hot core in a deep sheath, ringed in dark)
     }),
   ); // (Thrice, three in a fan)
   burst(player.x + dir.x * 0.4, 0.7, player.z + dir.z * 0.4, color, 8, 1.6, 0.04);

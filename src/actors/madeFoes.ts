@@ -12,19 +12,67 @@ import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
 
 type Motion = 'squat' | 'float' | 'sway' | 'crawl' | 'bank';
+/** How a made model's surface is lit off a floor that swallows it (`CFG.madeFoes`, `CFG.madeBosses`): `tint` times its
+    texture (below 1 darkens a pale one, above lightens a dark one), `lift` a colour of light of its own over all of it
+    (a black body still reads as a shape on a dark floor), `hot` how brightly its warm, saturated texels glow of
+    themselves (ember stripes, eyes, a sting: art bible 1, dark bodies with bright features). */
+export interface MadeSurface {
+  tint?: number;
+  lift?: string;
+  hot?: number;
+}
+/** The surface of one made foe or boss (its own: a hit lights it alone; its `emissive` is the hit's and the
+    telegraph's, so `lift` is where both start from). */
+export function madeSurface(map: THREE.Texture | null, how: MadeSurface) {
+  const m = new THREE.MeshStandardMaterial({
+    map,
+    color: new THREE.Color().setScalar(how.tint ?? 1),
+    emissive: how.lift ?? 0x000000,
+    roughness: 0.85,
+    metalness: 0,
+  });
+  const hot = how.hot ?? 0;
+  if (hot > 0) {
+    m.onBeforeCompile = (sh) => {
+      sh.uniforms.hot = { value: hot };
+      sh.fragmentShader =
+        'uniform float hot;\n' +
+        sh.fragmentShader.replace(
+          '#include <emissivemap_fragment>',
+          // (warm: red well over green and blue, and not dark; a brown body stays as it is)
+          `#include <emissivemap_fragment>
+          vec3 hc = diffuseColor.rgb;
+          totalEmissiveRadiance += hc * hot * clamp((hc.r - max(hc.g, hc.b)) * 8.0, 0.0, 1.0) * smoothstep(0.02, 0.2, hc.r);`,
+        );
+    };
+    m.customProgramCacheKey = () => 'madeHot';
+  }
+  return m;
+}
 const box = new THREE.Box3(),
   size = new THREE.Vector3();
 
 /** The made look of `look` (wrapping its look in code, `code`), or undefined while it has none. */
 export function madeFoeLook(look: string, code: () => Built): (() => Built) | undefined {
   const how = (
-    CFG.madeFoes as Record<string, { motion: Motion; main: string; span: number; keep?: readonly string[] }>
+    CFG.madeFoes as Record<
+      string,
+      { motion: Motion; main: string; span: number; keep?: readonly string[] } & MadeSurface
+    >
   )[look];
   if (!how || !modelFor('props', `foe_${look}`)) return undefined;
-  return () => build(look, code(), how.motion, how.main, how.span, how.keep ?? []);
+  return () => build(look, code(), how.motion, how.main, how.span, how.keep ?? [], how);
 }
 
-function build(look: string, made: Built, motion: Motion, main: string, span: number, keep: readonly string[]): Built {
+function build(
+  look: string,
+  made: Built,
+  motion: Motion,
+  main: string,
+  span: number,
+  keep: readonly string[],
+  surface: MadeSurface,
+): Built {
   made.idle(0);
   made.group.updateMatrixWorld(true);
   // (its solid body only: glows, auras and see-through films would make the box far larger than the foe)
@@ -46,8 +94,7 @@ function build(look: string, made: Built, motion: Motion, main: string, span: nu
   model.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    const was = m.material as THREE.MeshToonMaterial;
-    m.material = new THREE.MeshStandardMaterial({ map: was.map, roughness: 0.85, metalness: 0 }); // (its own: a hit lights it alone)
+    m.material = madeSurface((m.material as THREE.MeshToonMaterial).map, surface);
   });
   body.add(model);
   g.add(body);

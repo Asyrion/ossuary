@@ -839,9 +839,28 @@ export const CFG = {
     // steady glow washed a dark foe out to a flat shape)
     tele: 0.28,
     telePulse: 6,
-    // a foe's shot of a pale school: its sheath in a deeper tone of the school's light, so the hot core reads inside it
-    // (in the school's own pale light, core and sheath read as one white-blue orb: art bible 4.15, F3)
-    shotSheath: { frost: 0x2a86e0, storm: 0xe0ae10 } as Partial<Record<'frost' | 'storm', number>>,
+    // the glow round a telegraphing foe in hard bands (render/textures.ts bandsTex: each band's outer edge, 0 the middle
+    // to 1 the rim, and its strength), fainter at the middle so the foe isn't washed out in it: a soft blob hid the
+    // ember wasp's thin body on floor 3
+    teleRings: [
+      [0.38, 0.45],
+      [0.62, 1],
+      [0.82, 0.6],
+      [1, 0.25],
+    ] as readonly (readonly [number, number])[],
+    // a foe's shot of a pale or a dark school: its sheath in a deeper tone of the school's light, so the hot core reads
+    // inside it (in the school's own pale light, core and sheath read as one white-blue orb: art bible 4.15, F3; umbral's
+    // violet as one flat disc on floor 3's maroon)
+    shotSheath: { frost: 0x2a86e0, storm: 0xe0ae10, umbral: 0x6a26d8 } as Partial<
+      Record<'frost' | 'storm' | 'umbral', number>
+    >,
+    // a foe's shot's halo in hard bands outside its dark ring (as `teleRings`), at `shotHaloOpacity`: a soft one read as
+    // a blur round the orb
+    shotHalo: [
+      [0.62, 1],
+      [1, 0.45],
+    ] as readonly (readonly [number, number])[],
+    shotHaloOpacity: 0.55,
     // a stain, a scorch or soot on the floor lifted to the floor's shadow colour's lightness in its own hue, then turned
     // this far toward that colour (where the floor has one): a near-black mark read as a hole in the floor (art bible 4.2:
     // black only in outlines)
@@ -855,7 +874,8 @@ export const CFG = {
   },
   // foes made in Tripo (actors/madeFoes.ts, art bible 4.19), by look: how code moves the still model as a whole, the
   // part of the look in code it takes the place of (the one its behaviour swells or lifts), and its span: the model's
-  // longest side across the floor, in units (about one and a half times its body's width, data/foes.json `r`)
+  // longest side across the floor, in units (about one and a half times its body's width, data/foes.json `r`); a dark
+  // one lost on floor 3's dark floor lit as madeFoes.ts `MadeSurface` says (`tint`, `lift`, `hot`)
   madeFoes: {
     mireToad: { motion: 'squat', main: 'body', span: 1.05 },
     lanternJelly: { motion: 'float', main: 'bell', span: 0.8 },
@@ -872,21 +892,21 @@ export const CFG = {
     magmaOoze: { motion: 'squat', main: 'body', span: 1.3, keep: ['disc'] },
     hexImp: { motion: 'float', main: 'body', span: 1.3, keep: ['ring'] },
     waspNest: { motion: 'squat', main: 'body', span: 1.0 },
-    emberWasp: { motion: 'bank', main: 'body', span: 0.9 },
+    emberWasp: { motion: 'bank', main: 'body', span: 1.0, tint: 1.3, lift: '#4a1c0c', hot: 3 },
     cinderDjinn: { motion: 'float', main: 'body', span: 1.4 },
     rimeDrakeling: { motion: 'crawl', main: 'body', span: 1.5, keep: ['ground'] },
     phoenix: { motion: 'bank', main: 'body', span: 2.2 },
-    basilisk: { motion: 'crawl', main: 'body', span: 2.0 },
+    basilisk: { motion: 'crawl', main: 'body', span: 2.0, tint: 1.5, lift: '#1c1a24', hot: 1.2 },
     saltGolem: { motion: 'sway', main: 'torso', span: 1.3 },
-    rubbleGolem: { motion: 'sway', main: 'torso', span: 1.5 },
+    rubbleGolem: { motion: 'sway', main: 'torso', span: 1.5, tint: 1.4, lift: '#201a1c', hot: 1.2 },
   },
   // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
   // look kept as built (the rune ring and the halo the fight turns and lights), the part whose fire is set on the
-  // model (its painted flames don't light), and how far its surface is darkened (`tint`, times its texture: the pale
-  // abbess stands off her pale floor)
+  // model (its painted flames don't light), and how its surface is lit (madeFoes.ts `MadeSurface`: `tint` times its
+  // texture, the pale abbess darkened off her pale floor; `lift`, the knight's black cloak a hole in floor 3's)
   madeBosses: {
     abbess: { size: 1, keep: ['ring', 'halo'], tint: 0.66 },
-    pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm' },
+    pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm', tint: 1.7, lift: '#241d30', hot: 1.2 },
     tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
     twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
@@ -1090,8 +1110,44 @@ export const CFG = {
     hallow: { gold: '#e09a2a', edge: '#3a1e0a', edgeOpacity: 0.75, glow: 0.14, fill: 0.1, orbGlow: 0.45 },
     lightning: { core: 0.45, sheath: 2.4, sheathOpacity: 0.95 },
     shardGlow: 0.3,
+    // a dark school's orb (the Hex Bolt: spellFx.ts boltLook): a sheath `size` of the bolt's scale in its colour at
+    // lightness `deep` at most, ringed in `edgeColor` out to `edge`, the white-hot core `core` of its usual size and
+    // lifted `lift` out of its top, its glow this strong (a thin ring of added violet was lost on floor 3's maroon)
+    sheath: { size: 0.1, deep: 0.5, edge: 0.125, edgeColor: '#1a0c26', core: 0.6, lift: 0.07, glow: 0.6 },
     // the Living Wall's made hedge: its weave tinted, and lit from within so its greens hold on a dark floor
     hedge: { tint: '#a8f088', glow: '#58b838' },
+    // the Thorn Snare's made brambles the same way, a little less (near-black thin brambles were lost on floor 3's floor)
+    thorns: { tint: '#c8eaa0', glow: '#70c034' },
+    // the Lantern of Vigil's made lantern: its size (1.4 before, a tiny lantern on floor 3), its iron tinted and lit warm
+    // from its own texture, its flame's size, its halo across in hard bands (`rings` as pixelLook.teleRings) in its gold
+    // drawn at lightness `deep` at most, this strong
+    lantern: {
+      scale: 2,
+      tint: '#ffe0b8',
+      glow: '#a05a20',
+      flame: 1.4,
+      halo: 1.15,
+      haloOpacity: 0.7,
+      deep: 0.55,
+      rings: [
+        [0.3, 1],
+        [0.55, 0.6],
+        [0.8, 0.32],
+        [1, 0.14],
+      ] as readonly (readonly [number, number])[],
+    },
+    // Wardlight's motes: a gold crystal (`size` across and tall) in Hallow's dark edge (`edge` times it), a heart taken
+    // `heart` toward white, a glow `glow` across in hard bands (Hallow's gold too near floor 3's orange cracks to read)
+    wardMote: {
+      size: [0.09, 0.15] as [number, number],
+      edge: 1.35,
+      heart: 0.6,
+      glow: 0.55,
+      rings: [
+        [0.5, 1],
+        [1, 0.4],
+      ] as readonly (readonly [number, number])[],
+    },
     // how strongly Grasp of the Grave and the Thorn Snare shade the ground in their circle (the floor's own shadow colour,
     // pixelLook.ts floorShade): the floor shows through, never a pit's black
     groundShade: 0.55,
