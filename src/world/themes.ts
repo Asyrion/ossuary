@@ -557,7 +557,15 @@ export function dressTheme(room: Room) {
 export const RELICS = ['grave_marker', 'coffin_lid', 'fallen_candelabrum', 'angel_head', 'skull_pile', 'broken_urn'];
 /** The relics a floor strews: its look's own, or the vault's of floor 1. */
 export const relicsOf = (look: { relics?: string[] }) => look.relics ?? RELICS;
-const FACING = new Set(['grave_marker', 'angel_head', 'skull_pile', 'fungus_log', 'sunken_bell']); // (a log lies across, a bell's mouth shows)
+const FACING = new Set([
+  'grave_marker',
+  'angel_head',
+  'skull_pile',
+  'fungus_log',
+  'sunken_bell',
+  'charred_beam',
+  'toppled_brazier',
+]); // (a log or a beam lies across, a bell's or a brazier's mouth shows)
 /** A relic put down in the room (its group's child, placed): one that stands (`CFG.themes.relicBlock`) blocks like a
     rock and breaks like one, to a glyph's blast or Mason's Chisel (world/rooms.ts `hitRock`); its tile stops being floor
     meanwhile. A relic whose model isn't in blocks nothing. */

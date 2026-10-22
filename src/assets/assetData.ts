@@ -77,6 +77,13 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   sunken_bell: 'large-prop',
   rotten_planks: 'prop',
   rimed_bones: 'prop',
+  // floor 3's relics (its look's `relics`): made models only, no placeholder
+  charred_beam: 'large-prop',
+  toppled_brazier: 'large-prop',
+  wax_mound: 'large-prop',
+  brimstone_cluster: 'large-prop',
+  scorched_bones: 'prop',
+  slag_heap: 'prop',
   // floor 2's foes made in Tripo (actors/madeFoes.ts): a still model in place of the look in code
   foe_mireToad: 'prop',
   foe_lanternJelly: 'prop',

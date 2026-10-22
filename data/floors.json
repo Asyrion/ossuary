@@ -106,7 +106,8 @@
       "light": {"sky": "#a8909c", "ground": "#2a1820", "moon": "#c8b0c0", "fill": 1.3},
       "grade": {"shadow": "#2d1f3d", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
       "materials": {"wood": "#4a3a36", "oak": "#5a463e", "oakDark": "#30242a", "iron": "#3a3440", "blackIron": "#221c26", "bronze": "#a0784a", "darkBronze": "#6a4a34", "bone": "#e0d0b8", "boneOld": "#b8a088", "skull": "#b0a090", "stone": "#7a6a68", "darkStone": "#3a2c34", "verdigris": "#8a9a70", "burlap": "#7a6250", "rope": "#a89070"},
-      "scatter": {"embers": 3, "stains": 3, "bones": 2, "pebbles": 3, "webs": 1}
+      "scatter": {"embers": 3, "stains": 3, "bones": 2, "pebbles": 3, "webs": 1, "relics": 1},
+      "relics": ["charred_beam", "toppled_brazier", "wax_mound", "brimstone_cluster", "scorched_bones", "slag_heap"]
     }
   },
   {
