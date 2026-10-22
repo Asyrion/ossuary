@@ -326,7 +326,7 @@ every fix; those for the spells hold on every floor.
 - **Pits, on every floor** (from the room inspection): a hole with a hard edge, the room's floor darkened in its depth and
   its inner wall under a lit lip along the far side (`CFG.surface.pit`); a soft black blur read as a blot, not a pit.
 
-### 4.21 Floor 3's items (2026-10-22, awaiting the owner)
+### 4.21 Floor 3's items (2026-10-22, accepted by the owner)
 
 A survey of every item on floor 3's red-brown floors with their orange cracks found what sank into them. Where a fix
 belongs to floor 3 alone it is in its look (`items` in data/floors.json, and its `materials`); the rest hold on every
@@ -343,7 +343,7 @@ floor and were checked on floors 1 and 2.
 - **Left as they are:** the indigo shape at the mage's heel is Fen-Nex (the Rune Fox at the heel, its starry tail
   long); the garden's slate-blue pool is the pools' (world/pools.ts).
 
-### 4.22 Fire, pools, steam and light on floor 3 (2026-10-22, awaiting the owner)
+### 4.22 Fire, pools, steam and light on floor 3 (2026-10-22, accepted by the owner)
 
 A survey of floor 3 (the burning crypt) found its fire and its soft glows lost in the floor's own ember cracks. The owner
 took every fix; the code is shared, so each holds on every floor.
@@ -364,6 +364,37 @@ took every fix; the code is shared, so each holds on every floor.
   golem's pale made body takes a third of the burn's tint and a softer hit flash, its wax running off in drips
   (`CFG.foeLook`); the rubble golem's falling stones warned by a warm ring two pixels thick that fills as the stone
   falls (`CFG.foeGround.fallWarn`).
+
+### 4.23 Floor 3 in the game: its rooms (2026-10-22, accepted by the owner)
+
+Floor 3, the burning crypt, in its palette (4.1: ember and charcoal, violet shadows, brimstone the accent): its floor
+and wall colours, a fill light of 1.3, the grade in its own shadow (`#2d1f3d`), the kit's materials in its ramps, and
+plain rooms strewn with embers, stains, bones, pebbles, cobwebs and a relic. The walkable floor's mean lightness is
+about 37 % (measured as in 4.9). Its six relics are made in Tripo (a charred beam, a toppled brazier, a wax mound, a
+brimstone cluster, scorched bones, a slag heap; the wax darkened), its bricks and charred beams are made faces
+(`docs/art/walls/burning-*.jpg`; its basalt stays drawn, since its seams glow and a picture's did not), its boss rooms
+lie on large calm charred slabs and its collapsed crypt on broken stones (made floor faces), and it has its own urn
+(charcoal clay with a brimstone band, painted, not lit) and bone altar (black basalt under a brimstone cloth).
+
+### 4.24 Floor 3's foes and bosses made in Tripo (2026-10-22, accepted by the owner)
+
+Eleven foes of floor 3 wear Tripo models moved whole by code (4.19), sized near their looks in code: the salamander,
+the magma ooze (its floor disc kept), the hex imp (its hex circle kept), the cinder hornets and their nest in the wall,
+the cinder djinn, the rime drake (its frost ring kept), the phoenix, the basilisk, and the salt and rubble golems (their
+torso the model, so a slam shows). The War-Tiger and the Twin Guardians, bosses of floors 3 and 4, wear models through
+`madeBosses.ts` as the Abbess and the Pyre Knight do, their fights' crouches, pounces and rearing carried onto the model;
+the tiger's frost circle, ring, halo and rime are kept, and its falling plates no longer show on the still model. The
+second guardian has its own model (a forked beard, a fan crest, cooler stone), as its look in code differs; a crouched
+guardian's eyes sit high on its face (`eye`). The salt golem and the tiger were darkened, the salamander, imp and djinn
+set larger than first made.
+
+### 4.25 Figures and spells on a dark warm floor (2026-10-22, accepted by the owner)
+
+From floor 3's survey: a made model's surface takes a `tint`, a `lift` and `hot` (4.19; the ember hornet, the
+basilisk, the rubble golem and the Pyre Knight, whose black cloak read as a hole: it is violet slate now, on floor 2
+too); every foe's telegraph and its shots' halos are drawn in hard bands; the Hex Bolt and the hex imp's shots a hot
+core in a deep violet sheath ringed in dark (4.15's rule); the Thorn Snare's brambles lit lime as the Living Wall's;
+the Lantern of Vigil larger and lit; the Wardlight's motes in Hallow's gold with a dark edge.
 
 ## 5. The reference pictures
 
