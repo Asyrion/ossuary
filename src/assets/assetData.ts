@@ -130,6 +130,8 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   urn_drowned: 'prop',
   bargain_stone_drowned: 'prop',
   altar_drowned: 'large-prop',
+  urn_burning: 'prop',
+  altar_burning: 'large-prop',
 };
 export const MANIFEST: Manifest = {
   props: raw.props,
