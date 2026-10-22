@@ -312,7 +312,7 @@ every fix; those for the spells hold on every floor.
   steam a stepped dither thinner round the mage; open shadows under flyers and a swimming newt; the Abbess darkened;
   the mire toad's gathering cold and the newt's spray shown.
 - **Items and rooms, from Tripo** (the owner's call: solve with Tripo what a model or a picture solves): floor 2's own
-  urn in warm clay with a lime band, its bargain stele of dark basalt veined in lime (its cap's pale texels recoloured to
+  urn in warm clay with a lime band (in its wall niches too, so a room shows one urn), its bargain stele of dark basalt veined in lime (its cap's pale texels recoloured to
   the basalt, the game's runes on its blank face), its bone altar under a cloth with a red hem (the code's candles kept,
   the blood runes gone under the cloth), all three by look name (`urn_<look>`); made floor faces (`floorFaces`,
   `tools/art/floortile.py`: the picture's steps of light, painted in the room's own floor colours) for the boss rooms
