@@ -8,7 +8,6 @@ import { DEV, G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorOwnedTexture, floorTexture } from '../render/textures';
-import { softenCanvas } from '../render/softEdge';
 import { pixelFloorTexture } from '../render/pixelTextures';
 import { M, blob, boxUV, cappedWallMaterials, disposeTree, glow, mergeStill, wallMaterials } from '../render/materials';
 import { tickFire } from '../render/fire';
@@ -433,7 +432,9 @@ export function addPit(room: Room, c: number, r: number, solid = true) {
   (room.pitTiles ??= []).push({ c, r });
   if (solid) room.pits.push({ x: p.x, z: p.z, hx: 0.5, hz: 0.5 });
 }
-/** The room's pits drawn: one dark shape over each stretch of pit tiles side by side, blurred at its rim. */
+/** The room's pits drawn as pixel art draws a hole: one shape over each stretch of pit tiles side by side, its edge cut
+    hard, its depth the room's floor darkened (never flat black, which read as a blot), and along its far side the
+    pit's inner wall in the room's stone under a lit lip, so it reads as deep (`CFG.surface.pit`). */
 function drawPits(room: Room) {
   const tiles = room.pitTiles ?? [],
     has = new Set(tiles.map((t) => t.c + ',' + t.r)),
@@ -471,8 +472,11 @@ function drawPits(room: Room) {
     cv.width = w * P;
     cv.height = h * P;
     const g = cv.getContext('2d', { willReadFrequently: true })!,
-      inReg = new Set(region.map((t) => t.c + ',' + t.r));
-    g.fillStyle = 'rgb(3,2,2)';
+      inReg = new Set(region.map((t) => t.c + ',' + t.r)),
+      S = CFG.surface.pit,
+      [b0, b1, b2] = room.look.floor.base,
+      rgb = (k: number, c: readonly number[]) => `rgb(${c.map((v) => Math.min(255, Math.round(v * k))).join(',')})`;
+    g.fillStyle = rgb(S.deep, [b0, b1, b2]);
     for (const t of region) {
       // a rounded square per tile, bridged to its neighbours: one hole with a soft rim
       const x = (t.c - c0 + 1) * P,
@@ -485,7 +489,24 @@ function drawPits(room: Room) {
       if (inReg.has(t.c + 1 + ',' + t.r) && inReg.has(t.c + ',' + (t.r + 1)) && inReg.has(t.c + 1 + ',' + (t.r + 1)))
         g.fillRect(x, y, P, P);
     }
-    softenCanvas(g, CFG.surface.pitBlur);
+    // the inner wall under the far lip: a band of the room's stone in two steps, its top edge lit, only inside the hole
+    g.globalCompositeOperation = 'source-atop';
+    for (const t of region) {
+      if (inReg.has(t.c + ',' + (t.r - 1))) continue;
+      const x = (t.c - c0 + 1) * P - P * 0.5,
+        y = (t.r - r0 + 1) * P - P * 0.46;
+      g.fillStyle = rgb(S.wall[1], [b0, b1, b2]);
+      g.fillRect(x, y, P, P * S.band);
+      g.fillStyle = rgb(S.wall[0], [b0, b1, b2]);
+      g.fillRect(x, y, P, P * S.band * 0.5);
+      g.fillStyle = rgb(S.lip, [b0, b1, b2]);
+      g.fillRect(x, y, P, 2);
+    }
+    g.globalCompositeOperation = 'source-over';
+    // the edge cut hard: each pixel in or out (pixel art has no soft rim)
+    const img = g.getImageData(0, 0, cv.width, cv.height);
+    for (let i = 3; i < img.data.length; i += 4) img.data[i] = img.data[i] > 127 ? 255 : 0;
+    g.putImageData(img, 0, 0);
     const R = mulberry(room.plan.seed ^ 0x9175);
     for (const t of region)
       for (const [dc, dr] of [

@@ -532,9 +532,9 @@ export const CFG = {
     boilSteam: 1.3,
     driveReach: 1,
     poolBlur: 6,
-    pitBlur: 4,
+    pit: { deep: 0.22, wall: [0.92, 0.66] as [number, number], lip: 1.2, band: 0.38 },
     shockRim: 2,
-  }, // (poolBlur, pitBlur: how round a pool's outline is (cut hard at half the blur) and how soft a pit's, in its canvas's pixels (32 a tile), softEdge.ts; shockRim: the width of a shocked pool's bright rim, in those pixels; jellyWade: walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
+  }, // (poolBlur: how round a pool's outline is (cut hard at half the blur), in its canvas's pixels (32 a tile), softEdge.ts; pit (world/rooms.ts drawPits): its depth the room's floor colour times `deep`, the inner wall under its far lip a `band` of a tile in the room's floor colour times `wall` (two steps), its lip times `lip`; shockRim: the width of a shocked pool's bright rim, in those pixels; jellyWade: walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
   // steam drawn as pixel art draws fog (magic/steam.ts): its puffs' fade times `dense`; where that is `solid` or more the
   // pixels are solid, from `checker` every other pixel, from `sparse` one in four, below it none; round the mage (within
   // `hole` units of it on screen) only `holeK` as thick, so the mage and the fight inside still read
