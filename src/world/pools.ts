@@ -17,6 +17,7 @@ import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { floorOwnedTexture } from '../render/textures';
 import { softenCanvas } from '../render/softEdge';
+import { FLAME_TONES, drawTongue, seeded } from '../render/pixelFire';
 import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict, overloadAt, tileReaction } from '../magic/statusFx';
@@ -43,8 +44,8 @@ const FIRE = 0xff7a2a,
 const LOOK = {
   water: { color: 0x2e5e6e, emissive: 0x16404e, roughness: 0.9, metalness: 0, opacity: 1 }, // (the floor's deep water: matt, so a torch's glint doesn't smear amber over it nor read as a wisp)
   frozen: { color: 0x6aa6d6, emissive: 0x1a4472, roughness: 0.5, metalness: 0, opacity: 1 }, // (blue ice: a near-white read as fog)
-  oil: { color: 0x3e3226, emissive: 0x4a3420, roughness: 0.55, metalness: 0.1, opacity: 1 }, // (dull brown, a little light of its own: black read as a pit, even in a dim room under a deep grade; a sharp glint as fire)
-  burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: 0.7, metalness: 0, opacity: 1 },
+  oil: { color: 0x3e3226, emissive: 0x4a3420, roughness: 1, metalness: 0, opacity: 1 }, // (dull brown, a little light of its own: black read as a pit, even in a dim room under a deep grade; matt, so a torch's glint doesn't smear over it as a soft blot)
+  burning: { color: 0x000000, emissive: 0xffffff, roughness: 1, metalness: 0, opacity: 1 }, // (its drawn flames, lit by themselves: burnTexture)
   mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: 0.42, metalness: 0.12, opacity: 1 }, // (drained by a sluice; brown and wet, never a pit's black)
   jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: 0.62, metalness: 0, opacity: 1 }, // (the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
   frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: 0.55, metalness: 0, opacity: 1 }, // (dull too: no torch glints)
@@ -65,7 +66,11 @@ function dress(p: Pool) {
               : LOOK.water
           : LOOK.oil;
   const surface =
-    p.state === 'frozen' ? (p.mat.userData.ice as THREE.Texture) : (p.mat.userData.detail as THREE.Texture); // ice is cracked, not rippled
+    p.state === 'frozen'
+      ? (p.mat.userData.ice as THREE.Texture) // ice is cracked, not rippled
+      : p.state === 'burning'
+        ? (p.mat.userData.burn as THREE.Texture[])[0]
+        : (p.mat.userData.detail as THREE.Texture);
   if (surface && p.mat.map !== surface) {
     p.mat.map = surface;
     p.mat.emissiveMap = surface;
@@ -343,6 +348,12 @@ function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
   });
   mat.userData.detail = detail;
   mat.userData.ice = ice;
+  mat.userData.burn = Array.from({ length: C.burnFrames }, (_, f) => {
+    const t = floorOwnedTexture(burnTexture(f).clone());
+    t.repeat.copy(detail.repeat);
+    t.needsUpdate = true;
+    return t;
+  });
   mat.userData.mask = { mask, w: cv.width, h: cv.height };
   const geo = new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
   const mesh = new THREE.Mesh(geo, mat);
@@ -387,101 +398,118 @@ function shockRim(room: Room, p: Pool) {
   return (p.rim = rim);
 }
 
-/** Grey swirls and ripples that tile: the surface of water and oil, and the patches of fire on burning oil. */
+/** A pixel texture that tiles, `CFG.surface.poolArt` pixels across two tiles (the kit's texel), drawn crisp. */
+function pixelTile(draw: (g: CanvasRenderingContext2D, N: number, dot: (x: number, y: number) => void) => void) {
+  const N = C.poolArt,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!,
+    dot = (x: number, y: number) => g.fillRect(((Math.round(x) % N) + N) % N, ((Math.round(y) % N) + N) % N, 1, 1); // (wrapped, so it tiles)
+  draw(g, N, dot);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+/** The surface of water and oil (art bible 4.20): one flat tone, a few short ripples a pixel thick a step lighter and
+    flecks a step darker, hard pixels; soft patches read as a blurred cloud. */
 let detailTex: THREE.CanvasTexture | null = null;
 function detailTexture() {
-  if (detailTex) return detailTex;
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const g = c.getContext('2d')!;
-  g.fillStyle = '#9a9a9a';
-  g.fillRect(0, 0, 128, 128);
-  let seed = 11;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 70; i++) {
-    // soft light and dark patches, wrapped at the edges so the texture tiles
-    const x = rnd() * 128,
-      y = rnd() * 128,
-      rad = 6 + rnd() * 22,
-      v = rnd() < 0.5 ? 255 : 40;
-    for (const [ox, oy] of [
-      [0, 0],
-      [128, 0],
-      [-128, 0],
-      [0, 128],
-      [0, -128],
-    ]) {
-      const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rad);
-      gr.addColorStop(0, `rgba(${v},${v},${v},.18)`);
-      gr.addColorStop(1, `rgba(${v},${v},${v},0)`);
-      g.fillStyle = gr;
-      g.fillRect(x + ox - rad, y + oy - rad, rad * 2, rad * 2);
+  return (detailTex ??= pixelTile((g, N, dot) => {
+    g.fillStyle = '#a0a0a0';
+    g.fillRect(0, 0, N, N);
+    const R = seeded(11);
+    g.fillStyle = '#c4c4c4';
+    for (let i = 0; i < 16; i++) {
+      // a ripple: a short flat arc, as the 45° camera squashes a ring
+      const x = R() * N,
+        y = R() * N,
+        w = 3 + Math.floor(R() * 5);
+      for (let k = -w; k <= w; k++) dot(x + k, y + (Math.abs(k) > w * 0.6 ? 1 : 0));
     }
-  }
-  g.strokeStyle = 'rgba(255,255,255,.22)';
-  g.lineWidth = 1.2; // ripples
-  for (let i = 0; i < 14; i++) {
-    const x = rnd() * 128,
-      y = rnd() * 128,
-      r = 4 + rnd() * 10;
-    g.beginPath();
-    g.arc(x, y, r, rnd() * 3, rnd() * 3 + 2);
-    g.stroke();
-  }
-  detailTex = new THREE.CanvasTexture(c);
-  detailTex.wrapS = detailTex.wrapT = THREE.RepeatWrapping;
-  detailTex.colorSpace = THREE.SRGBColorSpace;
-  return detailTex;
+    g.fillStyle = '#8a8a8a';
+    for (let i = 0; i < 22; i++) {
+      const x = R() * N,
+        y = R() * N;
+      dot(x, y);
+      if (R() < 0.5) dot(x + 1, y);
+    }
+  }));
+}
+/** Burning oil's surface in `CFG.surface.burnFrames` frames: charcoal crossed by ember cracks, tongues of flame standing
+    all over it (render/pixelFire.ts); drawn in its own colours and lit by itself (the pool's emissive). */
+const burnTex: THREE.CanvasTexture[] = [];
+function burnTexture(f: number) {
+  return (burnTex[f] ??= pixelTile((g, N, dot) => {
+    const tones = FLAME_TONES.fire,
+      R = seeded(31),
+      Rf = seeded(57 + f * 13);
+    g.fillStyle = '#5a2418';
+    g.fillRect(0, 0, N, N);
+    g.fillStyle = '#7a3018';
+    for (let i = 0; i < 260; i++) dot(R() * N, R() * N); // (a mottle of glowing char, not a black sheet)
+    for (let i = 0; i < 18; i++) {
+      // ember cracks: short jagged runs
+      let x = R() * N,
+        y = R() * N,
+        a = R() * Math.PI * 2;
+      g.fillStyle = R() < 0.5 ? tones[1] : tones[2];
+      for (let k = 0; k < 14; k++) {
+        dot(x, y);
+        a += (R() - 0.5) * 1.1;
+        x += Math.cos(a);
+        y += Math.sin(a) * 0.7;
+      }
+    }
+    const spots = Array.from({ length: 34 }, () => ({ x: 4 + R() * (N - 8), y: 16 + R() * (N - 20) })).sort(
+      (a, b) => a.y - b.y,
+    ); // (the far ones drawn first)
+    for (const s of spots)
+      drawTongue(
+        g,
+        s.x,
+        s.y,
+        3 + Math.floor(R() * 4),
+        Math.round((8 + R() * 8) * (0.7 + Rf() * 0.6)),
+        Rf() * 6,
+        tones,
+        Rf,
+      );
+  }));
 }
 
-const WRAP = [-128, 0, 128].flatMap((ox) => [-128, 0, 128].map((oy) => [ox, oy])); // draw across the edges, so a texture tiles
-/** Pale cracks that tile: the surface of frozen water. */
+/** Pale cracks that tile, a pixel thick: the surface of frozen water. */
 let iceTex: THREE.CanvasTexture | null = null;
 function iceTexture() {
-  if (iceTex) return iceTex;
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const g = c.getContext('2d')!;
-  g.fillStyle = '#8e8e8e';
-  g.fillRect(0, 0, 128, 128);
-  let seed = 23;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 40; i++) {
-    // frosted patches
-    const x = rnd() * 128,
-      y = rnd() * 128,
-      rad = 8 + rnd() * 20;
-    for (const [ox, oy] of WRAP) {
-      const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rad);
-      gr.addColorStop(0, 'rgba(255,255,255,.14)');
-      gr.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = gr;
-      g.fillRect(x + ox - rad, y + oy - rad, rad * 2, rad * 2);
+  return (iceTex ??= pixelTile((g, N, dot) => {
+    g.fillStyle = '#8e8e8e';
+    g.fillRect(0, 0, N, N);
+    const R = seeded(23);
+    g.fillStyle = '#9c9c9c';
+    for (let i = 0; i < 6; i++) {
+      // frosted patches: flat, a step lighter
+      const x = R() * N,
+        y = R() * N,
+        r = 4 + R() * 7;
+      for (let dy = -r; dy <= r; dy++)
+        for (let dx = -r; dx <= r; dx++) if (Math.hypot(dx, dy * 1.4) <= r) dot(x + dx, y + dy);
     }
-  }
-  g.strokeStyle = 'rgba(255,255,255,.65)';
-  g.lineWidth = 1.4; // cracks: short jagged runs, some branching
-  for (let i = 0; i < 16; i++) {
-    let x = rnd() * 128,
-      y = rnd() * 128,
-      a = rnd() * Math.PI * 2;
-    const pts = [[x, y]];
-    for (let k = 0; k < 5; k++) {
-      a += (rnd() - 0.5) * 1.2;
-      x += Math.cos(a) * (5 + rnd() * 8);
-      y += Math.sin(a) * (5 + rnd() * 8);
-      pts.push([x, y]);
+    g.fillStyle = '#d8d8d8';
+    for (let i = 0; i < 12; i++) {
+      // cracks: short jagged runs
+      let x = R() * N,
+        y = R() * N,
+        a = R() * Math.PI * 2;
+      for (let k = 0; k < 16; k++) {
+        dot(x, y);
+        a += (R() - 0.5) * 0.9;
+        x += Math.cos(a);
+        y += Math.sin(a);
+      }
     }
-    for (const [ox, oy] of WRAP) {
-      g.beginPath();
-      pts.forEach(([px, py], i) => (i ? g.lineTo(px + ox, py + oy) : g.moveTo(px + ox, py + oy)));
-      g.stroke();
-    }
-  }
-  iceTex = new THREE.CanvasTexture(c);
-  iceTex.wrapS = iceTex.wrapT = THREE.RepeatWrapping;
-  iceTex.colorSpace = THREE.SRGBColorSpace;
-  return iceTex;
+  }));
 }
 
 /* ---------- where things stand ---------- */
@@ -620,9 +648,13 @@ export function updatePools(dt: number, now: number, acting: boolean) {
   for (const p of room.pools) {
     if (p.state === 'spent') continue;
     glow.setHex(p.mat.userData.emissive as number);
-    if (p.state === 'burning')
-      p.mat.emissive.copy(glow).multiplyScalar(0.75 + Math.sin(now * 17 + p.tiles[0].x) * 0.15 + Math.random() * 0.1);
-    else if (p.charged > 0) p.mat.emissive.setHex(Math.random() < 0.5 ? 0x8a7a20 : 0x3a3410);
+    if (p.state === 'burning') {
+      // its flames lick in frames, not in a smooth throb of light
+      const frames = p.mat.userData.burn as THREE.Texture[],
+        n = frames.length,
+        f = frames[((Math.floor(now * C.burnFps + p.tiles[0].x) % n) + n) % n]; // (a room west of the start has tiles below 0)
+      if (p.mat.map !== f) p.mat.map = p.mat.emissiveMap = f;
+    } else if (p.charged > 0) p.mat.emissive.setHex(Math.random() < 0.5 ? 0x8a7a20 : 0x3a3410);
     if (p.rim) {
       // the shock's rim, flickering in two steps of storm light while it crackles
       p.rim.visible = p.charged > 0 && Math.floor(now * 20) % 4 !== 0;
@@ -630,7 +662,7 @@ export function updatePools(dt: number, now: number, acting: boolean) {
     }
     if (p.kind === 'water' && !(p.charged > 0))
       // (shimmering again once the shock is spent)
-      p.mat.emissive.copy(glow).multiplyScalar(1 + Math.sin(now * 2 + p.tiles[0].z) * 0.4);
+      p.mat.emissive.copy(glow).multiplyScalar(Math.sin(now * 2 + p.tiles[0].z) > 0.5 ? 1.3 : 1); // (in a step, not a smooth throb)
     if (!acting) continue;
     p.charged = Math.max(0, p.charged - dt);
     if (p.state === 'frozen' && (p.t -= dt) <= 0) {
@@ -647,7 +679,7 @@ export function updatePools(dt: number, now: number, acting: boolean) {
         0.12,
         t.z + (Math.random() - 0.5) * 0.8,
         Math.random() < 0.6 ? FIRE : EMBER,
-        0.4 + Math.random() * 0.35,
+        0.16 + Math.random() * 0.12, // (sparks off the drawn flames: a large glow read as a soft blot)
       );
     }
     if ((p.tick -= dt) <= 0) {

@@ -226,6 +226,26 @@ export const CFG = {
     wallOpen: 2.6,
     wallApart: 2.2,
   },
+  // how some foes look in a moment of their fight (actors/bestiaryFloor3.ts, art bible 4.21): a fallen phoenix's ashes,
+  // lumps [x, z, size] in grey ash tones (pale to dark) with `specks` of ember `speck` across; a burning salt golem's wax
+  // running: drips a second, its colours, and the share of the burn's tint its pale made body takes (enemies.ts)
+  foeLook: {
+    ashes: {
+      lumps: [
+        [0, 0, 0.32],
+        [0.24, 0.12, 0.22],
+        [-0.23, 0.1, 0.21],
+        [0.05, -0.2, 0.2],
+        [-0.08, 0.26, 0.17],
+      ] as readonly [number, number, number][],
+      ash: [0x8a8288, 0x6a6068, 0x4e444e] as readonly number[],
+      embers: [0xff6a20, 0xf0e070, 0xc83a14] as readonly number[],
+      specks: 12,
+      speck: 0.06,
+    },
+    wax: { drips: 14, size: 0.06, colors: [0xf4e8cc, 0xe8b060, 0xd88a30] as readonly number[] },
+    tintK: { saltGolem: 0.3 } as Partial<Record<string, number>>,
+  },
   /** The curve: a floor leans its library to a school its foes are weak to when that many of them are (`lean`), and
       walls off a school when that many resist or drink it (`wall`, its banner's line); a hex's debt lasts `hexDebt` s. */
   curve: {
@@ -250,6 +270,13 @@ export const CFG = {
     steer: [0.7, -0.7, 1.4, -1.4],
     sparkArt: 26, // (a spark on the floor drawn as a cross this many pixels across: actors/foes.ts)
     rimeArt: 40, // (a rime snail's patch of rime drawn this many pixels across: actors/bestiaryGround.ts)
+    // burning ground as pixel art (actors/foes.ts, art bible 4.21): a patch `size` units across drawn `art` pixels across
+    // (the texel at that size), a charcoal scorch shaded toward the floor's shadow colour (`scorch`, turned `scorchShade`
+    // toward it) under flame tongues in `frames` frames a patch, `fps` a second, each patch on its own frame
+    fire: { size: 0.75, art: 36, frames: 3, fps: 9, scorch: 0x1a0e0a, scorchShade: 0.45 },
+    // the rubble golem's falling stone: its warning on the floor, a ring `ring` pixels thick in a warm accent that fills
+    // from the middle as the stone falls (actors/bestiaryGround.ts fallOn)
+    fallWarn: { art: 32, ring: 2, color: 0xf0b040, fill: 0.55 },
   },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
   foeWay: { turns: [0.6, 1.1, 1.6] },
@@ -535,11 +562,26 @@ export const CFG = {
     poolBlur: 6,
     pit: { deep: 0.22, wall: [0.92, 0.66] as [number, number], lip: 1.2, band: 0.38 },
     shockRim: 2,
+    poolArt: 96, // (a pool's surface drawn this many pixels across two tiles, the kit's texel: world/pools.ts pixelTile)
+    burnFrames: 3, // (burning oil's flames in this many frames, `burnFps` a second)
+    burnFps: 8,
   }, // (poolBlur: how round a pool's outline is (cut hard at half the blur), in its canvas's pixels (32 a tile), softEdge.ts; pit (world/rooms.ts drawPits): its depth the room's floor colour times `deep`, the inner wall under its far lip a `band` of a tile in the room's floor colour times `wall` (two steps), its lip times `lip`; shockRim: the width of a shocked pool's bright rim, in those pixels; jellyWade: walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
   // steam drawn as pixel art draws fog (magic/steam.ts): its puffs' fade times `dense`; where that is `solid` or more the
   // pixels are solid, from `checker` every other pixel, from `sparse` one in four, below it none; round the mage (within
   // `hole` units of it on screen) only `holeK` as thick, so the mage and the fight inside still read
-  steamLook: { dense: 1.2, solid: 0.42, checker: 0.26, sparse: 0.12, hole: 0.75, holeK: 0.4 },
+  steamLook: {
+    dense: 1.2,
+    solid: 0.42,
+    checker: 0.26,
+    sparse: 0.12,
+    hole: 0.75,
+    holeK: 0.4,
+    edge: 0.85,
+    fog: 0.4,
+    shade: 0.05,
+  },
+  // (edge: the cloud is clipped to a round shape this many times its radius on screen, so its dither never runs out to its
+  // puffs' square ends; fog: a fog of darkness, dithered as steam is, never denser than a checker of this thickness up)
   // the rooms' objects (world/props.ts): how long each flammable one burns (seconds), how often burning spreads
   // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
@@ -641,6 +683,8 @@ export const CFG = {
   // a foe's shield (the foe's blows it drinks, as damage); where the Wardling rises beside a foe whose shield broke
   ward: { reach: 4, need: 60, foeNeed: 60, beside: 1.2 },
   themes: {
+    shaftLight: 0.12, // (a shaft of daylight through a broken ceiling: how much light its flat band adds, world/themes.ts)
+    shaftPool: 0.22, // (and the pool of light it lays on the floor)
     wakeReach: 2.6,
     riseAfter: 10,
     riseEvery: 6,
@@ -827,6 +871,13 @@ export const CFG = {
     bands: 7,
     glowSteps: 5,
     shadowSteps: 3,
+    // a boss's halo as a pool of light on the floor under it (actors/bosses.ts haloOnFloor): this share of the halo's
+    // size across, in `poolSteps` flat steps (render/textures.ts lightPoolTex)
+    haloPool: 0.8,
+    poolSteps: 3,
+    // a patch of moss, a stain, the daylight's pale disc (world/themes.ts blotch): drawn `art` pixels across, its
+    // lumps held in `steps` flat steps with a hard edge
+    blotch: { art: 32, steps: 3 },
     openShadow: 0.55, // (the blob under a made boss, whose dark middle shows between its legs, and under a flyer: render/materials.ts)
     openSteps: [0.62, 0.62, 0.62, 0.45, 0.25] as readonly number[], // (that blob's alpha in rings from the middle out: flat, no dark dot)
     fineLayer: 2,

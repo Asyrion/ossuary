@@ -87,6 +87,17 @@ export function bandsTex(rings: readonly (readonly [number, number])[]) {
 /** A puff of fog in hard bands (a miasma, a thrown Shadowstep Tincture's darkness): full inside `fogCore` of its radius,
     half outside, so where puffs overlap they make hard steps rather than a blur (art bible 3: no soft alpha). */
 export const fogTex = stepped('255,255,255', (d) => (d < CFG.pixelLook.fogCore ? 1 : 0.5), 2);
+/** A pool of light on the floor (a boss's halo): round, in `CFG.pixelLook.poolSteps` flat steps, brightest in the
+    middle and gone at its rim, never a square. */
+export const lightPoolTex = stepped(
+  '255,255,255',
+  fade([
+    [0, 0.8],
+    [0.45, 0.5],
+    [1, 0],
+  ]),
+  CFG.pixelLook.poolSteps,
+);
 export const shadowTex = stepped(
   '0,0,0',
   fade([

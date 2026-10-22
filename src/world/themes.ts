@@ -31,6 +31,8 @@ import { PX, PZ } from './dims';
 import { SIDE_DIR, cellHalfExtents } from './shapes';
 import { mesh, tone } from './kitParts';
 import { waxFor } from './fireLooks';
+import { seeded } from '../render/pixelFire';
+import { lightPoolTex } from '../render/textures';
 
 const C = CFG.themes;
 /** The ice a frozen mausoleum's foes wait in. */
@@ -88,7 +90,7 @@ const GEO = {
   lamp: shared(new THREE.CylinderGeometry(0.07, 0.06, 0.16, 6)),
   cap: shared(new THREE.ConeGeometry(0.09, 0.08, 6)),
   patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)),
-  shaft: shared(new THREE.CylinderGeometry(0.5, 0.75, 6, 12, 1, true)),
+  shaft: shared(new THREE.PlaneGeometry(1.3, 6)), // (one flat band facing the camera: an open cylinder's two faces overlapped into a soft lit box)
   rope: shared(new THREE.CylinderGeometry(0.02, 0.02, 3.2, 4)),
   tuft: shared(new THREE.ConeGeometry(0.05, 0.16, 6)),
 };
@@ -101,23 +103,31 @@ const FLOWER = {
   colours: () => [KC.petal, KC.petalPale, KC.heart, KC.bloomViolet],
 };
 let patchTex: THREE.CanvasTexture | null = null;
-/** A soft round blotch, for moss and stains. */
+/** A round blotch, for moss and stains and the daylight's pale disc: lumps of it summed, then held in a few flat steps with
+    a hard edge, drawn crisp (an alpha map reads its grey levels): a soft blur read as a smudge on the floor. */
 function blotch() {
   if (patchTex) return patchTex;
-  const c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const g = c.getContext('2d')!;
-  for (let i = 0; i < 9; i++) {
-    const x = 16 + Math.random() * 32,
-      y = 16 + Math.random() * 32,
-      r = 8 + Math.random() * 14,
-      gr = g.createRadialGradient(x, y, 0, x, y, r);
-    gr.addColorStop(0, 'rgba(255,255,255,.7)');
-    gr.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = gr;
-    g.fillRect(0, 0, 64, 64);
-  }
+  const N = CFG.pixelLook.blotch.art,
+    steps = CFG.pixelLook.blotch.steps,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!,
+    img = g.createImageData(N, N),
+    R = seeded(17),
+    lumps = Array.from({ length: 9 }, () => [N * (0.25 + R() * 0.5), N * (0.25 + R() * 0.5), N * (0.12 + R() * 0.22)]);
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      let a = 0;
+      for (const [lx, ly, r] of lumps) a += 0.7 * Math.max(0, 1 - Math.hypot(x + 0.5 - lx, y + 0.5 - ly) / r);
+      const v = a < 0.25 ? 0 : Math.min(1, Math.ceil(Math.min(1, a) * steps) / steps),
+        k = (y * N + x) * 4;
+      img.data.fill(Math.round(v * 255), k, k + 3);
+      img.data[k + 3] = 255;
+    }
+  g.putImageData(img, 0, 0);
   patchTex = new THREE.CanvasTexture(c);
+  patchTex.magFilter = patchTex.minFilter = THREE.NearestFilter;
+  patchTex.generateMipmaps = false;
   return patchTex;
 }
 let rimeKept: THREE.Material | null = null;
@@ -180,23 +190,37 @@ const patchMat = (color: number, glowing = false, opacity = 0.8) => {
   return m;
 };
 let shaftMat: THREE.Material | null = null,
-  fadeTex: THREE.CanvasTexture | null = null;
-/** Bright below, fading to nothing above: the daylight's shaft has no top edge to see. */
-function fadeUp() {
-  if (fadeTex) return fadeTex;
+  discMat: THREE.Material | null = null,
+  fadeTex: THREE.CanvasTexture | null = null,
+  shaftTex: THREE.CanvasTexture | null = null;
+const FADE_BANDS = [
+  [0, 22, 0],
+  [22, 36, 0.25],
+  [36, 50, 0.55],
+  [50, 64, 1],
+] as const;
+/** Bright below, fading to nothing above in flat bands (as pixel art fades); `sides`: its outer columns half as bright,
+    so a flat shaft of light has a stepped edge. Grey levels: an alpha map reads them, not the canvas's own alpha; its top
+    is the mesh's top. */
+function bandsUp(sides: boolean) {
   const c = document.createElement('canvas');
-  c.width = 4;
+  c.width = sides ? 8 : 4;
   c.height = 64;
-  const g = c.getContext('2d')!,
-    gr = g.createLinearGradient(0, 0, 0, 64);
-  gr.addColorStop(0, '#000');
-  gr.addColorStop(0.3, '#000');
-  gr.addColorStop(0.7, '#8c8c8c');
-  gr.addColorStop(1, '#fff');
-  g.fillStyle = gr;
-  g.fillRect(0, 0, 4, 64); // (grey levels: an alpha map reads them, not the canvas's own alpha; its top is the cylinder's top)
-  fadeTex = new THREE.CanvasTexture(c);
-  return fadeTex;
+  const g = c.getContext('2d')!;
+  for (const [y0, y1, v] of FADE_BANDS)
+    for (let x = 0; x < c.width; x++) {
+      const k = sides && (x < 2 || x > 5) ? v * 0.5 : v;
+      g.fillStyle = `rgb(${k * 255},${k * 255},${k * 255})`;
+      g.fillRect(x, y0, 1, y1 - y0);
+    }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+/** A rope's fade into the dark above. */
+function fadeUp() {
+  return (fadeTex ??= bandsUp(false));
 }
 const ropeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, roughness: 1 }));
 let ropeFade: THREE.Material | null = null; // a rope fading into the dark above
@@ -344,9 +368,9 @@ const DRESS: Record<ScatterKind, Dress> = {
     shaftMat ??= markShared(
       new THREE.MeshBasicMaterial({
         color: 0xfff2c8,
-        alphaMap: fadeUp(),
+        alphaMap: (shaftTex ??= bandsUp(true)),
         transparent: true,
-        opacity: 0.09,
+        opacity: C.shaftLight,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
         side: THREE.DoubleSide,
@@ -356,7 +380,17 @@ const DRESS: Record<ScatterKind, Dress> = {
       s = new THREE.Mesh(GEO.shaft, shaftMat);
     s.position.y = 3;
     g.add(s);
-    const disc = new THREE.Mesh(GEO.patch, patchMat(0xfff0c0, true, 0.16));
+    discMat ??= markShared(
+      new THREE.MeshBasicMaterial({
+        color: 0xfff0c0,
+        map: lightPoolTex,
+        transparent: true,
+        opacity: C.shaftPool,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    ); // (a round pool of light in flat steps, as the torches' and the bosses' are)
+    const disc = new THREE.Mesh(GEO.patch, discMat);
     disc.scale.setScalar(1.6);
     disc.position.y = 0.006;
     g.add(disc);

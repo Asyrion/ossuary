@@ -292,6 +292,7 @@ interface Lob {
   m: THREE.Object3D;
   land: (x: number, z: number) => void;
   fall?: boolean;
+  /** Where a falling stone lands, marked on the floor (fallWarn). */ warn?: THREE.Group;
 }
 const lobs: Lob[] = [];
 const lobGeo = markShared(new THREE.SphereGeometry(0.11, 8, 6)),
@@ -321,11 +322,95 @@ export function lob(
 /** A stone dropped from `h` up onto (x, z), landing after `dur` seconds (a rubble golem's slam brings the roof down). */
 const stoneGeo = markShared(new THREE.DodecahedronGeometry(0.26, 0)),
   stoneMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a645c, roughness: 0.95, flatShading: true }));
-export function fallOn(room: Room, x: number, z: number, dur: number, land: (x: number, z: number) => void, h = 4) {
+export function fallOn(
+  room: Room,
+  x: number,
+  z: number,
+  dur: number,
+  land: (x: number, z: number) => void,
+  h = 4,
+  warnR = 0,
+) {
   const m = new THREE.Mesh(stoneGeo, stoneMat);
   m.rotation.set(Math.random() * 3, Math.random() * 3, 0);
   scene.add(m);
-  lobs.push({ room, fx: x, fz: z, tx: x, tz: z, t: 0, dur, h, m, land, fall: true });
+  lobs.push({
+    room,
+    fx: x,
+    fz: z,
+    tx: x,
+    tz: z,
+    t: 0,
+    dur,
+    h,
+    m,
+    land,
+    fall: true,
+    warn: warnR ? fallWarn(x, z, warnR) : undefined,
+  });
+}
+/** Where a stone will land, `r` round (x, z): a ring two pixels thick in a warm accent, drawn at the texel as the camera
+    sees a circle on the floor, and inside it a disc of the same light that grows from the middle to the ring as the stone
+    falls (`CFG.foeGround.fallWarn`): a faint grey circle a pixel thin was lost on a dark floor. */
+const warnTex = new Map<string, THREE.CanvasTexture>();
+function warnTexture(w: number, h: number, ring: boolean) {
+  const key = `${w}x${h}${ring ? 'r' : 'd'}`;
+  let t = warnTex.get(key);
+  if (t) return t;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const g = c.getContext('2d')!,
+    img = g.createImageData(w, h),
+    th = CFG.foeGround.fallWarn.ring;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const rx = w / 2,
+        ry = h / 2,
+        d = Math.hypot((x + 0.5 - rx) / rx, (y + 0.5 - ry) / ry),
+        dIn = Math.hypot((x + 0.5 - rx) / (rx - th), (y + 0.5 - ry) / (ry - th));
+      if (d > 1 || (ring && dIn <= 1)) continue;
+      img.data.fill(255, (y * w + x) * 4, (y * w + x) * 4 + 4);
+    }
+  g.putImageData(img, 0, 0);
+  t = new THREE.CanvasTexture(c);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  warnTex.set(key, t);
+  return t;
+}
+function dropWarn(g: THREE.Group) {
+  scene.remove(g);
+  for (const m of g.children) ((m as THREE.Mesh).material as THREE.Material).dispose();
+}
+const warnGeo = markShared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2));
+function fallWarn(x: number, z: number, r: number) {
+  const W = CFG.foeGround.fallWarn,
+    [tx, tz] = CFG.roomKit.texel,
+    w = Math.round(2 * r * tx),
+    h = Math.round(2 * r * tz),
+    col = new THREE.Color(W.color),
+    g = new THREE.Group(),
+    mat = (ring: boolean) =>
+      new THREE.MeshBasicMaterial({
+        color: ring ? col : col.clone().multiplyScalar(W.fill),
+        alphaMap: warnTexture(w, h, ring),
+        transparent: true,
+        alphaTest: 0.5,
+        depthWrite: false,
+      });
+  const fill = new THREE.Mesh(warnGeo, mat(false)),
+    ring = new THREE.Mesh(warnGeo, mat(true));
+  fill.position.y = 0.035;
+  ring.position.y = 0.04;
+  fill.scale.setScalar(0.001);
+  ring.scale.set(2 * r, 1, 2 * r);
+  fill.renderOrder = ring.renderOrder = 2;
+  g.add(fill, ring);
+  g.position.set(x, 0, z);
+  g.userData.r = r;
+  scene.add(g);
+  return g;
 }
 
 const m4 = new THREE.Matrix4(),
@@ -376,8 +461,15 @@ export function updateGround(dt: number) {
       l.fall ? 0.25 + l.h * (1 - k * k) : 0.4 + Math.sin(k * Math.PI) * l.h,
       l.fz + (l.tz - l.fz) * k,
     );
+    if (l.warn) {
+      // the warning fills in steps of a quarter as the stone comes down
+      const r = l.warn.userData.r as number,
+        f = Math.max(0.25, Math.ceil(k * 4) / 4) * 2 * r;
+      l.warn.children[0].scale.set(f, 1, f);
+    }
     if (k < 1 && l.room === G.room.current) continue;
     scene.remove(l.m);
+    if (l.warn) dropWarn(l.warn);
     lobs.splice(i, 1);
     if (l.room === G.room.current) l.land(l.tx, l.tz);
   }
@@ -386,7 +478,10 @@ export function updateGround(dt: number) {
 export function clearGround() {
   patches.length = 0;
   for (const m of Object.values(meshes)) if (m) m.count = 0;
-  for (const l of lobs) scene.remove(l.m);
+  for (const l of lobs) {
+    scene.remove(l.m);
+    if (l.warn) dropWarn(l.warn);
+  }
   lobs.length = 0;
   for (const s of spikes) scene.remove(s.m);
   spikes.length = 0;

@@ -50,6 +50,8 @@ import { buildTwin, updateTwin } from './twinGuardians';
 import { buildSerpent, serpentMoved, updateSerpent } from './jellySerpent';
 import { buildKaelith, updateKaelith } from './kaelith';
 import { SCHOOL_LIGHT, runeRing, shine } from '../render/arcane';
+import { markShared } from '../render/materials';
+import { lightPoolTex } from '../render/textures';
 import { ease, lerp } from '../util';
 import { actAs } from './acting';
 
@@ -82,12 +84,45 @@ function floorRing(e: Enemy, color: number, radius: number) {
   return ring;
 }
 
+/** A boss's halo laid on the floor under it as a round pool of light in steps (`lightPoolTex`), in the halo's colour and
+    brightening as the halo did: a glow standing up behind it cut into the floor and the back wall and read as a soft lit
+    box. The fights keep setting its opacity and colour as before. */
+const poolGeo = markShared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2));
+function haloOnFloor(e: Enemy) {
+  const s = e.halo;
+  if (!s || !(s as THREE.Sprite).isSprite) return;
+  const old = (s as THREE.Sprite).material,
+    pool = new THREE.Mesh(
+      poolGeo,
+      new THREE.MeshBasicMaterial({
+        map: lightPoolTex,
+        color: old.color,
+        opacity: old.opacity,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+  pool.scale.setScalar(s.scale.x * CFG.pixelLook.haloPool);
+  pool.position.y = 0.03;
+  pool.renderOrder = 1;
+  e.group.add(pool);
+  s.removeFromParent();
+  old.dispose();
+  e.halo = pool;
+  if (e.parts?.halo === s) e.parts.halo = pool;
+}
+
 /** Build a boss's body and set its first state. */
+export function buildBoss(e: Enemy) {
+  buildBossBody(e);
+  haloOnFloor(e);
+}
 /** The Warden's circle of runes on the floor, by Warden. */
 const wardenFloor = new WeakMap<Enemy, { floor: THREE.Object3D; mat: THREE.MeshBasicMaterial }>();
 /** How long the Warden winds up before each attack (seconds): its burst, its aimed volley. */
 const WIND_UP = CFG.enemy.warden.windUp;
-export function buildBoss(e: Enemy) {
+function buildBossBody(e: Enemy) {
   e.contact = 2;
   e.isBoss = true;
   e.cycle = 0;

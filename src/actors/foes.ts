@@ -37,7 +37,8 @@ import { SCHOOL_LIGHT } from '../render/arcane';
 import { mergeRig } from '../render/rig';
 import { bandGlow, glow } from '../render/materials';
 import { scene } from '../render/renderer';
-import { glowTex } from '../render/textures';
+import { floorShade, gradeNow } from '../render/pixelLook';
+import { FLAME_TONES, drawTongue, seeded } from '../render/pixelFire';
 import { burst } from '../combat/fx';
 import { spawnShot } from '../combat/projectiles';
 import { actAs, actingKind } from './acting';
@@ -221,6 +222,7 @@ const hazards: {
   t: number;
   life: number;
   kind: HazardKind;
+  /** Looks only: where its flames start in their frames, and how its scorch lies. */ look: number;
   armed?: boolean;
   by?: string;
   /** How hard a spark stings a foe standing in it (Spark Wake's; else `CFG.foeGround.sparkDamage`). */ sting?: number;
@@ -264,21 +266,123 @@ function sparkTexture() {
   t.generateMipmaps = false;
   return t;
 }
+/** Burning ground's flames as pixel art (`CFG.foeGround.fire`): `frames` frames side by side, each a bed of embers and a
+    few tongues of flame (render/pixelFire.ts); hard-edged, so it reads as fire, not as a soft glow in the floor's own
+    ember hue. Blackfire's in violet. Made once a kind. */
+function flameTexture(kind: 'fire' | 'blackfire') {
+  const F = CFG.foeGround.fire,
+    N = F.art,
+    c = document.createElement('canvas');
+  c.width = N * F.frames;
+  c.height = N;
+  const g = c.getContext('2d')!,
+    tones = FLAME_TONES[kind],
+    R = seeded(kind === 'fire' ? 5 : 9);
+  // (the tongues' places are the same each frame; their height and sway change, so they lick rather than jump)
+  const tongues = Array.from({ length: 5 }, (_, i) => ({
+    x: N * (0.22 + i * 0.14 + (R() - 0.5) * 0.06),
+    y: N * (0.58 + R() * 0.16),
+    w: 3 + Math.floor(R() * 3),
+    h: N * (0.2 + R() * 0.16),
+  })).sort((a, b) => a.y - b.y); // (the far ones drawn first)
+  for (let f = 0; f < F.frames; f++) {
+    const ox = f * N;
+    // the bed of embers: hot pixels scattered over the middle of the scorch
+    for (let k = 0; k < 26; k++) {
+      const a = R() * Math.PI * 2,
+        d = Math.sqrt(R()) * N * 0.3;
+      g.fillStyle = R() < 0.25 ? tones[3] : R() < 0.6 ? tones[2] : tones[1];
+      g.fillRect(Math.round(ox + N / 2 + Math.cos(a) * d), Math.round(N * 0.62 + Math.sin(a) * d * 0.55), 1, 1);
+    }
+    for (const t of tongues) drawTongue(g, ox + t.x, t.y, t.w, Math.round(t.h * (0.7 + R() * 0.5)), R() * 6, tones, R);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+/** The charcoal scorch under burning ground: a ragged disc in pixels, with paler ash flecks (drawn white and grey, tinted
+    at the floor's shadow colour: `floorShade`). Made once. */
+function scorchTexture() {
+  const N = CFG.foeGround.fire.art,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!,
+    img = g.createImageData(N, N);
+  const R = seeded(3),
+    lobes = Array.from({ length: 5 }, () => [R() * 6, 0.05 + R() * 0.06]);
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const dx = x + 0.5 - N / 2,
+        dy = y + 0.5 - N / 2,
+        a = Math.atan2(dy, dx),
+        rim = 0.42 + lobes.reduce((k, [p, w], i) => k + Math.sin(a * (i + 2) + p) * w * 0.5, 0),
+        d = Math.hypot(dx, dy) / N;
+      if (d > rim) continue;
+      const v = d > rim - 0.05 ? 170 : R() < 0.06 ? 150 : 255, // (a paler ragged rim, and flecks of ash)
+        k = (y * N + x) * 4;
+      img.data.fill(v, k, k + 3);
+      img.data[k + 3] = 255;
+    }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+/** Each burning kind's scorch, drawn under its flames (one instanced mesh a kind). */
+const hazardScorch: Record<'fire' | 'blackfire', THREE.InstancedMesh | null> = { fire: null, blackfire: null };
+let scorchFor = '';
+function scorchMesh(kind: 'fire' | 'blackfire') {
+  const F = CFG.foeGround.fire;
+  let mesh = hazardScorch[kind];
+  if (!mesh) {
+    mesh = new THREE.InstancedMesh(
+      new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ map: scorchTexture(), transparent: true, alphaTest: 0.5, depthWrite: false }),
+      MAX_HAZARDS,
+    );
+    mesh.count = 0;
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 1;
+    scene.add(mesh);
+    hazardScorch[kind] = mesh;
+  }
+  const grade = JSON.stringify(gradeNow());
+  if (scorchFor !== grade + kind) {
+    // (a shadow in the floor's own shadow colour, never a pit's black: re-tinted when the floor's grade changes)
+    scorchFor = grade + kind;
+    for (const m of Object.values(hazardScorch))
+      if (m) (m.material as THREE.MeshBasicMaterial).color.copy(floorShade(F.scorch, F.scorchShade));
+  }
+  return mesh;
+}
 function hazardMesh(kind: HazardKind) {
   const had = hazardGlow[kind];
   if (had) return had;
   const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
+    F = CFG.foeGround.fire,
     mat =
       kind === 'spark'
         ? new THREE.MeshBasicMaterial({ map: sparkTexture(), transparent: true, alphaTest: 0.5, depthWrite: false }) // (drawn, not added: added storm light came out a pale wash)
         : new THREE.MeshBasicMaterial({
-            map: glowTex,
-            color: kind === 'fire' ? 0xff6a20 : kind === 'blackfire' ? 0x9a4aff : SCHOOL_LIGHT.storm,
+            map: flameTexture(kind),
             transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending,
+            alphaTest: 0.5,
             depthWrite: false,
           });
+  if (kind !== 'spark') {
+    // each patch on a frame of its own (`aFrame`), so a field of them licks unevenly
+    geo.setAttribute('aFrame', new THREE.InstancedBufferAttribute(new Float32Array(MAX_HAZARDS), 1));
+    mat.onBeforeCompile = (sh) => {
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute float aFrame;')
+        .replace('#include <uv_vertex>', `#include <uv_vertex>\nvMapUv.x = (vMapUv.x + aFrame) / ${F.frames}.0;`);
+    };
+    mat.customProgramCacheKey = () => 'flameFrames' + F.frames;
+  }
   const mesh = new THREE.InstancedMesh(geo, mat, MAX_HAZARDS);
   mesh.count = 0;
   mesh.frustumCulled = false;
@@ -289,7 +393,7 @@ function hazardMesh(kind: HazardKind) {
 function lay(room: Room, x: number, z: number, time: number, kind: HazardKind, by = actingKind(), sting?: number) {
   const mine = hazards.filter((h) => h.kind === kind);
   if (mine.length >= MAX_HAZARDS) hazards.splice(hazards.indexOf(mine[0]), 1);
-  hazards.push({ room, x, z, t: time, life: time, kind, by, sting });
+  hazards.push({ room, x, z, t: time, life: time, kind, by, sting, look: Math.random() });
 }
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
@@ -363,6 +467,8 @@ export function hazardAt(x: number, z: number, who?: string): HazardKind | undef
 }
 const m4 = new THREE.Matrix4(),
   q0 = new THREE.Quaternion(),
+  q1 = new THREE.Quaternion(),
+  UP = new THREE.Vector3(0, 1, 0),
   v3 = new THREE.Vector3(),
   s3 = new THREE.Vector3();
 /** The foes round a fawn this step (reused, not made anew every frame). */
@@ -387,7 +493,7 @@ export function updateFoeHazards(dt: number) {
           h.x + (Math.random() - 0.5) * 0.3,
           h.z + (Math.random() - 0.5) * 0.3,
           black ? (Math.random() < 0.6 ? 0xb070ff : 0x2a0a4a) : Math.random() < 0.6 ? 0xff7a2a : 0xffc060,
-          0.3 + Math.random() * 0.2,
+          0.14 + Math.random() * 0.1, // (sparks rising off the drawn flames, small: a large glow read as a soft blob)
         );
       if (near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (the Pyromancer's own embers spare them)
     } else {
@@ -410,23 +516,44 @@ export function updateFoeHazards(dt: number) {
     }
   }
   if (!hazards.length && !hazardGlow.fire?.count && !hazardGlow.spark?.count && !hazardGlow.blackfire?.count) return; // (none to draw)
+  const [tx, tz] = CFG.roomKit.texel,
+    F = CFG.foeGround.fire;
   for (const kind of ['fire', 'spark', 'blackfire'] as const) {
     const list = hazards.filter((h) => h.kind === kind);
     if (!list.length && !hazardGlow[kind]?.count) continue;
     const mesh = hazardMesh(kind);
-    const [tx, tz] = CFG.roomKit.texel,
-      art = CFG.foeGround.sparkArt;
-    list.forEach((h, i) => {
-      if (kind === 'spark') {
+    if (kind === 'spark') {
+      const art = CFG.foeGround.sparkArt;
+      list.forEach((h, i) => {
         // a cross a texel a pixel (stretched down the floor as the camera squashes it): small while it crackles, full
         // once armed, flickering in a step rather than pulsing smooth, and small again as it goes out
         const k = (h.armed ? (Math.floor(G.flow.clock * 14 + i * 5) % 3 ? 1 : 0.7) : 0.6) * (h.t > 0.25 ? 1 : 0.6);
         mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.set((art / tx) * k, 1, (art / tz) * k)));
-        return;
-      }
-      const k = Math.min(1, h.t / 0.4) * (0.85 + Math.sin(G.flow.clock * 11 + i) * 0.15);
-      mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.setScalar(0.75 * k)));
-    });
+      });
+    } else {
+      // a scorch a texel a pixel under flame tongues on their own frame each, lower in a step as the fire dies
+      const scorch = scorchMesh(kind),
+        frame = mesh.geometry.getAttribute('aFrame') as THREE.InstancedBufferAttribute,
+        w = F.art / tx,
+        d = F.art / tz,
+        tick = Math.floor(G.flow.clock * F.fps);
+      list.forEach((h, i) => {
+        const k = h.t > 0.5 ? 1 : 0.7;
+        scorch.setMatrixAt(
+          i,
+          m4.compose(
+            v3.set(h.x, 0.035, h.z),
+            q1.setFromAxisAngle(UP, Math.round(h.look * 4) * (Math.PI / 2)),
+            s3.set(w, 1, d),
+          ),
+        );
+        mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.set(w * k, 1, d * k)));
+        frame.setX(i, (tick + Math.floor(h.look * F.frames)) % F.frames);
+      });
+      scorch.count = list.length;
+      scorch.instanceMatrix.needsUpdate = true;
+      frame.needsUpdate = true;
+    }
     mesh.count = list.length;
     mesh.instanceMatrix.needsUpdate = true;
   }
@@ -435,6 +562,7 @@ export function updateFoeHazards(dt: number) {
 export function clearFoeHazards() {
   hazards.length = 0;
   for (const m of Object.values(hazardGlow)) if (m) m.count = 0;
+  for (const m of Object.values(hazardScorch)) if (m) m.count = 0;
   clearGround();
 }
 /** The burning ground and the sparks in the current room (tests). */

@@ -29,6 +29,8 @@ import { groundHarm, groundPace, groundSlide, steerAround } from './foeGround';
 import type { MantleId } from './mantleData';
 import { touched } from '../items/gifts';
 
+const FLASH = new THREE.Color(1, 0.95, 0.9); // (a hit's flash)
+
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: 0.85, flatShading: true, ...extra });
 }
@@ -232,14 +234,17 @@ export function updateEnemies(dt: number) {
     e.group.position.set(e.x, 0, e.z);
     e.body.rotation.y = e.face;
     // hit flash, else the glow of its statuses
-    const tint = e.flash > 0 ? null : statusTint(e, G.flow.clock);
+    const tint = e.flash > 0 ? null : statusTint(e, G.flow.clock),
+      tintK = CFG.foeLook.tintK[e.type] ?? 1; // (a pale made body takes less of it: the burn's full glow turned the salt golem flat pink)
     if (e.flash > 0) {
       e.flash -= dt;
-      for (const m of e.mats) m.emissive.setRGB(1, 0.95, 0.9);
+      for (const m of e.mats)
+        if (tintK < 1) m.emissive.copy(m.userData.base as THREE.Color).lerp(FLASH, Math.max(0.45, tintK));
+        else m.emissive.copy(FLASH); // (on a pale body a full white flash on each burn tick read as a flat pale shape)
     } else
       for (const m of e.mats) {
         m.emissive.copy(m.userData.base as THREE.Color);
-        if (tint) m.emissive.lerp(tint[0], tint[1]);
+        if (tint) m.emissive.lerp(tint[0], tint[1] * tintK);
       }
     if (e.foe) {
       // a foe in code: its telegraph glows in its school's light, and it swells; a hit squashes it
