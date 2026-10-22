@@ -351,9 +351,9 @@ function scorchMesh(kind: 'fire' | 'blackfire') {
     hazardScorch[kind] = mesh;
   }
   const grade = JSON.stringify(gradeNow());
-  if (scorchFor !== grade + kind) {
+  if (scorchFor !== grade) {
     // (a shadow in the floor's own shadow colour, never a pit's black: re-tinted when the floor's grade changes)
-    scorchFor = grade + kind;
+    scorchFor = grade;
     for (const m of Object.values(hazardScorch))
       if (m) (m.material as THREE.MeshBasicMaterial).color.copy(floorShade(F.scorch, F.scorchShade));
   }

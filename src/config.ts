@@ -230,6 +230,7 @@ export const CFG = {
   // lumps [x, z, size] in grey ash tones (pale to dark) with `specks` of ember `speck` across; a burning salt golem's wax
   // running: drips a second, its colours, and the share of the burn's tint its pale made body takes (enemies.ts)
   foeLook: {
+    flashMin: 0.45, // (the least of a hit's flash on a pale made body: actors/enemies.ts)
     ashes: {
       lumps: [
         [0, 0, 0.32],

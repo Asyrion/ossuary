@@ -265,7 +265,9 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `lookContract` hook checks every look keeps them). A foe's look is the fantasy look, else the bestiary look or
   `FOE_LOOKS` entry of its id (or `look`); a look in `CFG.madeFoes` with a `foe_<look>` prop loaded wears that Tripo
   model instead (`madeFoes.ts`: code moves it whole, sized by `span`; the code look still gives its lights and moved parts,
-  and the parts named in `keep`, such as a water foe's pool, as built). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  and the parts named in `keep`, such as a water foe's pool, as built). Its surface (`madeSurface`, shared with
+  `madeBosses.ts`) takes a `tint`, a `lift` (a light of its own, for a dark body on a dark floor) and `hot` (its warm
+  texels glow), from its `CFG.madeFoes` entry. Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a
@@ -367,6 +369,10 @@ with `hidden` set cannot be hit and does not hurt on contact. Looks: `bossLooks.
 `CFG.madeBosses` with a `foe_<id>` prop loaded wears that Tripo model (`madeBosses.ts`): sized to its look in code, whose
 rune ring, halo and named part's fire it keeps; what its fight does to the parts it moves (a jaw, a sword arm) moves the
 model as a whole, and its blob shadow is the open one (`blob(size, true)`, lighter where the floor shows between legs).
+The Abbess, the Pyre Knight, the War-Tiger and both Twin Guardians wear one (`twins2`, the second, its own); an entry's
+`eye` sets its eyes' height on the model (a crouched guardian's face is high), and its surface takes `tint`, `lift` and
+`hot` as the foes' do. A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
+`render/textures.ts`, `haloOnFloor` in `bosses.ts`): a sprite stood up behind it cut into the floor and the wall.
 
 | Boss | Id | Fight |
 | --- | --- | --- |
@@ -700,6 +706,10 @@ container in `items/pickups.ts`, every artifact's visual in `makeArtifactVisual`
 closed outline alone, their own colours kept; the mask pass draws them grey (one draw call more while one is shown).
 Marks on the floor (`addDecal` in `combat/fx.ts`: scorch, soot, stains) are lifted to the floor's shadow colour's lightness in their own hue and turned a little toward it
 (`CFG.pixelLook.decalShade`).
+Burning ground (a foe's fire, a spell's, burning oil) is drawn by `render/pixelFire.ts`: stepped flame tongues in a few
+frames over a charcoal scorch shaded toward the floor's shadow colour, a pale core (`CFG.foeGround.fire`,
+`CFG.surface.burnFrames`). A foe's telegraph and its shots' halos are drawn in hard bands (`bandGlow`, `bandsTex`;
+`CFG.pixelLook.teleRings`, `shotHalo`).
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
@@ -749,7 +759,8 @@ round bases; `tools/prepare-asset.ts` shares them. Clips: `standing_relax`, `run
   placeholder. A floor's own urn, bargain stone and bone altar are props named by its look (`urn_<look>`,
   `bargain_stone_<look>`, `altar_<look>`): the made one replaces the body built in code, which keeps what lights or
   changes (the stone's runes, the altar's candles). The merchant's ward circle is a mask from a made picture
-  (`textures/items/ward_circle.png`, `tools/art/sigil.py`). `tools/make-standins.ts` makes
+  (`textures/items/ward_circle.png`, `tools/art/sigil.py`). `tintedLook` (`assets/models.ts`) gives a made model a
+  floor's own tone (floor 3's darker pedestal, from its look's `items`). `tools/make-standins.ts` makes
   the test stand-ins. `docs/assets.md` has the house style, budgets and log. `?assets=off` keeps placeholders.
   Dev: Made assets section; `__game.assets`, `useAssets(false)`, `showAssets()`.
 - Tripo creatures animated in code (guide: `docs/creatures.md`): `tools/animate-creature.ts` simplifies the mesh to

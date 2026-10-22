@@ -239,7 +239,8 @@ export function updateEnemies(dt: number) {
     if (e.flash > 0) {
       e.flash -= dt;
       for (const m of e.mats)
-        if (tintK < 1) m.emissive.copy(m.userData.base as THREE.Color).lerp(FLASH, Math.max(0.45, tintK));
+        if (tintK < 1)
+          m.emissive.copy(m.userData.base as THREE.Color).lerp(FLASH, Math.max(CFG.foeLook.flashMin, tintK));
         else m.emissive.copy(FLASH); // (on a pale body a full white flash on each burn tick read as a flat pale shape)
     } else
       for (const m of e.mats) {
