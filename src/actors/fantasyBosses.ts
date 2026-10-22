@@ -3,7 +3,8 @@
    on y = 0; no round googly eyes; the school in the body. bossLooks.ts builds them through its own names (`wardenLook`, `hartLook`,
    `anglerLook`, `tigerLook`, `dragonHead`), as serpentLooks.ts does the serpent's head. */
 import * as THREE from 'three';
-import { glow } from '../render/materials';
+import { bandGlow, glow } from '../render/materials';
+import { CFG } from '../config';
 import { SCHOOL_LIGHT, circle, limb, lit, motes, part, rune, runeRing, sphere, std, type V3 } from '../render/arcane';
 import { rough } from '../world/kitParts';
 import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts';
@@ -266,6 +267,7 @@ export function hartFierce(): BossBuilt {
 /** The Deep Angler (Umbral): a great anglerfish of black, its eyes small slits of cold light, needle teeth in a jaw that
     drops, ragged fins; the lure on its stalk is its only light. Keeps `body`, `jaw`, `lure` and `lureGlow`. */
 export function anglerFierce(): BossBuilt {
+  const LURE = CFG.enemy.angler.lure;
   const g = new THREE.Group(),
     skin = gloss(0x0c0e16, 0.55, 0.2),
     belly = std(0x1a1c28),
@@ -297,7 +299,8 @@ export function anglerFierce(): BossBuilt {
   }
   const eye = joint(body, [0, 0.3, 0.72]);
   slitEyes(eye, 0.28, 0, 0, 0.06, 0x7fe8e0, 0.5, 0.3);
-  // the lure: a stalk curving up and forward from its brow, a lamp of cold light at its end, its only light
+  // the lure: a stalk curving up and forward from its brow, an amber lamp at its end (the shore's lantern), its only
+  // light, in a glow of hard bands (CFG.enemy.angler.lure: a soft one flooded the mage it draws in)
   const stalk = joint(body, [0, 0.78, 0.25]);
   tube(
     stalk,
@@ -314,8 +317,9 @@ export function anglerFierce(): BossBuilt {
     5,
   );
   const lure = joint(stalk, [0, 0.45, 1.08]);
-  part(lure, sphere(0.14, 12, 10), lit(0xeee4ff), [0, 0, 0]);
-  const lureGlow = glow(U, 1.7, 0.6);
+  part(lure, sphere(0.14, 12, 10), lit(LURE.core), [0, 0, 0]);
+  const lureGlow = bandGlow(LURE.color, LURE.size, LURE.opacity, LURE.rings);
+  lureGlow.material.depthTest = false; // (round over its lamp and its face: the floor cut it into a lit box, the lamp hid its core)
   lure.add(lureGlow);
   // fins, ragged: two that beat, a ridge of spines along its back, a forked tail
   const fins = [-1, 1].map((s) => {

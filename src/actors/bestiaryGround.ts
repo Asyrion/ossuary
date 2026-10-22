@@ -14,7 +14,7 @@ import { basicMat, glowShared, markShared } from '../render/materials';
 import { markThing } from '../render/pixelLook';
 import { TILT } from '../render/renderer';
 import { SCHOOL_LIGHT } from '../render/arcane';
-import { paleFx, paleShadow, paleStripTone, paleTone } from '../world/paleFx';
+import { paleFx, paleShadow, paleStripTone, paleTone, shoreFx } from '../world/paleFx';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { layBlackFire } from './foes';
@@ -105,10 +105,11 @@ function steppedEdgeTex() {
 /** A rime snail's rime: crystals of frost in hard pixels (`CFG.foeGround.rimeArt` across the patch, about the texel
     at its usual size), spines branching from a few seeds, pale at the core and frost-blue out along them, as floor 2's
     rime lies (art bible 4.18): a soft pale ellipse read as fog. An alpha map (its green channel) over the rime's colour,
-    in three steps. Made once. */
-let rimeKept: THREE.CanvasTexture | null = null;
-function rimeTex() {
-  if (rimeKept) return rimeKept;
+    in three steps. Made once a stroke: `stroke` pixels thick (the shore's crystals two, as one read as a white haze). */
+const rimeKept = new Map<number, THREE.CanvasTexture>();
+function rimeTex(stroke = 1) {
+  const had = rimeKept.get(stroke);
+  if (had) return had;
   const N = CFG.foeGround.rimeArt,
     c = document.createElement('canvas');
   c.width = c.height = N;
@@ -127,14 +128,15 @@ function rimeTex() {
         len = reach * (0.45 + R() * 0.55);
       for (let t = 0; t < len; t++) {
         g.fillStyle = t < 2 ? '#ffffff' : t < len * 0.6 ? '#bdbdbd' : '#8a8a8a';
-        g.fillRect(Math.round(x0 + Math.cos(ang) * t), Math.round(y0 + Math.sin(ang) * t), 1, 1);
+        g.fillRect(Math.round(x0 + Math.cos(ang) * t), Math.round(y0 + Math.sin(ang) * t), stroke, stroke);
       }
     }
   }
-  rimeKept = new THREE.CanvasTexture(c);
-  rimeKept.magFilter = rimeKept.minFilter = THREE.NearestFilter;
-  rimeKept.generateMipmaps = false;
-  return rimeKept;
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter = tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  rimeKept.set(stroke, tex);
+  return tex;
 }
 const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null, blackice: null };
 const NO_LOOK = { sx: 1, sz: 1, turn: 0 };
@@ -565,17 +567,23 @@ export function updateGround(dt: number) {
       );
     });
     if (kind === 'web' || kind === 'rime') {
-      // a pale floor's in a dark tone (pale, they washed into floor 4's ivory), every other floor's as they were
+      // a pale floor's in a dark tone (pale, they washed into floor 4's ivory), the shore's rime a deeper frost in
+      // thicker crystals (near white, it read as haze on its mist), every other floor's as they were
       const mat = mesh.material as THREE.MeshBasicMaterial,
         P = CFG.paleFx.ground,
-        pale = paleFx();
-      mat.color.setHex(kind === 'web' ? (pale ? P.web : WEB) : pale ? P.rime : RIME);
+        pale = paleFx(),
+        shore = shoreFx();
+      mat.color.setHex(kind === 'web' ? (pale ? P.web : WEB) : pale ? P.rime : shore ? CFG.shoreFx.rime : RIME);
       if (kind === 'web') mat.opacity = pale ? P.webOpacity : WEB_OPACITY;
+      else {
+        const map = rimeTex(shore ? CFG.shoreFx.rimeStroke : 1);
+        if (mat.alphaMap !== map) mat.alphaMap = map;
+      }
     }
     if (kind === 'blackice') {
       const mat = mesh.material as THREE.MeshStandardMaterial,
-        edge = paleFx() ? steppedEdgeTex() : edgeTex();
-      if (mat.alphaMap !== edge) mat.alphaMap = edge; // (a pale floor's in hard steps, every other floor's as it was)
+        edge = paleFx() || shoreFx() ? steppedEdgeTex() : edgeTex();
+      if (mat.alphaMap !== edge) mat.alphaMap = edge; // (a pale floor's and the shore's in hard steps, every other floor's as it was)
     }
     if (kind === 'blackice')
       for (const p of list)

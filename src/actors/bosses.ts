@@ -965,9 +965,14 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     lureGlow = P.lureGlow as THREE.Sprite,
     eye = e.eye!;
   const d = Math.hypot(player.x - e.x, player.z - e.z),
-    winding = e.state.startsWith('wind') || e.state === 'lure' || e.state === 'pull';
+    winding = e.state.startsWith('wind') || e.state === 'lure' || e.state === 'pull',
+    L = C.lure;
   e.idle?.(e.t);
   e.ring!.rotation.z += dt * (winding ? 5 : 1);
+  // its ring kept facing the camera as it circles (turned with its body, side on it stood on edge): turned back by the
+  // way its body faces, before its tilt and its spin
+  e.ring!.rotation.order = 'YXZ';
+  e.ring!.rotation.y = -e.face;
   if (e.state === 'drift') {
     // it keeps a few tiles off, circling
     const want = d > 3.6 ? 1 : d < 2.4 ? -1 : 0,
@@ -975,8 +980,8 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     e.vx = (ux * want - uz * 0.6) * sp;
     e.vz = (uz * want + ux * 0.6) * sp;
     P.lure.scale.setScalar(1);
-    lureGlow.material.opacity = 0.6;
-    lureGlow.scale.setScalar(1.7);
+    lureGlow.material.opacity = L.opacity;
+    lureGlow.scale.setScalar(L.size);
     eye.scale.setScalar(1);
     e.halo!.material.opacity = 0.35;
     P.body.scale.setScalar(1);
@@ -991,8 +996,8 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     e.vx = e.vz = 0;
     const k = 1 - Math.max(0, e.st) / 0.8;
     P.lure.scale.setScalar(1 + k * 0.8);
-    lureGlow.material.opacity = 0.6 + k * 0.4;
-    lureGlow.scale.setScalar(1.7 + k * 1.8);
+    lureGlow.material.opacity = L.opacity + (Math.ceil(k * 3) / 3) * (L.peak - L.opacity); // (brighter in steps: the cue to get clear)
+    lureGlow.scale.setScalar(L.size + k * (L.most - L.size));
     eye.scale.setScalar(1 + k * 0.4);
     if (e.st <= 0) {
       e.state = 'pull';
@@ -1005,7 +1010,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     player.pull.x -= ux * C.pull;
     player.pull.z -= uz * C.pull;
     P.jaw.rotation.x = 0.55;
-    lureGlow.material.opacity = 0.85 + Math.sin(e.t * 20) * 0.15;
+    lureGlow.material.opacity = L.peak * (Math.sin(e.t * 20) > 0 ? 1 : 0.8); // (flickering in two steps as it pulls)
     if (Math.random() < dt * 30) {
       const k = Math.random();
       burst(lerp(player.x, e.x, k), 0.9, lerp(player.z, e.z, k), SCHOOL_LIGHT.umbral, 1, 0.5, 0.04);
@@ -1033,7 +1038,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
   } else if (e.state === 'flinch') {
     // its lure dims and it shakes off the blow
     e.vx = e.vz = 0;
-    lureGlow.material.opacity = 0.2;
+    lureGlow.material.opacity = L.dim;
     P.lure.scale.setScalar(0.8);
     P.body.position.x = Math.sin(e.t * 40) * 0.05;
     if (e.st <= 0) {
@@ -1046,7 +1051,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     e.vx = e.vz = 0;
     const k = 1 - Math.max(0, e.st) / 0.5;
     P.jaw.rotation.x = 0.3 * k;
-    e.halo!.material.opacity = 0.35 + k * 0.5;
+    e.halo!.material.opacity = 0.35 + k * (C.haloMost - 0.35); // (at most `haloMost`: its pool burnt near white)
     if (e.st <= 0) {
       e.state = 'spit';
       e.volleys = B?.volleys ?? 3;
@@ -1071,7 +1076,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     e.vx = e.vz = 0;
     const k = 1 - Math.max(0, e.st) / 0.6;
     P.body.scale.setScalar(1 + k * 0.18);
-    e.halo!.material.opacity = 0.35 + k * 0.6;
+    e.halo!.material.opacity = 0.35 + k * (C.haloMost - 0.35);
     if (e.st <= 0) {
       P.body.scale.setScalar(1);
       const off = Math.random() * Math.PI;

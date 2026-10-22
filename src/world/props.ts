@@ -13,7 +13,8 @@ import { CFG } from '../config';
 import type { PropBox, PropState, Room, RockBox, SporeCloud } from '../types';
 import { G, after, player } from '../state';
 import { Sfx } from '../audio/sfx';
-import { disposeTree, glow, mergeStill } from '../render/materials';
+import { bandGlow, disposeTree, glow, mergeStill } from '../render/materials';
+import { shoreFx } from './paleFx';
 import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
@@ -398,7 +399,10 @@ export function addSpores(room: Room, x: number, z: number, o: { color?: number;
   const g = new THREE.Group();
   g.position.set(x - room.cx, 0, z - room.cz);
   for (let i = 0; i < 5; i++) {
-    const s = glow(o.color ?? SPORE, 0.9 + Math.random() * 0.6, 0.35);
+    const size = 0.9 + Math.random() * 0.6,
+      s = shoreFx()
+        ? bandGlow(o.color ?? SPORE, size, 0.35, CFG.shoreFx.spores) // (in hard bands: soft puffs piled into a purple blur over the shore)
+        : glow(o.color ?? SPORE, size, 0.35);
     s.position.set((Math.random() - 0.5) * 1.4, 0.3 + Math.random() * 0.5, (Math.random() - 0.5) * 1.4);
     g.add(s);
   }

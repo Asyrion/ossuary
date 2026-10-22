@@ -129,7 +129,8 @@ export interface FloorLook {
   /** The floor's own tones for the things lying on it, where its ground swallows the shared ones (art bible 4.21):
       the coin purse's leather and its clasp ('#rrggbb'), a tint over the made pedestal, the edge under a splash's ring,
       the halo an artifact gets where its own would sink into the ground (darker than `haloLight`, 0 to 1, or red) and how much a sealed urn's stone is lit
-      from within (0 to 1). The shared look where it names none. */
+      from within (0 to 1), and the light of the lamps on poles its scatter strews (the shore's lantern amber). The shared
+      look where it names none. */
   items?: ItemTones;
   /** The room kit's kinds of wall, floor, wall light and brazier, weighted (world/kitData.ts). */
   kit: KitWeights;
@@ -144,6 +145,7 @@ export interface ItemTones {
   halo?: string;
   haloLight?: number;
   sealedLift?: number;
+  lamp?: string;
 }
 /** A built room's look: the kinds it drew are always there. */
 export type RoomLook = FloorLook & { kinds: Kinds };

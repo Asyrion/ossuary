@@ -75,6 +75,13 @@ const MAT = {
   ash: std(0x2a2622, { roughness: 1 }),
   stone: M.rock,
 };
+/** A lamp's flame in a floor's own lantern colour (its look's `items.lamp`), one material a colour. */
+const lampMats = new Map<number, THREE.Material>();
+const lampMat = (c: number) => {
+  let m = lampMats.get(c);
+  if (!m) lampMats.set(c, (m = markShared(new THREE.MeshBasicMaterial({ color: c }))));
+  return m;
+};
 const GEO = {
   candle: shared(new THREE.CylinderGeometry(0.035, 0.04, 0.16, 6)),
   drip: shared(new THREE.SphereGeometry(0.016, 5, 4).scale(1, 1.6, 1)),
@@ -130,11 +137,15 @@ function blotch() {
   patchTex.generateMipmaps = false;
   return patchTex;
 }
-let rimeKept: THREE.Material | null = null;
-/** Rime on the floor: crystals of frost at the kit's texel (48 a unit), hard-edged, branching from a few seeds, made once. */
-function rimeMat() {
-  if (rimeKept) return rimeKept;
+const rimeKept = new Map<boolean, THREE.Material>();
+/** Rime on the floor: crystals of frost at the kit's texel (48 a unit), hard-edged, branching from a few seeds, made once
+    a look: the shore's (`CFG.shoreFx`) a deeper frost in crystals two pixels thick (near white, it read as haze there). */
+function rimeMat(look: FloorLook) {
+  const shore = CFG.shoreFx.looks.includes(look.name),
+    had = rimeKept.get(shore);
+  if (had) return had;
   const N = 48,
+    w = shore ? CFG.shoreFx.rimeStroke : 1,
     c = document.createElement('canvas');
   c.width = c.height = N;
   const g = c.getContext('2d')!;
@@ -150,16 +161,24 @@ function rimeMat() {
         len = reach * (0.5 + R() * 0.5);
       for (let t = 0; t < len; t++) {
         g.fillStyle = t < 2 ? '#ffffff' : t < len * 0.6 ? '#c8c8c8' : '#8a8a8a';
-        g.fillRect(Math.round(x0 + Math.cos(ang) * t), Math.round(y0 + Math.sin(ang) * t), 1, 1);
+        g.fillRect(Math.round(x0 + Math.cos(ang) * t), Math.round(y0 + Math.sin(ang) * t), w, w);
       }
     }
   }
   const t = new THREE.CanvasTexture(c);
   t.magFilter = t.minFilter = THREE.NearestFilter;
   t.generateMipmaps = false;
-  return (rimeKept = markShared(
-    new THREE.MeshBasicMaterial({ color: 0xc8e8ff, alphaMap: t, transparent: true, depthWrite: false, opacity: 0.95 }),
-  ));
+  const m = markShared(
+    new THREE.MeshBasicMaterial({
+      color: shore ? CFG.shoreFx.rime : 0xc8e8ff,
+      alphaMap: t,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0.95,
+    }),
+  );
+  rimeKept.set(shore, m);
+  return m;
 }
 const patchMats = new Map<string, THREE.Material>();
 const patchMat = (color: number, glowing = false, opacity = 0.8) => {
@@ -417,8 +436,8 @@ const DRESS: Record<ScatterKind, Dress> = {
     g.add(rope, tuft);
     return g;
   },
-  rime(R) {
-    const m = new THREE.Mesh(GEO.patch, rimeMat()); // (frost in hard pixels: a soft glowing blob read as fog or a light)
+  rime(R, look) {
+    const m = new THREE.Mesh(GEO.patch, rimeMat(look)); // (frost in hard pixels: a soft glowing blob read as fog or a light)
     m.scale.setScalar(0.7 + R() * 0.5);
     m.position.y = 0.005;
     m.rotation.y = R() * 6;
@@ -458,21 +477,22 @@ const DRESS: Record<ScatterKind, Dress> = {
     g.add(gl);
     return g;
   },
-  lamps(R) {
-    const g = new THREE.Group(),
+  lamps(R, look) {
+    const lit = look.items?.lamp ? parseInt(look.items.lamp.slice(1), 16) : undefined, // (the floor's own lantern light: the shore's amber)
+      g = new THREE.Group(),
       pole = new THREE.Mesh(GEO.pole, MAT.pole);
     pole.position.y = 0.9;
     g.add(pole);
     const arm = new THREE.Mesh(GEO.arm, MAT.pole);
     arm.position.set(0.16, 1.72, 0);
     g.add(arm);
-    const lamp = new THREE.Mesh(GEO.lamp, MAT.spirit);
+    const lamp = new THREE.Mesh(GEO.lamp, lit === undefined ? MAT.spirit : lampMat(lit));
     lamp.position.set(0.3, 1.55, 0);
     g.add(lamp);
     const cap = new THREE.Mesh(GEO.cap, MAT.pole);
     cap.position.set(0.3, 1.66, 0);
     g.add(cap);
-    const gl = glow(0x9ad0ff, 1.1, 0.55);
+    const gl = glow(lit ?? 0x9ad0ff, 1.1, 0.55);
     gl.position.set(0.3, 1.55, 0);
     g.add(gl);
     g.rotation.y = R() * 6;
@@ -539,6 +559,10 @@ export function dressTheme(room: Room) {
   // a tile's eight neighbours among the free ones (a relic keeps them to itself)
   const around = (q: { c: number; r: number }) =>
     free.filter((n) => n !== q && Math.abs(n.c - q.c) <= 1 && Math.abs(n.r - q.r) <= 1);
+  // a lamp's tall pole stands over the tiles north of it (to the camera): those free too, and kept to itself
+  const north = (q: { c: number; r: number }) =>
+    free.filter((n) => n.c === q.c && n.r < q.r - 1 && n.r >= q.r - C.lampNorth);
+  const lampRoom = (q: { c: number; r: number }) => around(q).length === 8 && north(q).length === C.lampNorth - 1;
   const scale = Math.max(1, ((t.w * t.h) / (13 * 7)) * 0.7); // larger rooms get more of it
   // where daylight may fall: at least three tiles from any wall (the grid's edge, or carved and missing corners), near
   // the middle of the room's own floor (an L's middle is its missing corner)
@@ -565,9 +589,11 @@ export function dressTheme(room: Room) {
             ? free.filter((q) => q.r === 0 || t.tiles[q.r - 1][q.c] === 'void')
             : kind === 'relics'
               ? free.filter((q) => around(q).length === 8) // (a coffin lid is a tile long and lies any way)
-              : need
-                ? free.filter((q) => clear(q.c, q.r) >= need)
-                : free,
+              : kind === 'lamps'
+                ? free.filter(lampRoom)
+                : need
+                  ? free.filter((q) => clear(q.c, q.r) >= need)
+                  : free,
         from = open.length ? open : free;
       const pick =
         kind === 'daylight'
@@ -575,8 +601,9 @@ export function dressTheme(room: Room) {
               Math.floor(R() * Math.min(6, from.length))
             ]
           : from[Math.floor(R() * from.length)];
-      if (kind === 'relics' && open !== from) continue; // (no room for one: none, rather than one on a rock)
-      for (const q of kind === 'relics' ? around(pick) : []) free.splice(free.indexOf(q), 1);
+      if ((kind === 'relics' || kind === 'lamps') && open !== from) continue; // (no room for one: none, rather than one on a rock)
+      for (const q of kind === 'relics' ? around(pick) : kind === 'lamps' ? [...around(pick), ...north(pick)] : [])
+        free.splice(free.indexOf(q), 1);
       free.splice(free.indexOf(pick), 1);
       const o = DRESS[kind](R, room.look, used);
       o.position.x += room.bounds.minX + pick.c + 0.5 + (R() - 0.5) * 0.3 - room.cx;
