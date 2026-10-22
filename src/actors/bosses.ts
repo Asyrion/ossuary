@@ -54,6 +54,8 @@ import { markShared } from '../render/materials';
 import { lightPoolTex } from '../render/textures';
 import { ease, lerp } from '../util';
 import { actAs } from './acting';
+import { paleStrip } from './bestiaryGround';
+import { paleFx } from '../world/paleFx';
 
 /** A boss's shots: in its school's light. */
 const shotColor = (e: Enemy) => SCHOOL_LIGHT[e.bossSchool ?? 'ember'];
@@ -265,6 +267,15 @@ function buildBossBody(e: Enemy) {
 /** The hart's lane: a strip of its light on the floor, pointing where it will charge, hidden at first (in the boss's
     group, which only moves; `rotation.y` turns it and `scale.z` sets its length). */
 function lane(e: Enemy) {
+  if (paleFx()) {
+    // on a pale floor its gold drawn, edged in the floor's shadow (added, it burnt white on floor 4's ivory)
+    const s = paleStrip(0.8, SCHOOL_LIGHT.hallow);
+    s.g.position.y = 0.03;
+    s.g.visible = false;
+    s.g.userData.strip = s;
+    e.group.add(s.g);
+    return s.g;
+  }
   const g = new THREE.Group(),
     strip = new THREE.Mesh(
       new THREE.PlaneGeometry(0.8, 1).translate(0, 0.5, 0),
@@ -301,10 +312,13 @@ function callHelp(e: Enemy) {
   }
 }
 
-function ringOfShots(e: Enemy, n: number, speed: number, offset: number, size = 1.25) {
+/** `n` shots out round the boss, each leaving `from` out from its middle. */
+function ringOfShots(e: Enemy, n: number, speed: number, offset: number, size = 1.25, from = 0) {
   for (let i = 0; i < n; i++) {
-    const a = offset + (i / n) * Math.PI * 2;
-    spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), speed, shotColor(e), 0.9, size);
+    const a = offset + (i / n) * Math.PI * 2,
+      c = Math.cos(a),
+      s = Math.sin(a);
+    spawnShot(e.x + c * from, e.z + s * from, c, s, speed, shotColor(e), 0.9, size);
   }
 }
 /** `count` shots spread over `spread` radians around the direction to the mage; `o`, what they carry (the angler's hex). */
@@ -326,9 +340,10 @@ function fan(
   }
 }
 /** A second ring a moment later, if the boss is still alive and the fight still on. */
-function laterRing(e: Enemy, delay: number, n: number, speed: number, offset: number) {
+function laterRing(e: Enemy, delay: number, n: number, speed: number, offset: number, from = 0) {
   after(delay, () => {
-    if (!e.dead && G.flow.state === 'play' && G.room.enemies.includes(e)) ringOfShots(e, n, speed, offset);
+    if (!e.dead && G.flow.state === 'play' && G.room.enemies.includes(e))
+      ringOfShots(e, n, speed, offset, undefined, from);
   });
 }
 
@@ -798,6 +813,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
   const hurt = e.hp / e.maxHp < 0.5,
     P = e.parts!,
     laneG = P.lane,
+    strip = laneG.userData.strip as ReturnType<typeof paleStrip> | undefined,
     laneMat = (laneG.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial;
   const halo = e.halo!,
     eye = e.eye!,
@@ -835,10 +851,15 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     halo.material.opacity = 0.35 + k * 0.5;
     e.dir = { x: ux, z: uz };
     laneG.rotation.y = Math.atan2(ux, uz);
-    laneMat.opacity = 0.12 + k * 0.4;
     let len = 0.5;
     while (len < 9 && isFreeAt(G.room.current, e.x + ux * len, e.z + uz * len)) len += 0.25;
-    laneG.scale.z = len; // (up to the wall or rock it will meet)
+    if (strip) {
+      strip.setOpacity(k);
+      strip.setLength(len);
+    } else {
+      laneMat.opacity = 0.12 + k * 0.4;
+      laneG.scale.z = len; // (up to the wall or rock it will meet)
+    }
     if (e.st <= 0) {
       e.state = 'charge';
       e.st = 2.4;
@@ -891,8 +912,10 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
       e.fireT = S.every;
       const n = hurt ? S.hurtCount : S.count;
       for (let i = 0; i < n; i++) {
-        const a = e.spin + (i / n) * Math.PI * 2;
-        spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), S.speed * shotMul, shotColor(e), 1, 1.05);
+        const a = e.spin + (i / n) * Math.PI * 2,
+          c = Math.cos(a),
+          s = Math.sin(a);
+        spawnShot(e.x + c * C.shotFrom, e.z + s * C.shotFrom, c, s, S.speed * shotMul, shotColor(e), 1, 1.05);
       }
     }
     if (e.st <= 0) {
@@ -913,8 +936,8 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
       P.body.position.z = 0;
       const off = Math.random() * Math.PI;
       const S = C.stamp;
-      ringOfShots(e, S.count, S.speed * shotMul, off, 1.1);
-      if (hurt) laterRing(e, 0.3, S.count, S.later * shotMul, off + Math.PI / S.count);
+      ringOfShots(e, S.count, S.speed * shotMul, off, 1.1, C.shotFrom);
+      if (hurt) laterRing(e, 0.3, S.count, S.later * shotMul, off + Math.PI / S.count, C.shotFrom);
       burst(e.x, 0.2, e.z, SCHOOL_LIGHT.hallow, 26, 4, 0.07);
       Sfx.at(e.x, e.z).boom();
       G.fx.shake = 0.3;

@@ -43,7 +43,8 @@ export const CFG = {
       resist: 'hallow' as const,
       spokes: { every: 0.16, count: 4, hurtCount: 6, speed: 3.1 },
       stamp: { count: 18, speed: 3, later: 2.6 },
-    }, // its spokes of light, and its stamp's ring (a second below half health)
+      shotFrom: 0.5,
+    }, // its spokes of light, and its stamp's ring (a second below half health), each shot leaving `shotFrom` out from its middle (all on its centre, their halos piled into one white disc)
     angler: {
       hp: 165,
       r: 0.9,
@@ -278,6 +279,44 @@ export const CFG = {
     // the rubble golem's falling stone: its warning on the floor, a ring `ring` pixels thick in a warm accent that fills
     // from the middle as the stone falls (actors/bestiaryGround.ts fallOn)
     fallWarn: { art: 32, ring: 2, color: 0xf0b040, fill: 0.55 },
+  },
+  // foes' magic on a pale floor (floor 4's ivory and gold, the looks named in `looks`: world/kitColours.ts paleFx): light
+  // added there burnt white or pink, so it is drawn instead, in the school's light held at lightness `deep` at most
+  // (render/arcane.ts deepen), edged in the floor's shadow colour (its grade's). Every other floor keeps its own.
+  paleFx: {
+    looks: ['reliquary'] as readonly string[],
+    deep: 0.45,
+    // a foe's telegraph (actors/foes.ts): bands from the middle out ([outer edge, strength], as pixelLook.teleRings) in
+    // the deepened light, then from `edge` to the rim a band of the floor's shadow colour at `edgeAlpha`, at most
+    // `opacity` strong as it nears
+    tele: {
+      rings: [
+        [0.38, 0.3],
+        [0.62, 0.85],
+        [0.8, 0.6],
+      ] as readonly (readonly [number, number])[],
+      edge: 0.8,
+      edgeAlpha: 0.75,
+      opacity: 0.9,
+    },
+    // a school's own deep tone where holding it at `deep` turns it olive (a gold, a yellow): what is drawn in its light
+    // (world/paleFx.ts paleTone), and a pale school's shots' sheath (as pixelLook.shotSheath, which this adds to); a shot's
+    // halo drawn in the sheath's tone at `haloOpacity` (added, a ring of them piled up to white)
+    tones: { hallow: 0xc0841a, storm: 0xc89a10 } as Partial<Record<'hallow' | 'frost' | 'storm' | 'umbral', number>>,
+    haloOpacity: 0.4,
+    // a ring on the floor (magic/spellFx.ts ringFx `drawn`): the ring (radius 0.84 to 1) in the deepened light over a
+    // ring under it in the floor's shadow colour (`under`: its inner and outer radius) at `underAlpha` of the ring's
+    // strength, fading in `steps` steps
+    ring: { under: [0.76, 1.08] as readonly [number, number], underAlpha: 0.85, steps: 3 },
+    // a strip on the floor (the hart's charge lane, a griffin's or a harpy's line): the deepened light at `alpha` inside
+    // `edge` game pixels of the floor's shadow colour, its strength in `steps` steps
+    strip: { edge: 2, alpha: 0.6, steps: 3 },
+    // black ice (actors/bestiaryGround.ts): its edge drawn `art` pixels across, in `steps` flat steps with a hard rim
+    blackIce: { art: 32, steps: 3 },
+    // what is thrown (actors/bestiaryGround.ts lob): solid and flat-shaded, outlined as a thing is; a snowball pale
+    // frost blue, a coal charcoal round an ember core (`ember`, `core` of its size, out through its face toward the camera);
+    // where it lands marked by the falling stone's ring (foeGround.fallWarn), `warn` across, in the deepened light
+    lob: { snow: 0xcfe6f6, coal: 0x2c2428, ember: 0xff8a2a, core: 0.4, warn: 0.42 },
   },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
   foeWay: { turns: [0.6, 1.1, 1.6] },

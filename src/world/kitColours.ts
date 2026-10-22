@@ -6,6 +6,7 @@ import type * as THREE from 'three';
 import type { FloorLook, ItemTones } from '../types';
 import { MAT } from './kitParts';
 import { C } from './objectLooks';
+import { setPaleFx } from './paleFx';
 
 const mats = MAT as Record<string, THREE.Material & { color?: THREE.Color }>;
 const matOwn = new Map(
@@ -26,6 +27,7 @@ export const itemTones = (): Readonly<ItemTones> => tones;
 export function applyKitColours(look: FloorLook) {
   const want = look.materials ?? {};
   tones = look.items ?? {};
+  setPaleFx(look);
   for (const k of Object.keys(want))
     if (!matOwn.has(k) && !(k in tableOwn))
       console.error(`floor look "${look.name}": materials names unknown colour "${k}"`); // (a browser test fails on it)

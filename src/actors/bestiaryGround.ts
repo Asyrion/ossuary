@@ -10,7 +10,11 @@ import { G } from '../state';
 import { CFG } from '../config';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { glowShared, markShared } from '../render/materials';
+import { basicMat, glowShared, markShared } from '../render/materials';
+import { markThing } from '../render/pixelLook';
+import { TILT } from '../render/renderer';
+import { SCHOOL_LIGHT } from '../render/arcane';
+import { paleFx, paleShadow, paleTone } from '../world/paleFx';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { layBlackFire } from './foes';
@@ -74,6 +78,29 @@ function edgeTex() {
   g.fillStyle = grad;
   g.fillRect(0, 0, 64, 64);
   return (edgeKept = new THREE.CanvasTexture(c));
+}
+/** Black ice's edge on a pale floor (`CFG.paleFx.blackIce`): the same fall from the middle held in a few flat steps, its
+    rim hard, at the texel, as the floor's other pixel art (the smooth fade read as a blur on floor 4's ivory). Made once. */
+let steppedKept: THREE.CanvasTexture | null = null;
+function steppedEdgeTex() {
+  if (steppedKept) return steppedKept;
+  const { art: N, steps } = CFG.paleFx.blackIce,
+    c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d')!;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const d = Math.hypot(x + 0.5 - N / 2, y + 0.5 - N / 2) / (N / 2);
+      if (d >= 1) continue;
+      const fall = d < 0.62 ? 1 - (0.12 * d) / 0.62 : (0.88 * (1 - d)) / 0.38, // (edgeTex's fall, in steps)
+        v = Math.round((255 * Math.ceil(fall * steps)) / steps);
+      g.fillStyle = `rgb(${v},${v},${v})`;
+      g.fillRect(x, y, 1, 1);
+    }
+  steppedKept = new THREE.CanvasTexture(c);
+  steppedKept.magFilter = steppedKept.minFilter = THREE.NearestFilter;
+  steppedKept.generateMipmaps = false;
+  return steppedKept;
 }
 /** A rime snail's rime: crystals of frost in hard pixels (`CFG.foeGround.rimeArt` across the patch, about the texel
     at its usual size), spines branching from a few seeds, pale at the core and frost-blue out along them, as floor 2's
@@ -310,7 +337,9 @@ export function lob(
   land: (x: number, z: number) => void,
   h = 1.2,
   size = 1,
+  pale?: PaleLob,
 ) {
+  if (pale) return paleLob(room, fx, fz, tx, tz, dur, land, h, size, pale);
   let mat = lobMats.get(color);
   if (!mat) lobMats.set(color, (mat = markShared(new THREE.MeshBasicMaterial({ color }))));
   const m = new THREE.Group();
@@ -318,6 +347,51 @@ export function lob(
   m.scale.setScalar(size);
   scene.add(m);
   lobs.push({ room, fx, fz, tx, tz, t: 0, dur, h, m, land });
+}
+/** What a lob throws on a pale floor, drawn as a thing rather than a flat disc of light (`CFG.paleFx.lob`). */
+export type PaleLob = 'snow' | 'coal';
+// (made on first use, as everything only a pale floor draws: made at load, its ids would draw on Math.random)
+let paleLobKept: THREE.BufferGeometry | null = null;
+const paleLobGeo = () => (paleLobKept ??= markShared(new THREE.IcosahedronGeometry(lobGeo.parameters.radius, 1))),
+  paleLobMats = new Map<PaleLob, THREE.Material>();
+/** A snowball or a coal on a pale floor: solid and flat-shaded (lit from above, so its bottom is shaded), outlined as a
+    thing is, a coal's ember core out through its face toward the camera; where it lands marked by the falling stone's
+    ring in its school's deepened light, filling as it comes down (an unlit disc in a glow burnt white on floor 4). */
+function paleLob(
+  room: Room,
+  fx: number,
+  fz: number,
+  tx: number,
+  tz: number,
+  dur: number,
+  land: (x: number, z: number) => void,
+  h: number,
+  size: number,
+  kind: PaleLob,
+) {
+  const L = CFG.paleFx.lob;
+  let mat = paleLobMats.get(kind);
+  if (!mat)
+    paleLobMats.set(
+      kind,
+      (mat = markShared(
+        new THREE.MeshStandardMaterial({ color: kind === 'snow' ? L.snow : L.coal, roughness: 0.9, flatShading: true }),
+      )),
+    );
+  const m = new THREE.Group();
+  m.add(new THREE.Mesh(paleLobGeo(), mat));
+  if (kind === 'coal') {
+    const core = new THREE.Mesh(paleLobGeo(), basicMat(L.ember));
+    core.scale.setScalar(L.core);
+    core.position.set(0, Math.sin(TILT), Math.cos(TILT)).multiplyScalar(lobGeo.parameters.radius * (1 - L.core * 0.5));
+    m.add(core);
+  }
+  m.scale.setScalar(size);
+  markThing(m);
+  scene.add(m);
+  const r = L.warn + lobGeo.parameters.radius * size,
+    warn = fallWarn(tx, tz, r, paleTone(SCHOOL_LIGHT[kind === 'snow' ? 'frost' : 'ember']));
+  lobs.push({ room, fx, fz, tx, tz, t: 0, dur, h, m, land, warn });
 }
 /** A stone dropped from `h` up onto (x, z), landing after `dur` seconds (a rubble golem's slam brings the roof down). */
 const stoneGeo = markShared(new THREE.DodecahedronGeometry(0.26, 0)),
@@ -384,12 +458,12 @@ function dropWarn(g: THREE.Group) {
   for (const m of g.children) ((m as THREE.Mesh).material as THREE.Material).dispose();
 }
 const warnGeo = markShared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2));
-function fallWarn(x: number, z: number, r: number) {
+function fallWarn(x: number, z: number, r: number, color: number = CFG.foeGround.fallWarn.color) {
   const W = CFG.foeGround.fallWarn,
     [tx, tz] = CFG.roomKit.texel,
     w = Math.round(2 * r * tx),
     h = Math.round(2 * r * tz),
-    col = new THREE.Color(W.color),
+    col = new THREE.Color(color),
     g = new THREE.Group(),
     mat = (ring: boolean) =>
       new THREE.MeshBasicMaterial({
@@ -412,6 +486,49 @@ function fallWarn(x: number, z: number, r: number) {
   scene.add(g);
   return g;
 }
+
+/** A strip on a pale floor (`CFG.paleFx.strip`: the hart's charge lane, a griffin's or a harpy's line): `color`'s
+    deepened light, drawn rather than added, inside an edge of the floor's shadow colour two game pixels round; `w`
+    wide, laid along +z from its start, its length set by `setLength` (the edge stays two pixels at any length) and its
+    strength by `setOpacity`, in steps. Its own materials (`disposeTree` takes them), or with `shared` one pair a
+    colour, at the strip's full strength. */
+export function paleStrip(w: number, color: number, shared = false) {
+  const S = CFG.paleFx.strip,
+    e = S.edge / Math.min(...CFG.roomKit.texel),
+    make = (c: number) =>
+      new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: S.alpha, depthWrite: false }),
+    pair = (): [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial] => [make(paleShadow()), make(paleTone(color))];
+  let mats: [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial];
+  if (shared) {
+    const key = `${color}_${paleShadow()}`;
+    mats = stripMats.get(key) ?? (pair().map((m) => markShared(m)) as typeof mats);
+    stripMats.set(key, mats);
+  } else mats = pair();
+  const g = new THREE.Group(),
+    under = new THREE.Mesh(stripGeo(), mats[0]),
+    top = new THREE.Mesh(stripGeo(), mats[1]);
+  under.scale.x = w + 2 * e;
+  top.scale.x = w;
+  under.renderOrder = 2;
+  top.renderOrder = 3;
+  top.position.y = 0.002;
+  g.add(under, top);
+  const setLength = (len: number) => {
+      under.scale.z = len + 2 * e;
+      under.position.z = -e;
+      top.scale.z = len;
+    },
+    setOpacity = (a: number) => {
+      const k = (Math.ceil(Math.min(1, a) * S.steps) / S.steps) * S.alpha;
+      mats[0].opacity = mats[1].opacity = k;
+    };
+  setLength(1);
+  return { g, setLength, setOpacity };
+}
+let stripKept: THREE.BufferGeometry | null = null;
+const stripGeo = () =>
+    (stripKept ??= markShared(new THREE.PlaneGeometry(1, 1).translate(0, -0.5, 0).rotateX(-Math.PI / 2))),
+  stripMats = new Map<string, [THREE.MeshBasicMaterial, THREE.MeshBasicMaterial]>();
 
 const m4 = new THREE.Matrix4(),
   q0 = new THREE.Quaternion(),
@@ -442,6 +559,11 @@ export function updateGround(dt: number) {
         ),
       );
     });
+    if (kind === 'blackice') {
+      const mat = mesh.material as THREE.MeshStandardMaterial,
+        edge = paleFx() ? steppedEdgeTex() : edgeTex();
+      if (mat.alphaMap !== edge) mat.alphaMap = edge; // (a pale floor's in hard steps, every other floor's as it was)
+    }
     if (kind === 'blackice')
       for (const p of list)
         if (Math.random() < dt * 3 * p.r) {

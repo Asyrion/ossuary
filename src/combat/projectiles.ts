@@ -15,6 +15,7 @@ import { vigilHooks } from '../vigil/where';
 import { TILT, scene } from '../render/renderer';
 import { bandGlow, basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
 import { SCHOOL_LIGHT } from '../render/arcane';
+import { paleFx, paleTone } from '../world/paleFx';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { vatStruck } from '../world/laboratory';
@@ -306,6 +307,10 @@ const WHITE = new THREE.Color(0xffffff);
 const SHEATH = new Map<number, number>(
   Object.entries(CFG.pixelLook.shotSheath).map(([k, v]) => [SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT], v]),
 );
+/** On a pale floor (`CFG.paleFx`), more pale schools sheathed so (Hallow's gold, added, burnt white on floor 4's ivory). */
+const PALE_SHEATH = new Map<number, number>(
+  Object.entries(CFG.paleFx.tones).map(([k, v]) => [SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT], v]),
+);
 /** A foe's shot's dark ring: the back of a sphere a little larger than its sheath, so it shows round its edge. */
 const SHOT_RIM = markShared(new THREE.MeshBasicMaterial({ color: 0x14101c, side: THREE.BackSide }));
 /** Enemy projectile. */
@@ -334,7 +339,8 @@ export function spawnShot(
   sh.position.y = -y + 0.015;
   // a foe's shot in the spells' style but plainly not the mage's (docs/effects.md): a hot core of its school's light in a
   // sheath of that colour, ringed in dark so it reads as danger over any floor, in a lower glow
-  const deep = SHEATH.get(color); // (a pale school: a deeper sheath round a smaller core, so it isn't one white orb)
+  const pale = paleFx(),
+    deep = SHEATH.get(color) ?? (pale ? PALE_SHEATH.get(color) : undefined); // (a pale school: a deeper sheath round a smaller core, so it isn't one white orb)
   const core = new THREE.Mesh(
       sphereGeo((deep ? 0.06 : 0.07) * size),
       basicMat(new THREE.Color(color).lerp(WHITE, 0.6).getHex()),
@@ -346,7 +352,9 @@ export function spawnShot(
     rim,
     sheath,
     core,
-    bandGlow(color, 0.8 * size, CFG.pixelLook.shotHaloOpacity, CFG.pixelLook.shotHalo, true),
+    pale // (on a pale floor drawn in the sheath's tone, not added: a ring of shots piled their halos up to white)
+      ? bandGlow(deep ?? paleTone(color), 0.8 * size, CFG.paleFx.haloOpacity, CFG.pixelLook.shotHalo, true, {})
+      : bandGlow(color, 0.8 * size, CFG.pixelLook.shotHaloOpacity, CFG.pixelLook.shotHalo, true),
     sh,
   );
   scene.add(mesh);

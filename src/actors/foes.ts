@@ -64,6 +64,8 @@ import type { SpellStatus } from '../magic/spellData';
 import { CFG } from '../config';
 import { MAGIC } from '../magic/status';
 import { hearGround } from '../world/groundHooks';
+import { paleFx, paleShadow, paleTone } from '../world/paleFx';
+import { edgedBandsTex } from '../render/textures';
 
 export type { Aim } from './foeKit';
 
@@ -92,8 +94,15 @@ export function buildFoe(e: Enemy, def: FoeDef) {
   e.flying = def.flying;
   e.contact = def.contact;
   e.body.add(b.group);
-  // its telegraph's glow, in its school's light (a pale foe's body alone barely shows it), in hard bands
-  e.teleGlow = bandGlow(SCHOOL_LIGHT[def.school], 1 + def.r * 2, 0, CFG.pixelLook.teleRings);
+  // its telegraph's glow, in its school's light (a pale foe's body alone barely shows it), in hard bands; on a pale floor
+  // drawn in the deepened light round a band of the floor's shadow (added, it burnt white there)
+  const T = CFG.paleFx.tele;
+  e.teleGlow = paleFx()
+    ? bandGlow(0xffffff, 1 + def.r * 2, 0, T.rings, false, {
+        map: edgedBandsTex(T.rings, paleTone(SCHOOL_LIGHT[def.school]), T.edge, paleShadow(), T.edgeAlpha),
+      })
+    : bandGlow(SCHOOL_LIGHT[def.school], 1 + def.r * 2, 0, CFG.pixelLook.teleRings);
+  e.teleGlow.userData.drawn = paleFx();
   e.teleGlow.position.y = def.flying ? 0.7 : 0.4;
   e.teleGlow.visible = false;
   e.body.add(e.teleGlow);
@@ -172,7 +181,7 @@ export function poseFoe(e: Enemy) {
   e.model!.scale.set(1 + t * 0.22 + hit * 0.14, 1 + t * 0.14 - hit * 0.16, 1 + t * 0.22 + hit * 0.14);
   if (e.teleGlow) {
     e.teleGlow.visible = t > 0.02;
-    e.teleGlow.material.opacity = (Math.ceil(t * 3) / 3) * 0.85; // (brighter in steps as it nears, not a fade)
+    e.teleGlow.material.opacity = (Math.ceil(t * 3) / 3) * (e.teleGlow.userData.drawn ? CFG.paleFx.tele.opacity : 0.85); // (brighter in steps as it nears, not a fade)
   }
   e.model!.position.x = t > 0 ? Math.sin(e.t * 55) * 0.02 * t : 0;
 }
@@ -1151,8 +1160,8 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         e.tele = Math.min(1, 1 - e.st / num(P.pulseTell));
         if (e.st <= 0) {
           const R = num(P.pulseRadius);
-          ringFx(e.x, 0.12, e.z, light(e), 0.2, R, 0.45, true);
-          ringFx(e.x, 0.5, e.z, light(e), 0.1, R * 0.8, 0.35, true, 0.5);
+          ringFx(e.x, 0.12, e.z, light(e), 0.2, R, 0.45, true, undefined, paleFx());
+          ringFx(e.x, 0.5, e.z, light(e), 0.1, R * 0.8, 0.35, true, 0.5, paleFx());
           burst(e.x, 0.7, e.z, light(e), 16, 2.2, 0.04);
           Sfx.at(e.x, e.z).jellyPulse();
           if (a.dist < R + player.r) hurtPlayer(1, e.x, e.z);
@@ -1239,7 +1248,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
           e.state = 'vanish';
           e.st = num(P.vanish);
           Sfx.at(e.x, e.z).impBlink();
-          ringFx(spot.x, 0.08, spot.z, light(e), 0.1, 0.6, num(P.vanish) + num(P.gone), true); // (where it will appear flickers first)
+          ringFx(spot.x, 0.08, spot.z, light(e), 0.1, 0.6, num(P.vanish) + num(P.gone), true, undefined, paleFx()); // (where it will appear flickers first)
         }
       } else if (e.state === 'vanish') {
         e.tele = Math.min(1, 1 - e.st / num(P.vanish));
@@ -1379,7 +1388,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
               { chill: num(P.chill) },
             );
           }
-          ringFx(e.x, 0.1, e.z, light(e), 0.3, 2.2, 0.5, true);
+          ringFx(e.x, 0.1, e.z, light(e), 0.3, 2.2, 0.5, true, undefined, paleFx());
           frostAt(e.x, e.z, 1);
           burst(e.x, 0.3, e.z, 0xe8f6ff, 16, 2.4, 0.05);
           G.fx.shake = Math.max(G.fx.shake, 0.15);
@@ -1451,7 +1460,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
           e.state = 'rumble';
           e.st = num(P.tell);
           e.vx = e.vz = 0;
-          ringFx(e.x, 0.05, e.z, light(e), 0.8, 0.25, num(P.tell), true);
+          ringFx(e.x, 0.05, e.z, light(e), 0.8, 0.25, num(P.tell), true, undefined, paleFx());
           Sfx.at(e.x, e.z).rumble();
         }
       } else if (e.state === 'rumble') {
@@ -1797,7 +1806,18 @@ const BEHAVIOURS: Record<string, Behaviour> = {
           e.state = 'flit';
           e.tele = 0;
           e.fireT = span(P.chimeEvery);
-          ringFx(e.target.x, 0.06, e.target.z, light(e), num(P.mark), 0.12, num(P.strikeDelay), true); // (the mark: a ring on the floor, closing on the spot)
+          ringFx(
+            e.target.x,
+            0.06,
+            e.target.z,
+            light(e),
+            num(P.mark),
+            0.12,
+            num(P.strikeDelay),
+            true,
+            undefined,
+            paleFx(),
+          ); // (the mark: a ring on the floor, closing on the spot)
         }
       }
       if (e.target && (e.tick! -= dt) <= 0) {
@@ -1887,7 +1907,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
               { chill: num(P.chill) },
             );
           }
-          ringFx(e.x, 0.08, e.z, light(e), 0.2, 1.4, 0.35, true);
+          ringFx(e.x, 0.08, e.z, light(e), 0.2, 1.4, 0.35, true, undefined, paleFx());
           frostAt(e.x, e.z, 0.8);
           Sfx.at(e.x, e.z).stoneLand();
           G.fx.shake = Math.max(G.fx.shake, 0.1);
@@ -1980,7 +2000,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
             if (o.isBoss) updateBossBar(o); // (a boss takes only a little of it)
             burst(o.x, 0.8, o.z, light(e), 8, 1.2, 0.04);
           }
-        ringFx(e.x, 0.1, e.z, light(e), 0.2, R, 0.5, true);
+        ringFx(e.x, 0.1, e.z, light(e), 0.2, R, 0.5, true, undefined, paleFx());
         Sfx.at(e.x, e.z).fawnHeal();
         e.state = 'wander';
         e.tele = 0;

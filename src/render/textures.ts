@@ -84,6 +84,38 @@ export function bandsTex(rings: readonly (readonly [number, number])[]) {
   if (!t) ringTexs.set(key, (t = stepped('255,255,255', (d) => rings.find(([edge]) => d < edge)?.[1] ?? 0, 255)));
   return t;
 }
+/** Bands as `bandsTex` draws them in `inner`, then from `edge` (0 the middle, 1 the rim) out a band of `outer` at
+    `outerAlpha`: a glow drawn, not added, standing on a dark edge (a pale floor's, CFG.paleFx). Its colours are in the
+    texture, so its material is white; one texture a set. */
+const edgedTexs = new Map<string, THREE.Texture>();
+export function edgedBandsTex(
+  rings: readonly (readonly [number, number])[],
+  inner: number,
+  edge: number,
+  outer: number,
+  outerAlpha: number,
+) {
+  const key = JSON.stringify([rings, inner, edge, outer, outerAlpha]);
+  let t = edgedTexs.get(key);
+  if (t) return t;
+  const N = 64,
+    [c, g] = makeCanvas(N, N),
+    img = g.createImageData(N, N),
+    rgb = (h: number) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const d = Math.hypot(x + 0.5 - N / 2, y + 0.5 - N / 2) / (N / 2),
+        out = d >= edge,
+        a = d >= 1 ? 0 : out ? outerAlpha : (rings.find(([e]) => d < e)?.[1] ?? 0),
+        k = (y * N + x) * 4;
+      img.data.set([...rgb(out ? outer : inner), Math.round(a * 255)], k);
+    }
+  g.putImageData(img, 0, 0);
+  t = canvasTex(c, true);
+  t.magFilter = THREE.NearestFilter;
+  edgedTexs.set(key, t);
+  return t;
+}
 /** A puff of fog in hard bands (a miasma, a thrown Shadowstep Tincture's darkness): full inside `fogCore` of its radius,
     half outside, so where puffs overlap they make hard steps rather than a blur (art bible 3: no soft alpha). */
 export const fogTex = stepped('255,255,255', (d) => (d < CFG.pixelLook.fogCore ? 1 : 0.5), 2);
