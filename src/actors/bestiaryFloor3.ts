@@ -24,7 +24,9 @@ import type { Enemy, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
-import { disposeTree, glow, markShared } from '../render/materials';
+import { disposeTree, markShared } from '../render/materials';
+import { seeded } from '../render/pixelFire';
+import { CFG } from '../config';
 import { burst } from '../combat/fx';
 import { freeSpotNear } from '../world/rooms';
 import { fireAt } from '../world/pools';
@@ -273,8 +275,15 @@ const ooze: Behaviour = {
   }, // (hard, it stops churning)
 };
 
-/** A fallen phoenix's ashes: a low grey heap, embers glowing in it (one heap's geometry and material for all). */
-let ash: { geo: THREE.BufferGeometry; mat: THREE.Material } | null = null;
+/** A fallen phoenix's ashes: a low heap of grey lumps, flat-shaded so its facets step from a pale top to a dark foot, with
+    specks of ember in it, hot orange and brimstone (CFG.foeLook.ashes; one set of geometries and materials for all): a
+    pale cone in a soft halo read as an untextured blob. */
+let ash: {
+  lump: THREE.BufferGeometry;
+  speck: THREE.BufferGeometry;
+  mats: THREE.Material[];
+  embers: THREE.Material[];
+} | null = null;
 
 function ashes(e: Enemy, on: boolean) {
   if (e.extra) {
@@ -283,16 +292,30 @@ function ashes(e: Enemy, on: boolean) {
     e.extra = undefined;
   }
   if (!on) return;
+  const A = CFG.foeLook.ashes;
   ash ??= {
-    geo: markShared(new THREE.ConeGeometry(0.5, 0.28, 9).translate(0, 0.14, 0)),
-    mat: markShared(
-      new THREE.MeshStandardMaterial({ color: 0xa8a098, emissive: 0x3a1408, roughness: 1, flatShading: true }),
-    ),
+    lump: markShared(new THREE.DodecahedronGeometry(1, 0)),
+    speck: markShared(new THREE.BoxGeometry(A.speck, A.speck, A.speck)),
+    mats: A.ash.map((c) => markShared(new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }))),
+    embers: A.embers.map((c) => markShared(new THREE.MeshBasicMaterial({ color: c }))),
   };
   const g = new THREE.Group(),
-    embers = glow(0xff6a20, 1.4, 0.85);
-  embers.position.y = 0.22; // (pale ash, embers glowing in it: it reads on a dark floor)
-  g.add(new THREE.Mesh(ash.geo, ash.mat), embers);
+    R = seeded(7);
+  A.lumps.forEach(([x, z, r], i) => {
+    const m = new THREE.Mesh(ash!.lump, ash!.mats[i % ash!.mats.length]);
+    m.position.set(x, r * 0.35, z);
+    m.scale.set(r, r * 0.55, r);
+    m.rotation.y = R() * 6;
+    g.add(m);
+  });
+  for (let i = 0; i < A.specks; i++) {
+    // (embers in the heap: it can rise again while they glow)
+    const a = R() * Math.PI * 2,
+      d = Math.sqrt(R()) * 0.32,
+      s = new THREE.Mesh(ash.speck, ash.embers[i % ash.embers.length]);
+    s.position.set(Math.cos(a) * d, 0.12 + (0.32 - d) * 0.75, Math.sin(a) * d); // (on the heap's face, not inside it)
+    g.add(s);
+  }
   e.body.add(g);
   e.extra = g;
 }
@@ -563,7 +586,20 @@ const bodyguard: Behaviour = {
     e.st -= dt;
     const melt = (e.status?.burn ?? 0) > 0 ? num(P.melt) : 1,
       sp = e.foe!.speed * e.speedMul * melt; // (fire melts the wax in its joints)
-    if (melt < 1 && Math.random() < dt * 5) burst(e.x, 1, e.z, 0xf0e4c8, 1, 0.6, 0.03);
+    if (melt < 1 && Math.random() < dt * CFG.foeLook.wax.drips) {
+      // its wax runs: a drip off its body falls and lies a moment on the floor beside it
+      const W = CFG.foeLook.wax.colors,
+        a = Math.random() * Math.PI * 2;
+      burst(
+        e.x + Math.cos(a) * e.r * 0.7,
+        0.5 + Math.random() * 0.6,
+        e.z + Math.sin(a) * e.r * 0.5,
+        W[Math.floor(Math.random() * W.length)],
+        1,
+        0.25,
+        CFG.foeLook.wax.size,
+      );
+    }
     if (e.state === 'guard') {
       // it stands between the mage and the foe nearest them, taking the bolts
       let ward: Enemy | undefined,
@@ -672,12 +708,20 @@ const breaker: Behaviour = {
           const ang = Math.random() * Math.PI * 2,
             r = i === 0 ? 0 : 0.8 + Math.random() * num(P.spread),
             at = freeSpotNear(room, player.x + Math.cos(ang) * r, player.z + Math.sin(ang) * r);
-          ringFx(at.x, 0.04, at.z, light(e), 0.55, 0.4, num(P.fall), true, 0.7); // (where it will land)
-          fallOn(room, at.x, at.z, num(P.fall), (x, z) => {
-            burst(x, 0.2, z, 0x7a746a, 10, 2, 0.05);
-            Sfx.at(x, z).rockFall();
-            if (Math.hypot(player.x - x, player.z - z) < num(P.hit)) hurtPlayer(1, x, z);
-          });
+          // (where it will land: a warm ring on the floor filling as the stone comes down, fallOn's warning)
+          fallOn(
+            room,
+            at.x,
+            at.z,
+            num(P.fall),
+            (x, z) => {
+              burst(x, 0.2, z, 0x7a746a, 10, 2, 0.05);
+              Sfx.at(x, z).rockFall();
+              if (Math.hypot(player.x - x, player.z - z) < num(P.hit)) hurtPlayer(1, x, z);
+            },
+            4,
+            num(P.hit),
+          );
         }
         ringFx(e.x, 0.1, e.z, light(e), 0.4, 2, 0.45, true);
         burst(e.x, 0.2, e.z, 0x7a746a, 14, 2.4, 0.05);

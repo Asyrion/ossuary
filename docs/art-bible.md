@@ -343,6 +343,28 @@ floor and were checked on floors 1 and 2.
 - **Left as they are:** the indigo shape at the mage's heel is Fen-Nex (the Rune Fox at the heel, its starry tail
   long); the garden's slate-blue pool is the pools' (world/pools.ts).
 
+### 4.22 Fire, pools, steam and light on floor 3 (2026-10-22, awaiting the owner)
+
+A survey of floor 3 (the burning crypt) found its fire and its soft glows lost in the floor's own ember cracks. The owner
+took every fix; the code is shared, so each holds on every floor.
+- **Burning ground** (a salamander's trail, the phoenix's dive, the djinn's landings, liquid ember, the dev menu's):
+  pixel flame tongues in a few frames, stepped from a dark rim to a pale brimstone core, over a ragged charcoal scorch
+  in the floor's shadow colour (`floorShade`); the sparks off it small (`CFG.foeGround.fire`, `render/pixelFire.ts`).
+- **Pools:** water's and oil's surface a flat tone with a few hard pixel ripples (`CFG.surface.poolArt`); oil matt;
+  burning oil drawn as charcoal and ember cracks under tongues of flame, licking in frames (`burnFrames`); ice cracks a
+  pixel thick.
+- **Steam:** clipped to the cloud's round shape and its room's width, drawn over what stands in it (a wall cut it into
+  a rectangle with a stepped corner); the thick of each puff lit at its top left and shaded at its bottom right, never a
+  flat white disc. A fog of darkness (the Shadowstep Tincture, a miasma) dithered as steam is, never solid: see-through
+  puffs piled up into a soft purple blur (`CFG.steamLook`).
+- **Light:** a boss's halo a round stepped pool of light on the floor under it (`CFG.pixelLook.haloPool`), not a glow
+  standing behind it that cut into floor and wall as a lit box; the garth's daylight one flat stepped band over a round
+  pool; moss and stains in flat steps with a hard edge (`blotch`).
+- **Foes:** the phoenix's ashes a heap of flat-shaded grey lumps with ember specks (`CFG.foeLook.ashes`); the salt
+  golem's pale made body takes a third of the burn's tint and a softer hit flash, its wax running off in drips
+  (`CFG.foeLook`); the rubble golem's falling stones warned by a warm ring two pixels thick that fills as the stone
+  falls (`CFG.foeGround.fallWarn`).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta

@@ -497,7 +497,7 @@ export interface Enemy extends Circle {
     fx: THREE.Mesh;
   };
   // type-specific parts and AI state
-  halo?: THREE.Sprite;
+  halo?: THREE.Sprite | THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; // (a boss's: a pool of light on the floor, bosses.ts haloOnFloor)
   target?: Vec2;
   fireT?: number;
   dir?: Vec2;
