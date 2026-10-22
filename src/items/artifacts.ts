@@ -17,6 +17,7 @@ import { giveResources } from './pickups';
 import { dress } from '../actors/costume';
 import { modelFor, tintedLook } from '../assets/models';
 import { itemTones } from '../world/kitColours';
+import { paleFx, paleHalo } from '../world/paleFx';
 import { altarLook, pedestalLook } from '../world/objectLooks';
 import { CURSED_RED, artifactLook } from './artifactLooks';
 import { updateArc } from './arc';
@@ -208,6 +209,7 @@ export function makeArtifactVisual(def: ArtifactDef) {
       ),
     );
   }
+  if (paleFx()) g.add(paleHalo(CFG.paleFx.halo.artifact, 0)); // (a dark ground round it: a pale one showed only its outline on the ivory)
   markThing(g); // (its closed outline in the pixel look, as a discrete object's: art bible 4.4)
   return g;
 }

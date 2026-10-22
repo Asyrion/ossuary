@@ -32,6 +32,7 @@ import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction,
 import { STATUS_KINDS, type SpellStatus, type StatusKind } from './spellData';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { poolAt, touchPools } from '../world/pools';
+import { paleFx } from '../world/paleFx';
 import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
 import { foeAfflicted, laySpark } from '../actors/foes';
@@ -777,7 +778,8 @@ export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null 
   if (s.burn > 0) return [tint.setHex(0xff5a10), 0.45 + Math.sin(now * 17 + e.x) * 0.2];
   if (s.sanct > 0) return [tint.setHex(0xc89a30), 0.45 + Math.sin(now * 6) * 0.1];
   if (s.hex > 0) return [tint.setHex(0x6a2ab0), Math.min(0.6, 0.2 + s.hex * 0.08)];
-  if (s.stun > 0 || (s.shock > 0 && Math.sin(now * 40) > 0.6)) return [tint.setHex(0xe8e070), 0.6];
+  if (s.stun > 0 || (s.shock > 0 && Math.sin(now * 40) > 0.6))
+    return paleFx() ? [tint.setHex(CFG.paleFx.stun.color), CFG.paleFx.stun.strength] : [tint.setHex(0xe8e070), 0.6]; // (a pale floor's a deep storm gold: the pale yellow turned bodies cream)
   if (s.chill > 0) return [tint.setHex(0x3a6aa8), Math.min(0.7, 0.3 * s.chill)];
   return null;
 }

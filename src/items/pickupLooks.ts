@@ -17,6 +17,7 @@ import type { Item } from './loot';
 import { obolFaceNow, obolFaces } from './obolFace';
 import { coinFace, modelFor, type CoinFace } from '../assets/models';
 import { itemTones } from '../world/kitColours';
+import { paleFx } from '../world/paleFx';
 
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up. */
@@ -199,21 +200,23 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
     g.add(glowShared(0x6fa8ff, 0.8, 0.6));
   },
   key(g) {
-    // a bone key: its bow a ring round a ward-blue stone (large enough to glint), a collar, the shaft, two bits
-    const k = new THREE.Group();
+    // a bone key: its bow a ring round a ward-blue stone (large enough to glint), a collar, the shaft, two bits; on a pale
+    // floor an aged bone (pale, it showed only its outline on the ivory)
+    const bone = paleFx() ? CFG.paleFx.items.bone : BONE,
+      k = new THREE.Group();
     k.scale.setScalar(1.15);
     g.add(k);
     const b = new THREE.Group();
     b.position.x = -0.19;
     k.add(b);
-    mesh(b, new THREE.TorusGeometry(0.078, 0.034, 5, 12), tone(BONE, 0.06));
+    mesh(b, new THREE.TorusGeometry(0.078, 0.034, 5, 12), tone(bone, 0.06));
     put(mesh(b, new THREE.OctahedronGeometry(0.055, 0), glowTone(WARD)), 0, 0, 0, [1, 1.3, 0.7]);
-    mesh(b, new THREE.SphereGeometry(0.03, 5, 4), tone(BONE), 0, 0.11, 0);
-    put(mesh(k, cyl(0.032, 0.026, 0.3, 6), tone(BONE, 0.06), 0.03, 0, 0), 0, 0, Math.PI / 2);
+    mesh(b, new THREE.SphereGeometry(0.03, 5, 4), tone(bone), 0, 0.11, 0);
+    put(mesh(k, cyl(0.032, 0.026, 0.3, 6), tone(bone, 0.06), 0.03, 0, 0), 0, 0, Math.PI / 2);
     for (const x of [-0.09, -0.06])
-      put(mesh(k, cyl(0.044, 0.044, 0.02, 7), tone(shade(BONE, 0.85)), x, 0, 0), 0, 0, Math.PI / 2);
-    box(k, 0.055, 0.1, 0.055, tone(BONE, 0.06), 0.15, -0.07, 0);
-    box(k, 0.05, 0.075, 0.055, tone(BONE, 0.06), 0.075, -0.06, 0);
+      put(mesh(k, cyl(0.044, 0.044, 0.02, 7), tone(shade(bone, 0.85)), x, 0, 0), 0, 0, Math.PI / 2);
+    box(k, 0.055, 0.1, 0.055, tone(bone, 0.06), 0.15, -0.07, 0);
+    box(k, 0.05, 0.075, 0.055, tone(bone, 0.06), 0.075, -0.06, 0);
     g.add(glowShared(0xf0e6cc, 0.6, 0.35));
   },
   glyph(g) {
@@ -224,13 +227,17 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
     mesh(f, GEO.rune, glowTone(AMBER), 0, 0, 0.04);
     g.add(glowShared(0xff9a3a, 0.75, 0.55));
   },
-  paleSoul: (g) => soul(g, 0xa8c0f0, 0xe8f0ff), // a pale flame with a white heart
+  paleSoul(g) {
+    const [body, core] = paleFx() ? CFG.paleFx.items.paleSoul : [0xa8c0f0, 0xe8f0ff]; // (on a pale floor deeper: it washed out)
+    soul(g, body, core); // a pale flame with a white heart
+  },
   blackSoul(g) {
     soul(g, 0x2a1640, 0xb07aff, true);
     put(mesh(g, new THREE.TorusGeometry(0.12, 0.012, 3, 16), glowTone(0xa266ff), 0, -0.15, 0), Math.PI / 2);
   },
   hallowedSoul(g) {
-    soul(g, 0xffd878, 0xfffbe8);
+    const [body, core] = paleFx() ? CFG.paleFx.items.hallowedSoul : [0xffd878, 0xfffbe8];
+    soul(g, body, core);
     put(mesh(g, new THREE.TorusGeometry(0.085, 0.013, 3, 18), glowTone(0xffe8a0), 0, 0.33, 0), Math.PI / 2 - 0.25);
   },
   shard(g) {
@@ -369,14 +376,17 @@ function facedObol(g: THREE.Object3D, face: CoinFace & { id: string }, r: number
   put(mesh(g, new THREE.CylinderGeometry(r, r, 0.036, 28, 1, true), m.edge), Math.PI / 2);
 }
 
-const items = new Map<string, THREE.Object3D>();
+const items = new Map<string, THREE.Object3D>(),
+  PALE_KINDS = new Set<string>(['key', 'paleSoul', 'hallowedSoul']); // (built in deeper colours on a pale floor)
 /** A pickup's look (a copy: its merged geometry and its materials shared with every other of the kind). An obol's and a
     purse's are kept by the face they wear (a purse's by its floor's leather too). */
 export function itemLook(kind: Exclude<Item, 'potion' | 'reagent' | 'rune'>) {
   const key =
     kind === 'coin' || kind === 'purse'
       ? `${kind}:${obolFaceNow()?.id ?? 'rune'}${kind === 'purse' ? `:${itemTones().purse}:${itemTones().clasp}` : ''}`
-      : kind;
+      : PALE_KINDS.has(kind) && paleFx()
+        ? `${kind}:pale`
+        : kind;
   let t = items.get(key);
   if (!t) {
     const g = new THREE.Group();

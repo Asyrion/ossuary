@@ -27,6 +27,7 @@ import { soulsHere } from '../items/souls';
 import { FLOORS } from './generate';
 import { SIDE_DIR } from './shapes';
 import { WARD_COLOR as WARD, freeSpotNear } from './rooms';
+import { paleFx, paleShadow, paleTone } from './paleFx';
 
 /** Fill a vault when the floor is built: the prize on a pedestal, or a hoard around a reliquary chest. */
 export function fillVault(room: Room) {
@@ -44,6 +45,9 @@ export function fillVault(room: Room) {
   });
 }
 
+/** The ward's colour as its rune shows it: on a pale floor its deep tone (drawn there, not added). */
+const wardTone = (c: number) => (paleFx() ? paleTone(c) : c);
+
 /** The ward on the outer side of a vault's door: a turning rune hanging in the doorway, facing the camera
     whichever wall the door is in (above the low south wall), and an iron padlock. */
 function sealMark(room: Room, door: VaultSeal['outer']) {
@@ -51,16 +55,19 @@ function sealMark(room: Room, door: VaultSeal['outer']) {
     south = door.side === 's',
     g = new THREE.Group();
   g.position.set(door.x - dx * (dx ? 0.35 : 0.05) - room.cx, south ? 0.8 : 0.62, door.z - dz * 0.05 - room.cz); // (clear of an east or west door's posts)
-  const rune = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map: glyphTexture(),
-      color: WARD,
-      transparent: true,
-      opacity: 0.9,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  );
+  // (on a pale floor drawn in the ward's deep tone over a disc of the floor's shadow, with no glow: added, it burnt white
+  // on floor 4's ivory)
+  const pale = paleFx(),
+    rune = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: glyphTexture(),
+        color: wardTone(WARD),
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: pale ? THREE.NormalBlending : THREE.AdditiveBlending,
+      }),
+    );
   rune.scale.setScalar(south ? 0.8 : 1.05);
   const lock = padlockLook(WARD);
   lock.position.set(0, -0.2, 0.08); // (specialLooks.ts)
@@ -71,7 +78,21 @@ function sealMark(room: Room, door: VaultSeal['outer']) {
   ); // (not added light: over the rune and its glow it would wash white)
   cup.position.z = -0.03;
   cup.scale.setScalar(0.3);
-  g.add(rune, lock, glow(WARD, 1.3, 0.5), cup);
+  g.add(rune, lock, cup);
+  if (pale) {
+    const W = CFG.paleFx.ward,
+      under = new THREE.Mesh(
+        new THREE.CircleGeometry(W.under * rune.scale.x, 24),
+        new THREE.MeshBasicMaterial({
+          color: paleShadow(),
+          transparent: true,
+          opacity: W.underAlpha,
+          depthWrite: false,
+        }),
+      );
+    under.position.z = -0.05; // (behind the cup and the rune)
+    g.add(under);
+  } else g.add(glow(WARD, 1.3, 0.5));
   room.group.add(g);
   return { g, cup };
 }
@@ -164,7 +185,7 @@ export function blastSeal(s: VaultSeal) {
     burst(s.outer.x, 0.6, s.outer.z, WARD, 10, 2, 0.04);
     const rune = s.mark.children[0] as THREE.Sprite;
     rune.material.opacity = 0.45;
-    rune.material.color.setHex(0xc0a0ff); // cracked: dimmer, and tinged
+    rune.material.color.setHex(wardTone(0xc0a0ff)); // cracked: dimmer, and tinged
     return;
   }
   Sfx.wardBreak();

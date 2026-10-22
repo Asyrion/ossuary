@@ -311,6 +311,45 @@ export const CFG = {
     // a strip on the floor (the hart's charge lane, a griffin's or a harpy's line): the deepened light at `alpha` inside
     // `edge` game pixels of the floor's shadow colour, its strength in `steps` steps
     strip: { edge: 2, alpha: 0.6, steps: 3 },
+    // a strip's own tone where the school's deep one, laid at `alpha` over the floor's dark squares, read brown (the hart's
+    // lane, a griffin's line: Hallow's), and that strip's strength (world/paleFx.ts paleStripTone)
+    stripTones: { hallow: 0xf0b02a } as Partial<Record<'hallow' | 'frost' | 'storm' | 'umbral', number>>,
+    stripToneAlpha: 0.75,
+    // a ray (the radiant eye's: magic/spellFx.ts beamFx): straight, `width` game pixels across in the school's deep tone
+    // inside `edge` pixels of the floor's shadow colour, at `alpha`, fading in `steps` steps (lightning read as a storm's)
+    beam: { width: 4, edge: 1, alpha: 0.95, steps: 3 },
+    // a stunned or shocked foe's flash (magic/statusFx.ts statusTint): a deep storm gold at `strength` (the pale yellow
+    // turned bodies cream on the ivory)
+    stun: { color: 0x9a6c0c, strength: 0.6 },
+    // what foes leave on the floor (actors/bestiaryGround.ts): rime's crystals in a deep frost blue, a web a dark violet
+    // grey at `webOpacity` (pale, both washed into the ivory)
+    ground: { rime: 0x2a64a0, web: 0x3a3046, webOpacity: 0.75 },
+    // the Pollen Cloud (magic/spellFx.ts pollenFx): its circle drawn in a deep Verdant green (`tone`) at `line` on an edge
+    // of the floor's shadow colour at `edge` of that, its haze drawn in it at `haze` (added, its lime washed out), no glow
+    pollen: { tone: 0x4a8a26, line: 0.9, edge: 0.75, haze: 0.14 },
+    // a blob shadow (render/materials.ts paleBlobs): at most `most` dark (its stepped middle was a black dot on ivory)
+    blob: { most: 0.67 },
+    // a sealed vault's ward at its door (world/vault.ts): its rune drawn in the ward's deep tone over a disc of the floor's
+    // shadow colour, `under` of the rune's size across, at `underAlpha`, and no glow
+    ward: { under: 0.5, underAlpha: 0.7 },
+    // a pickup's and an artifact's dark halo (items/pickups.ts, items/artifacts.ts): drawn behind it in the floor's shadow
+    // colour, `pickup` or `artifact` across, in bands ([outer edge, strength], from the middle out), `back` units below
+    // the thing and drawn as much higher (so it is behind it, however an artifact turns: world/paleFx.ts paleHalo); the bone key and the pale and hallowed souls in deeper colours (their pale bodies
+    // showed only their outline)
+    halo: {
+      pickup: 0.7,
+      artifact: 1.15,
+      rings: [
+        [0.62, 0.6],
+        [1, 0.35],
+      ] as readonly (readonly [number, number])[],
+      back: 0.2,
+    },
+    items: {
+      bone: 0xa89470,
+      paleSoul: [0x3a64b8, 0xb8d0ff] as [number, number],
+      hallowedSoul: [0xc08a18, 0xffe7a0] as [number, number],
+    },
     // black ice (actors/bestiaryGround.ts): its edge drawn `art` pixels across, in `steps` flat steps with a hard rim
     blackIce: { art: 32, steps: 3 },
     // what is thrown (actors/bestiaryGround.ts lob): solid and flat-shaded, outlined as a thing is; a snowball pale
@@ -996,17 +1035,17 @@ export const CFG = {
     saltGolem: { motion: 'sway', main: 'torso', span: 1.3 },
     rubbleGolem: { motion: 'sway', main: 'torso', span: 1.5, tint: 1.4, lift: '#201a1c', hot: 1.2 },
     // floor 4's (the wick mouse's flame is its model's own, not kept: its behaviour grows it each frame)
-    wickmouse: { motion: 'squat', main: 'body', span: 0.7, hot: 2 },
+    wickmouse: { motion: 'squat', main: 'body', span: 0.75, tint: 0.6 }, // (its pale fur darkened off the ivory floor; its flame glows of itself)
     chimeBat: { motion: 'float', main: 'bell', span: 1.0 },
     gargoyleWhelp: { motion: 'squat', main: 'body', span: 0.95 },
     moonstagFawn: { motion: 'sway', main: 'body', span: 0.9 },
-    radiantEye: { motion: 'float', main: 'core', span: 1.2, tint: 1.35, lift: '#201c34' },
+    radiantEye: { motion: 'float', main: 'core', span: 1.2 },
     harpy: { motion: 'bank', main: 'body', span: 1.7 },
     lodestoneGolem: { motion: 'sway', main: 'body', span: 1.3 },
     hearthGolem: { motion: 'sway', main: 'body', span: 1.3, keep: ['flames'] },
     shadowFox: { motion: 'crawl', main: 'body', span: 1.3 },
     rimeScarab: { motion: 'crawl', main: 'body', span: 1.15, keep: ['ball'] },
-    griffin: { motion: 'bank', main: 'body', span: 2.2 },
+    griffin: { motion: 'bank', main: 'body', span: 2.2, roll: 0.1 }, // (its wide wings roll less)
   },
   // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
   // look kept as built (the rune ring and the halo the fight turns and lights), the part whose fire is set on the

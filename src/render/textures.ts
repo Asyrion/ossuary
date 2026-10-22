@@ -130,15 +130,24 @@ export const lightPoolTex = stepped(
   ]),
   CFG.pixelLook.poolSteps,
 );
-export const shadowTex = stepped(
-  '0,0,0',
-  fade([
-    [0, 0.75],
-    [0.6, 0.35],
-    [1, 0],
-  ]),
-  CFG.pixelLook.shadowSteps,
-);
+const shadowFade = fade([
+  [0, 0.75],
+  [0.6, 0.35],
+  [1, 0],
+]);
+export const shadowTex = stepped('0,0,0', shadowFade, CFG.pixelLook.shadowSteps);
+/** The blob shadow held at most `most` dark (a pale floor's, CFG.paleFx.blob: its steps rounded up made its middle a
+    full-black dot, a hole in the ivory); its other steps as `shadowTex`'s. One texture a cap. */
+const cappedShadows = new Map<number, THREE.Texture>();
+export function cappedShadowTex(most: number) {
+  let t = cappedShadows.get(most);
+  if (!t) {
+    const n = CFG.pixelLook.shadowSteps;
+    t = stepped('0,0,0', (d) => Math.min(most, Math.ceil(shadowFade(d) * n - 1e-6) / n), 255); // (held in its own steps, then capped)
+    cappedShadows.set(most, t);
+  }
+  return t;
+}
 
 /** The blast glyph's rune: two rings, a seven-pointed star and ticks between the rings, centred at (0, 0) and
     `r` in radius. */
