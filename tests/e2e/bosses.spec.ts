@@ -537,7 +537,19 @@ test("the Hollow Warden wears the Owlbear, its shots in Hallow's light, and can 
     g.sim(0.2, true);
     return ids;
   });
-  expect(ids).toEqual(['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent', 'kaelith']); // (the bosses of floors 2 and 3, remade in code; of floors 4 and 5; the Eda lore's; the jelly serpent; and Kaelith's two looks)
+  expect(ids).toEqual([
+    'warden',
+    'abbess',
+    'pyre',
+    'hart',
+    'angler',
+    'tiger',
+    'dragon',
+    'twins',
+    'twins2',
+    'serpent',
+    'kaelith',
+  ]); // (the bosses of floors 2 and 3, remade in code; of floors 4 and 5; the Eda lore's, the second guardian its own; the jelly serpent; and Kaelith's two looks)
   expect(errors).toEqual([]);
 });
 
