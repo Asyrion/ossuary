@@ -162,24 +162,28 @@ export function glowShared(color: number, size: number, opacity: number) {
   return s;
 }
 /** Additive glow sprite in hard bands (`bandsTex`), with its own material (opacity can be animated); `shared` gives
-    every sprite of that colour, size and strength one material (a projectile's). */
+    every sprite of that colour, size and strength one material (a projectile's); `drawn`, laid over what is behind it
+    rather than added (a pale floor's, where added light piled up to white), or with `map` an edged band texture
+    (`edgedBandsTex`) whose colours are its own. */
 export function bandGlow(
   color: number,
   size: number,
   opacity: number,
   rings: readonly (readonly [number, number])[],
   shared = false,
+  drawn: false | { map?: THREE.Texture } = false,
 ) {
   const make = () =>
     new THREE.SpriteMaterial({
-      map: bandsTex(rings),
-      color,
+      map: (drawn && drawn.map) || bandsTex(rings),
+      color: drawn && drawn.map ? 0xffffff : color,
       transparent: true,
       opacity,
-      blending: THREE.AdditiveBlending,
+      blending: drawn ? THREE.NormalBlending : THREE.AdditiveBlending,
       depthWrite: false,
     });
-  const s = new THREE.Sprite(shared ? cached(`band${color}_${opacity}_${JSON.stringify(rings)}`, make) : make());
+  const key = `band${color}_${opacity}_${JSON.stringify(rings)}` + (drawn ? `_drawn${drawn.map?.uuid ?? ''}` : '');
+  const s = new THREE.Sprite(shared ? cached(key, make) : make());
   s.scale.set(size, size, 1);
   return s;
 }

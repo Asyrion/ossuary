@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 import type { Enemy } from '../types';
 import { G, after, player } from '../state';
+import { paleFx } from '../world/paleFx';
 import { CFG } from '../config';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
@@ -200,7 +201,7 @@ export function unbind(e: Enemy) {
   e.aura?.material.color.set(CH.aura);
   floatText(e.x, 1.9, e.z, STR.foes.unbound, light, 34);
   burst(e.x, 0.9, e.z, light, 22, 3, 0.05);
-  ringFx(e.x, 0.1, e.z, light, 0.3, 1.8, CFG.spellFx.ring, true);
+  ringFx(e.x, 0.1, e.z, light, 0.3, 1.8, CFG.spellFx.ring, true, undefined, paleFx());
   Sfx.at(e.x, e.z).unbound();
 }
 
@@ -231,7 +232,7 @@ export function mantleFell(e: Enemy) {
     z = e.z,
     room = G.room.current,
     violet = SCHOOL_LIGHT.umbral;
-  ringFx(x, 0.08, z, violet, H.curseReach, 0.2, H.curseDelay, true);
+  ringFx(x, 0.08, z, violet, H.curseReach, 0.2, H.curseDelay, true, undefined, paleFx());
   burst(x, 0.5, z, violet, 16, 1.6, 0.04);
   Sfx.at(x, z).curse();
   after(H.curseDelay, () => {

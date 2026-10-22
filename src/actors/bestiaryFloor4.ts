@@ -32,7 +32,8 @@ import { steamBetween } from '../magic/steam';
 import { mantleShields } from '../magic/shapes';
 import { hurtPlayer } from '../combat/damage';
 import { lerp } from '../util';
-import { lob } from './bestiaryGround';
+import { lob, paleStrip } from './bestiaryGround';
+import { paleFx } from '../world/paleFx';
 import { layFire } from './foes';
 import { brake, light, num, ramp, rush, span, type Behaviour, type Params } from './foeKit';
 import { counter } from './counters';
@@ -46,6 +47,15 @@ const lineGeo = markShared(new THREE.PlaneGeometry(0.5, 1).rotateX(-Math.PI / 2)
 function floorLine(x0: number, z0: number, x1: number, z1: number, color: number) {
   const room = G.room.current,
     len = Math.hypot(x1 - x0, z1 - z0) || 0.01;
+  if (paleFx()) {
+    // on a pale floor drawn in the deepened light inside a dark edge (added, it burnt white on floor 4's ivory)
+    const s = paleStrip(lineGeo.parameters.width, color, true);
+    s.setLength(len);
+    s.g.position.set(x0 - room.cx, 0.03, z0 - room.cz);
+    s.g.rotation.y = Math.atan2(x1 - x0, z1 - z0);
+    room.group.add(s.g);
+    return s.g;
+  }
   let mat = lineMats.get(color);
   if (!mat)
     lineMats.set(
@@ -146,7 +156,7 @@ const griffin: Behaviour = {
       if ((e.tick! -= dt) <= 0 && a.dist < num(P.buffetReach)) {
         e.tick = num(P.buffetEvery);
         e.fireT = num(P.buffetTime);
-        ringFx(e.x, 0.5, e.z, light(e), 0.4, 1.8, 0.35, true);
+        ringFx(e.x, 0.5, e.z, light(e), 0.4, 1.8, 0.35, true, undefined, paleFx());
         Sfx.at(e.x, e.z).wingBeat();
       }
       if (e.fireT! > 0) {
@@ -237,7 +247,7 @@ const eye: Behaviour = {
         e.state = 'aim';
         e.st = num(P.delay);
         e.tele = 0;
-        ringFx(player.x, 0.04, player.z, light(e), 0.7, 0.45, num(P.delay), true, 0.8);
+        ringFx(player.x, 0.04, player.z, light(e), 0.7, 0.45, num(P.delay), true, 0.8, paleFx());
         Sfx.at(e.x, e.z).eyeCharge();
       } // (where the mage stood: the ray comes there)
     } else if (e.state === 'aim') {
@@ -326,7 +336,7 @@ const harpy: Behaviour = {
         e.state = 'screech';
         e.tick = num(P.screech);
         e.fireT = 99;
-        ringFx(e.x, 1, e.z, light(e), 0.3, num(P.screechRange), 0.5, true);
+        ringFx(e.x, 1, e.z, light(e), 0.3, num(P.screechRange), 0.5, true, undefined, paleFx());
         Sfx.at(e.x, e.z).harpyScreech();
       }
       if (e.state === 'screech') {
@@ -454,6 +464,7 @@ const hearth: Behaviour = {
             },
             1.8,
             1.1,
+            paleFx() ? 'coal' : undefined,
           );
         }
       }
@@ -672,12 +683,13 @@ const roller: Behaviour = {
               );
             }
             frostAt(x, z, 0.8);
-            ringFx(x, 0.1, z, SCHOOL_LIGHT.frost, 0.3, 1.8, 0.4, true);
+            ringFx(x, 0.1, z, SCHOOL_LIGHT.frost, 0.3, 1.8, 0.4, true, undefined, paleFx());
             burst(x, 0.4, z, 0xeaf6ff, 20, 2.6, 0.06);
             Sfx.at(x, z).iceShatter();
           },
           1.6,
           2 + size * 1.5,
+          paleFx() ? 'snow' : undefined,
         );
         e.state = 'bare';
         e.st = num(P.bare);

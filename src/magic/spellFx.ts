@@ -20,6 +20,7 @@ import { scene } from '../render/renderer';
 import { bandGlow, basicMat, disposeTree, glow, markShared, mergeStill, sphereGeo } from '../render/materials';
 import { modelFor } from '../assets/models';
 import { floorShade, markThing } from '../render/pixelLook';
+import { paleShadow, paleTone } from '../world/paleFx';
 import {
   SCHOOL_LIGHT,
   box,
@@ -255,11 +256,15 @@ interface Ring {
   from: number;
   to: number;
   opacity: number;
+  /** Drawn rather than added, over a dark ring under it (a pale floor's: `CFG.paleFx.ring`). */ under?: THREE.Mesh;
 }
 const rings: Ring[] = [],
-  idleRings: Ring[] = [];
+  idleRings: Ring[] = [],
+  idleDrawn: Ring[] = [];
 /** A ring of light at (x, y, z) growing from radius `from` to `to` and fading over `life` seconds: flat on the floor
-    (a shockwave) or turned to the camera (a flash). */
+    (a shockwave) or turned to the camera (a flash); `drawn` (a foe's on a pale floor, `CFG.paleFx.ring`), in the colour's
+    deepened light laid over the floor rather than added, on a wider ring of the floor's shadow colour, fading in steps
+    (added, a pale ring burnt white on floor 4's ivory). */
 export function ringFx(
   x: number,
   y: number,
@@ -270,18 +275,34 @@ export function ringFx(
   life = CFG.spellFx.ring,
   flat = false,
   opacity = 0.85,
+  drawn = false,
 ) {
-  let r = idleRings.pop();
+  let r = (drawn ? idleDrawn : idleRings).pop();
   if (!r) {
-    const mat = shine(color, opacity),
+    const mat = drawn
+        ? new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide })
+        : shine(color, opacity),
       m = new THREE.Mesh(
         keep('fx.ringGeo', () => new THREE.RingGeometry(0.84, 1, 40)),
         mat,
       );
+    let under: THREE.Mesh | undefined;
+    if (drawn) {
+      const [a, b] = CFG.paleFx.ring.under;
+      under = new THREE.Mesh(
+        keep('fx.ringUnder', () => new THREE.RingGeometry(a, b, 40)),
+        new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }),
+      );
+      under.position.z = -0.002; // (below the ring, whichever way it is turned)
+      under.renderOrder = 2;
+      m.renderOrder = 3;
+      m.add(under);
+    }
     scene.add(m);
-    r = { m, mat, t: 0, life, from, to, opacity };
+    r = { m, mat, t: 0, life, from, to, opacity, under };
   }
-  r.mat.color.setHex(color);
+  r.mat.color.setHex(r.under ? paleTone(color) : color);
+  if (r.under) (r.under.material as THREE.MeshBasicMaterial).color.setHex(paleShadow());
   r.m.position.set(x, y, z);
   r.m.rotation.set(flat ? -Math.PI / 2 : TILT, 0, 0);
   r.m.visible = true;
@@ -293,7 +314,11 @@ function stepRing(r: Ring, dt: number) {
   r.t += dt;
   const k = Math.min(1, r.t / r.life);
   r.m.scale.setScalar(r.from + (r.to - r.from) * (1 - (1 - k) ** 3));
-  r.mat.opacity = r.opacity * (1 - k);
+  if (r.under) {
+    const R = CFG.paleFx.ring;
+    r.mat.opacity = (r.opacity * Math.ceil((1 - k) * R.steps)) / R.steps;
+    (r.under.material as THREE.MeshBasicMaterial).opacity = r.mat.opacity * R.underAlpha;
+  } else r.mat.opacity = r.opacity * (1 - k);
   return k >= 1;
 }
 
@@ -1270,7 +1295,7 @@ export function updateSpellFx(dt: number) {
   for (let i = rings.length - 1; i >= 0; i--)
     if (stepRing(rings[i], dt)) {
       rings[i].m.visible = false;
-      idleRings.push(rings.splice(i, 1)[0]);
+      (rings[i].under ? idleDrawn : idleRings).push(rings.splice(i, 1)[0]);
     }
   for (let i = strikes.length - 1; i >= 0; i--)
     if (stepStrike(strikes[i], dt)) {
@@ -1289,7 +1314,7 @@ export function updateSpellFx(dt: number) {
 export function hideSpellFx() {
   for (const r of rings) {
     r.m.visible = false;
-    idleRings.push(r);
+    (r.under ? idleDrawn : idleRings).push(r);
   }
   rings.length = 0;
   for (const s of strikes) {
