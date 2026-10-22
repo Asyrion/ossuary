@@ -857,6 +857,18 @@ export const CFG = {
     stormDarter: { motion: 'bank', main: 'body', span: 1.15 },
     cisternLurker: { motion: 'sway', main: 'rise', span: 1.6, keep: ['disc'] },
     brineSerpent: { motion: 'sway', main: 'body', span: 1.5, keep: ['pool'] },
+    // floor 3's (sized near their looks in code, which their fights were tuned with)
+    cinderSalamander: { motion: 'crawl', main: 'body', span: 1.4 },
+    magmaOoze: { motion: 'squat', main: 'body', span: 1.3, keep: ['disc'] },
+    hexImp: { motion: 'float', main: 'body', span: 1.3, keep: ['ring'] },
+    waspNest: { motion: 'squat', main: 'body', span: 1.0 },
+    emberWasp: { motion: 'bank', main: 'body', span: 0.9 },
+    cinderDjinn: { motion: 'float', main: 'body', span: 1.4 },
+    rimeDrakeling: { motion: 'crawl', main: 'body', span: 1.5, keep: ['ground'] },
+    phoenix: { motion: 'bank', main: 'body', span: 2.2 },
+    basilisk: { motion: 'crawl', main: 'body', span: 2.0 },
+    saltGolem: { motion: 'sway', main: 'torso', span: 1.3 },
+    rubbleGolem: { motion: 'sway', main: 'torso', span: 1.5 },
   },
   // bosses made in Tripo (actors/madeBosses.ts), by boss: their size against their look in code, and the parts of that
   // look kept as built (the rune ring and the halo the fight turns and lights), the part whose fire is set on the
@@ -865,6 +877,8 @@ export const CFG = {
   madeBosses: {
     abbess: { size: 1, keep: ['ring', 'halo'], tint: 0.66 },
     pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm' },
+    tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
+    twins: { size: 1, keep: ['ring', 'halo'] },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

@@ -300,7 +300,9 @@ export function magmaOoze(): Built {
     lava = std(0x9a2a08, { emissive: 0xff4a08, emissiveIntensity: 0.7, roughness: 0.55 }),
     crust = std(0x2e2522, { roughness: 1 }),
     hot = lit(0xffd36a);
-  part(g, new THREE.CircleGeometry(0.85, 16), shine(E, 0.22), [0, 0.008, 0], { rot: [-Math.PI / 2, 0, 0] });
+  const disc = part(g, new THREE.CircleGeometry(0.85, 16), shine(E, 0.22), [0, 0.008, 0], {
+    rot: [-Math.PI / 2, 0, 0],
+  }); // (named, so a made look keeps it)
   const body = joint(g, [0, 0, 0]);
   const blob = joint(body, [0, 0, 0]);
   part(blob, sphere(0.45, 12, 8), lava, [0, 0.22, 0], { scale: [1.25, 0.62, 1.1] });
@@ -341,7 +343,7 @@ export function magmaOoze(): Built {
   return {
     group: g,
     shadow: 0,
-    parts: { body, blob },
+    parts: { body, blob, disc },
     idle: (t) => {
       blob.scale.set(1 + Math.sin(t * 1.7) * 0.05, 1 - Math.sin(t * 1.7) * 0.06, 1 + Math.sin(t * 1.7 + 1) * 0.04);
       bubbles.forEach((b, i) => {

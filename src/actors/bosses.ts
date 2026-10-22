@@ -141,11 +141,12 @@ export function buildBoss(e: Enemy) {
       e.st = 2.2;
     }
   } else if (e.type === 'tiger') {
-    // built in code: a statue in its hall until the mage comes near
-    const L = tigerLook(),
+    // a statue in its hall until the mage comes near: made in Tripo where a model is in (madeBosses.ts), else built in code
+    const made = madeBossLook('tiger', tigerLook),
+      L = (made ?? tigerLook)(),
       P = L.parts,
       C = CFG.enemy.tiger;
-    e.mats = mergeRig(L.group, L.idle, 'boss:tiger', [
+    e.mats = mergeRig(L.group, L.idle, 'boss:tiger' + (made ? ':made' : ''), [
       P.eye,
       P.ring,
       P.head,
@@ -162,6 +163,7 @@ export function buildBoss(e: Enemy) {
     e.model = L.group;
     e.idle = L.idle;
     e.shadow = L.shadow;
+    e.openShadow = L.openShadow;
     e.bossSchool = L.school;
     e.body.add(L.group);
     e.eye = P.eye;
