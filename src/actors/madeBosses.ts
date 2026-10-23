@@ -6,10 +6,11 @@
    into his blade and bobs as he strides. Its size is the look in code's (`CFG.madeBosses`: `size` times it). A boss whose
    look is a head alone (the Pillar Dragon's, the jelly serpent's: their bodies are chains built in code) is `centre`d on
    its look in code rather than stood on the floor, and its glows set `at` points of the model (its eyes, its maw).
-   A boss with a `creature` (the Hallowed Hart, docs/creatures.md) fights as that animated creature once it has loaded
-   (`preloadBossCreatures`, at boot): the same fit and kept parts, its body a skinned mesh whose clips the fight plays by
-   its states (`clip`, cross-faded), the head the fight lowers bowing its neck's bones on top of the clip, the eye's glow
-   riding its head bone. Without it the still model stands, and without that the look in code. */
+   A boss with a `creature` (the Hallowed Hart, the Hollow Warden: docs/creatures.md) fights as that animated creature
+   once it has loaded (`preloadBossCreatures`, at boot): the same fit and kept parts, its body a skinned mesh whose clips
+   the fight plays by its states (`clip`, cross-faded), a flinch played over them (`over`), the head the fight lowers
+   bowing its neck's bones on top of the clip, the eye's glow riding its head bone. Without it the still model stands, and
+   without that the look in code. */
 import * as THREE from 'three';
 import type { BossBuilt } from './bossLooks';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -39,10 +40,13 @@ interface MadeBoss extends MadeSurface {
 interface Creature {
   id: string;
   head: string;
-  bow: Readonly<Record<string, number>>;
+  bow?: Readonly<Record<string, number>>;
   blend: number;
   pace: readonly number[]; // (its slowest and fastest)
+  over?: Readonly<Record<string, number>>; // (a clip played over the others, and the seconds it rests before it plays again)
 }
+/** How the fight asks for a clip (bossLooks.ts `BossBuilt.clip`). */
+type ClipAsk = { speed?: number; beat?: number; after?: boolean };
 
 const BOSS_CREATURES_KEY = 'ossuary.bossCreatures';
 let creaturesOn = (() => {
@@ -52,6 +56,11 @@ let creaturesOn = (() => {
     return true;
   }
 })();
+/** The creatures bosses fight as, by boss (the dev menu names them on its switch). */
+export const bossCreatureIds = () =>
+  Object.entries(CFG.madeBosses as Record<string, MadeBoss>).flatMap(([boss, h]) =>
+    h.creature ? [{ boss, creature: h.creature.id }] : [],
+  );
 /** Whether a boss with a creature fights as it (the dev menu turns it off to compare with the still model). */
 export const bossCreatures = () => creaturesOn;
 /** Set it (from the next boss built on), remembered in this browser. */
@@ -182,17 +191,29 @@ function animated(c: Creature): Worn {
   const mixer = new THREE.AnimationMixer(model),
     actions: Record<string, THREE.AnimationAction> = {};
   for (const clip of gltf.animations) {
-    const a = mixer.clipAction(clip);
-    a.setLoop(info.clips[clip.name]?.loop === false ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
-    a.clampWhenFinished = true;
+    const over = c.over?.[clip.name] !== undefined,
+      a = mixer.clipAction(over ? overClip(c.id, clip) : clip);
+    a.setLoop(over || info.clips[clip.name]?.loop === false ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
+    a.clampWhenFinished = !over; // (a flinch played over the others lets go when it ends)
     actions[clip.name] = a;
   }
   return { model, creature: c, mixer, actions };
 }
 
+/** A clip played over the others (a flinch): made additive, from its first frame (its rest), once for every copy. */
+const overClips = new Map<string, THREE.AnimationClip>();
+function overClip(id: string, clip: THREE.AnimationClip) {
+  const key = id + '/' + clip.name;
+  let o = overClips.get(key);
+  if (!o) overClips.set(key, (o = THREE.AnimationUtils.makeClipAdditive(clip.clone())));
+  return o;
+}
+
 /** The clip a boss made as a creature plays now, its time and pace (the dev hooks), or null. */
 export const bossClipNow = (e: { model?: THREE.Object3D }) =>
-  (e.model?.userData.clipNow as (() => { clip: string; time: number; rate?: number }) | undefined)?.() ?? null;
+  (
+    e.model?.userData.clipNow as (() => { clip: string; time: number; rate?: number; over: string[] }) | undefined
+  )?.() ?? null;
 
 const bowAxis = new THREE.Vector3(),
   bowQ = new THREE.Quaternion(),
@@ -339,17 +360,28 @@ function fights(
     eye.position.set(0, 0, 0);
     holder.add(eye);
   }
-  const bows = Object.entries(c.bow).flatMap(([name, k]) => {
+  const bows = Object.entries(c.bow ?? {}).flatMap(([name, k]) => {
     const b = model.getObjectByName(name);
     return b ? [{ b, k, rest: b.quaternion.clone() }] : [];
   });
   const scale = model.scale.x; // (the model's units to the room's)
   let clip = '',
     last = 0;
-  const play = (name: string, o: { speed?: number; beat?: number } = {}) => {
+  const overAt: Record<string, number> = {};
+  const play = (name: string, o: ClipAsk = {}) => {
     const a = actions[name],
       ci = info.clips[name];
     if (!a || !ci || (name === clip && o.beat !== undefined)) return; // (a blow's timing is set once, as it starts)
+    const rest = c.over?.[name];
+    if (rest !== undefined) {
+      // (a flinch, over whatever plays: once it has played and rested)
+      if (last - (overAt[name] ?? -Infinity) < ci.duration + rest) return;
+      overAt[name] = last;
+      a.reset().play();
+      return;
+    }
+    // (asked to follow a blow: once that has played out)
+    if (o.after && name !== clip && info.clips[clip]?.loop === false && actions[clip]?.isRunning()) return;
     // its pace: a walk or gallop at the speed it covers, a stamp timed so its hooves fall as the fight's blow does
     const per = name === 'walk' ? info.walkSpeed : ci.speed;
     let rate = 1;
@@ -363,7 +395,12 @@ function fights(
     clip = name;
   };
   play('idle');
-  g.userData.clipNow = () => ({ clip, time: +(actions[clip]?.time ?? 0).toFixed(2), rate: actions[clip]?.timeScale });
+  g.userData.clipNow = () => ({
+    clip,
+    time: +(actions[clip]?.time ?? 0).toFixed(2),
+    rate: actions[clip]?.timeScale,
+    over: Object.keys(c.over ?? {}).filter((k) => actions[k]?.isRunning()),
+  });
   return {
     group: g,
     shadow: made.shadow,

@@ -42,7 +42,7 @@ import { burst } from '../combat/fx';
 import { banner } from '../notify';
 import { floatText } from '../magic/statusFx';
 import { makeEnemy } from './enemies';
-import { abbessLook, anglerLook, hartLook, pyreKnightLook, tigerLook, wardenLook } from './bossLooks';
+import { abbessLook, anglerLook, hartLook, pyreKnightLook, tigerLook, wardenLook, type BossBuilt } from './bossLooks';
 import { madeBossLook } from './madeBosses';
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
@@ -124,6 +124,9 @@ export function buildBoss(e: Enemy) {
 const wardenFloor = new WeakMap<Enemy, { floor: THREE.Object3D; mat: THREE.MeshBasicMaterial }>();
 /** How long the Warden winds up before each attack (seconds): its burst, its aimed volley. */
 const WIND_UP = CFG.enemy.warden.windUp;
+/** What a boss's look is, for the merge's plan of what moves (the look in code, its still model, its animated creature). */
+const lookKey = (type: string, L: BossBuilt, made: unknown) =>
+  'boss:' + type + (L.clip ? ':creature' : made ? ':made' : '');
 function buildBossBody(e: Enemy) {
   e.contact = 2;
   e.isBoss = true;
@@ -133,10 +136,11 @@ function buildBossBody(e: Enemy) {
     // the Owlbear (bossLooks.ts): made in Tripo where a model is in (madeBosses.ts), else built in code, its still parts merged
     const made = madeBossLook('warden', wardenLook),
       L = (made ?? wardenLook)();
-    e.mats = mergeRig(L.group, L.idle, 'boss:warden' + (made ? ':made' : ''), [L.parts.eye, L.parts.ring]);
+    e.mats = mergeRig(L.group, L.idle, lookKey('warden', L, made), [L.parts.eye, L.parts.ring]);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group;
     e.idle = L.idle;
+    e.clip = L.clip; // (as its animated creature: its clips played by its states, updateWarden)
     e.shadow = L.shadow;
     e.openShadow = L.openShadow;
     e.bossSchool = L.school;
@@ -159,7 +163,7 @@ function buildBossBody(e: Enemy) {
       P = L.parts,
       C = CFG.enemy[e.type];
     const keep = e.type === 'hart' ? [P.eye, P.ring, P.head, ...P.legs.children] : [P.eye, P.ring, P.lure];
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type + (L.clip ? ':creature' : made ? ':made' : ''), keep);
+    e.mats = mergeRig(L.group, L.idle, lookKey(e.type, L, made), keep);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group;
     e.idle = L.idle;
@@ -441,10 +445,14 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     W.mat.opacity = Math.max(0, k) * 0.85;
     W.floor.rotation.y += dt * (1 + 9 * Math.max(0, k));
   }
+  if (e.flash > 0) e.clip?.('hit'); // (as its animated creature: it flinches as a blow lands, now and then)
   if (e.state === 'walk') {
-    e.vx = ux * speed * (hpFrac < 0.5 ? 1.25 : 1);
-    e.vz = uz * speed * (hpFrac < 0.5 ? 1.25 : 1);
-    e.body.position.y = Math.abs(Math.sin(e.t * 4)) * 0.05;
+    const pace = speed * (hpFrac < 0.5 ? 1.25 : 1);
+    e.vx = ux * pace;
+    e.vz = uz * pace;
+    // (its heavy walk: as a creature its clip's steps, paced to it; as a still, a bob)
+    if (e.clip) e.clip('walk', { speed: pace });
+    else e.body.position.y = Math.abs(Math.sin(e.t * 4)) * 0.05;
     eye.scale.set(1, 1, 1);
     halo.material.opacity = 0.35;
     if (e.st <= 0) {
@@ -457,6 +465,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     const k = 1 - e.st / 0.75;
     halo.material.opacity = 0.35 + k * 0.2;
     eye.scale.setScalar(1 + k * 0.6); // (its great eyes widen)
+    e.clip?.('rear', { beat: e.st }); // (it rears and roars, its forepaws slammed down as its shots go out)
     e.body.position.y = 0;
     e.body.position.x = Math.sin(e.t * 50) * 0.02;
     if (e.st <= 0) {
@@ -477,6 +486,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     }
   } else if (e.state === 'volley') {
     e.vx = e.vz = 0;
+    e.clip?.('idle', { after: true }); // (standing to throw its volleys, once its rear has settled)
     if (e.st <= 0) {
       fan(e, 3, 0.56, 4.4 * shotMul, 0);
       Sfx.at(e.x, e.z).enemyShot();

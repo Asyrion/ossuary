@@ -704,5 +704,79 @@
       "colours": 24,
       "glowing": 82
     }
+  },
+  "warden": {
+    "file": "assets/creatures/warden.glb",
+    "height": 2.2,
+    "modelHeight": 0.75,
+    "modelLength": 1,
+    "walkSpeed": 0.3519,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 1.1,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.275,
+            "sound": "pawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.55,
+            "sound": "pawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.825,
+            "sound": "pawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "rear": {
+        "duration": 1.35,
+        "loop": false,
+        "at": 0.75,
+        "events": [
+          {
+            "t": 0.05,
+            "sound": "inhale"
+          },
+          {
+            "t": 0.38,
+            "sound": "roar",
+            "loud": true
+          },
+          {
+            "t": 0.75,
+            "sound": "slam",
+            "loud": true
+          }
+        ]
+      },
+      "hit": {
+        "duration": 0.55,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/warden.texel.png",
+      "glow": "assets/creatures/warden.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 0
+    }
   }
 }

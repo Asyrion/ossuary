@@ -40,8 +40,9 @@ export interface BossBuilt {
   /** Its blob shadow lighter at the middle (a made model, the floor showing between its legs). */
   openShadow?: boolean;
   /** A made look that is an animated creature (madeBosses.ts): play its clip `name`, cross-faded, paced to the `speed` it
-      covers or timed so its blow falls in `beat` seconds. */
-  clip?: (name: string, o?: { speed?: number; beat?: number }) => void;
+      covers or timed so its blow falls in `beat` seconds; `after` a blow that is still playing out, once it has; a clip
+      it plays over the others (a flinch) starts on top of them. */
+  clip?: (name: string, o?: { speed?: number; beat?: number; after?: boolean }) => void;
 }
 
 /** The ring of runes behind its head that the fight turns (in its own plane, facing the camera, tipped back a little; in

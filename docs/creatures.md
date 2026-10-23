@@ -6,7 +6,7 @@ the size of a horse, 1.8 tiles, boss budget: `tools/creatures/dragonling.ts`, th
 two-legged rig, in a mid-stride pose); the Chameleon Wyvern the third (2026-10-05, a feathered wyvern the size of a pony,
 1.4 tiles, boss budget: `tools/creatures/chameleon.ts`, the recipe for a model that came through the owner's
 EDA-ModelWebViewer, for wings, and the first with sound files). The Hallowed Hart (2026-10-23) is the first that
-fights (below, "A creature that fights"); the others are looks only.
+fights, the Hollow Warden the second (below, "A creature that fights"); the others are looks only.
 The thirteen people of M7 (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly and Kaelith) came a third way,
 rigged by Tripo with its humanoid **Mixamo** skeleton and no clips: one recipe for all of them (below, "People on a Mixamo
 rig").
@@ -187,11 +187,30 @@ its states (`updateHart`): the clip is cross-faded in once (`blend`) and paced, 
 The mixer runs on the boss's own clock in its `idle(t)`. What the fight did to its code look's parts still shows: the
 head it lowers to aim and shakes when stunned bows the neck's bones (`bow`) on top of the clip, about the creature's own
 left-right axis, and the eye's glow rides the head bone (`head`). The kept parts (ring, halo, floor circle) are as for a
-still. ?assets=off, a model that failed, or the dev menu's switch (Galleries → Animated creatures, "The Hallowed Hart
-fights as"; `__game.bossCreatures(on)`, `__game.bossClip`) leave the still model, and without that the look in code.
+still. ?assets=off, a model that failed, or the dev menu's switch (Galleries → Animated creatures, "Hallowed Hart,
+Hollow Warden fight as", one switch for every boss with a creature; `__game.bossCreatures(on)`, `__game.bossClip`) leave
+the still model, and without that the look in code. A clip named in the entry's `over` (with the seconds it rests before
+it plays again) is played over the others rather than in their place: made additive from its first frame, so it must
+start and end at rest and leave the legs alone (the Warden's flinch, over its walk). A clip asked for `after` waits until
+a blow that does not loop has played out (the Warden standing to throw its volleys once its rear has settled).
 
 The gallery plays every clip a creature has besides `idle` and `walk` in turn (its roar first); "Roar now" plays the
 first. `disposeTree` disposes a skinned mesh's skeleton (its bones' texture) with it.
+
+### The Hollow Warden (2026-10-23)
+
+Floor 1's boss, the brown owlbear under a crown of five candles that the still `foe_warden.glb` was baked from
+(`tools/creatures/warden.ts`, its clips after the grey owlbear's). Tripo's quadruped rig again: `walk.glb` carried the
+armature (`rig.glb` none), facing +x (`face = -90`), its bones named (`tripo::Root` carries the spine and the hind legs,
+`Spine_2` the chest with the forelegs and the neck `Head_0`, the head `bone_5` the candles), the skin kept (`SKIN =
+null`). Four clips, all in code: `idle`, `walk` (heavy, lateral-sequence, swaying over the planted side), `rear` (a
+crouch, up on its hind legs with its forelegs raised and its claws out, its head thrown back roaring, both forepaws
+slammed down at its `at`, 0.75 s) and `hit` (a flinch of the head and shoulders, played `over` the others when it is
+struck, resting 1.4 s between). `updateWarden` plays `walk` at its pace (its bob in code left to the still), `rear` timed
+to each wind-up so the slam falls as the burst or the volley goes out, and `idle` through the volleys once the rear has
+settled. Its config keeps the still's `hot` (the candle crown's glow) and `tint`; it has no `bow` (its fight lowers no
+head). Height 2.2 tiles in the gallery (in the fight it is fitted to the look in code, as the still), boss budget (1.46
+million triangles simplified to 14,550).
 
 **Next:** another boss or foe fights as its creature the same way: a `creature` in its `CFG.madeBosses` entry and
 `e.clip?.(...)` in its states.

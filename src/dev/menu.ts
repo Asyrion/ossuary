@@ -126,7 +126,7 @@ import { MOODS, PIECES, type Mood } from '../audio/musicData';
 import { renderAudio } from '../audio/render';
 import { CREATURES } from '../actors/madeCreatures';
 import { roarNow, showCreature, takeCreatures } from './creatureGallery';
-import { bossCreatures, setBossCreatures } from '../actors/madeBosses';
+import { bossCreatureIds, bossCreatures, setBossCreatures } from '../actors/madeBosses';
 import { THEMES } from '../world/themeData';
 
 const S = DEV_STR;
@@ -1230,13 +1230,16 @@ function build() {
     }),
     btn(S.takeOptions, () => takeCreatures(G.room.current)),
   );
-  // (the Hallowed Hart fights as its animated creature, or as the still model: from the next boss built)
+  // (the bosses with a creature fight as it, or as their still models: from the next boss built)
   const fightsAs = btn('', () => {
     setBossCreatures(!bossCreatures());
     fightsLabel();
   });
+  const fighters = bossCreatureIds()
+    .map((b) => S.creatureNames[b.creature] ?? b.creature)
+    .join(', ');
   const fightsLabel = () => {
-    fightsAs.textContent = S.bossCreature[bossCreatures() ? 'on' : 'off'];
+    fightsAs.textContent = S.bossCreature[bossCreatures() ? 'on' : 'off'](fighters);
     fightsAs.classList.toggle('on', !bossCreatures());
   };
   fightsLabel();
