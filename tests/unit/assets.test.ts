@@ -203,6 +203,13 @@ describe('the asset manifest', () => {
       ).toBe(true);
     }
   });
+  it('the icons in data/assets.json are drawn at the size the game shows icons pixel for pixel (CFG.roomKit.icon.out)', () => {
+    expect(IMAGES.icon.drawn).toBe(CFG.roomKit.icon.out);
+    for (const [id, e] of Object.entries(MANIFEST.icons)) {
+      const png = readFileSync(join('public/assets', e.file)); // (a PNG's width and height, in its header)
+      expect([png.readUInt32BE(16), png.readUInt32BE(20)], id).toEqual([IMAGES.icon.drawn, IMAGES.icon.drawn]);
+    }
+  });
   it('budgets are positive for every kind', () => {
     for (const b of Object.values(BUDGETS)) {
       expect(b.triangles).toBeGreaterThan(0);

@@ -150,9 +150,12 @@ export const DEV_STR = {
   noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
   padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) =>
     `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
-  artifactGallery: "Artifacts (the room kit's: built in code, their icons rendered from them)",
+  artifactGallery: "Artifacts (the room kit's, built in code) and their icons",
+  iconSheet: 'Every icon, 2×',
+  iconDrawn: 'drawn in Aseprite',
+  iconModel: 'rendered from its model',
   artifactsNote:
-    "Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can't be taken",
+    "Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can't be taken. The icons: the drawn ones (data/assets.json) ringed in amber, the rest rendered from their models (Look: made assets off shows those for all)",
   /** Dr. Jelly: the plague doctor, and what he hands over. */
   jellyLooks: "Dr. Jelly (the plague doctor, from the owner's pictures)",
   jellyNote: 'He stands ahead of the mage, looping the giving gesture',

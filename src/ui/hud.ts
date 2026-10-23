@@ -149,15 +149,17 @@ export function renderPurse() {
 }
 
 /** An artifact's icon as inline SVG in its colour: the focus framed, cursed ones ringed in red until a
-    shrine cleanses them (then a pale ring). */
+    shrine cleanses them (then a pale ring). Its picture is 24 pixels of pixel art, shown in whole steps (`svg.art` in the
+    CSS: 1× in the HUD, 2× on the cards): drawn in Aseprite where data/assets.json lists one (it carries its own ink
+    outline), else rendered from the artifact's model (items/artifactIcons.ts). */
 export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cleansed.includes(id)) {
   const def = artifact(id),
     clean = cleansed && !!def.curse;
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
-  const url = iconUrl(id) ?? artifactIconUrl(def); // (a painted icon, or the room kit's, rendered from its model)
+  const url = iconUrl(id) ?? artifactIconUrl(def); // (the drawn icon, or the room kit's, rendered from its model)
   const art = `<image href="${url}" width="24" height="24" style="image-rendering:pixelated"/>`;
-  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
+  return `<svg viewBox="0 0 24 24" class="art${cls ? ' ' + cls : ''}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
 }
 /** The focus followed by every other artifact held. */
 export function renderItems() {

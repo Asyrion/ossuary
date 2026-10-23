@@ -66,7 +66,8 @@ import { bindIt, breakAllChains, freeIt, layShade, shadeInfo } from '../vigil/sh
 import { walkWith } from '../vigil/shadeHelp';
 import { SHADE_IDS } from '../vigil/shadeData';
 import { openLectern } from '../ui/lectern';
-import { assetList, assetsOn, setAssetsOn, wallTile } from '../assets/models';
+import { assetList, assetsOn, iconUrl, setAssetsOn, wallTile } from '../assets/models';
+import { artifactIconUrl } from '../items/artifactIcons';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
 import { lightLevels } from '../render/lights';
@@ -210,6 +211,20 @@ export function closeDev() {
   panel.hidden = true;
   (document.activeElement as HTMLElement | null)?.blur?.();
   if (wasPlaying && G.flow.state === 'pause') resume();
+}
+
+/** Every artifact's icon in `box`, 2× (whole steps): the drawn ones (data/assets.json `icons`) ringed in amber, the
+    rest rendered from their models. */
+function showIconSheet(box: HTMLElement) {
+  box.replaceChildren(
+    ...ARTIFACT_DEFS.map((a) => {
+      const drawn = iconUrl(a.id),
+        icon = el('img', drawn ? 'px drawn' : 'px');
+      icon.src = drawn ?? artifactIconUrl(a);
+      icon.alt = icon.title = `${a.name} (${drawn ? S.iconDrawn : S.iconModel})`;
+      return icon;
+    }),
+  );
 }
 
 /* ---------- building blocks ---------- */
@@ -1199,8 +1214,9 @@ function build() {
     }),
   );
 
-  // the artifacts as the room kit builds them (looks only), in rows
-  const arts = section(pages.galleries, S.artifactGallery);
+  // the artifacts as the room kit builds them (looks only), in rows; and every one's icon, side by side
+  const arts = section(pages.galleries, S.artifactGallery),
+    iconSheet = el('div', 'dv-icons');
   arts.append(
     el('p', 'dv-info', S.artifactsNote),
     btn(S.showOptions, () => {
@@ -1208,6 +1224,8 @@ function build() {
       showArtifactGallery(G.room.current, player.x, player.z);
     }),
     btn(S.takeOptions, () => removeArtifactGallery(G.room.current)),
+    btn(S.iconSheet, () => showIconSheet(iconSheet)),
+    iconSheet,
   );
 
   // creatures made in Tripo and animated in code (docs/creatures.md): one stood ahead of the mage, walking, roaring, resting
@@ -1856,9 +1874,17 @@ function refresh() {
     ...ARTIFACT_DEFS.filter((a) => !a.start).map((a) => {
       const held = player.focus === a.id || player.items.includes(a.id);
       const b = btn(a.name, () => grantArtifact(a), `${S.kinds[a.kind]}: ${a.text}`);
-      const dot = el('i');
-      dot.style.background = a.color;
-      b.prepend(dot);
+      const drawn = iconUrl(a.id); // (its drawn icon; the rest keep their colour's dot, not rendered here)
+      if (drawn) {
+        const icon = el('img', 'px art');
+        icon.src = drawn;
+        icon.alt = '';
+        b.prepend(icon);
+      } else {
+        const dot = el('i');
+        dot.style.background = a.color;
+        b.prepend(dot);
+      }
       if (a.kind !== 'passive')
         b.append(el('small', '', player.cleansed.includes(a.id) ? S.cleansed : S.kinds[a.kind]));
       b.classList.toggle('on', held);

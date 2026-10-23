@@ -168,7 +168,8 @@ export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null)
 export const wallTile = (look: string, kind: string) => (enabled ? (walls.get(`${look}.${kind}`) ?? null) : null);
 /** A floor look's made floor face of that name (its look's `floor.face`), or null for the paving the room kit draws. */
 export const floorFace = (look: string, name: string) => (enabled ? (floorFaces.get(`${look}.${name}`) ?? null) : null);
-/** An artifact's painted icon (its URL), or null for the one rendered from its model (items/artifactIcons.ts). */
+/** An artifact's drawn icon (its URL: 24 px of pixel art, tools/aseprite), or null for the one rendered from its model
+    (items/artifactIcons.ts). */
 export const iconUrl = (id: string) => (enabled ? (icons.get(id) ?? null) : null);
 
 /** A coin face's rim: the mean colour of its outermost drawn pixels. */

@@ -378,7 +378,8 @@ PNG to `icons/<id>.png`. It warns when the background isn't transparent, and mak
 `asset-previews/`: the icon at 28 px (the HUD) and 44 px (the lore card), plain, cursed and cleansed, on the
 game's dark background. The check is how it reads there. An icon can also be rendered from the artifact's 3D
 model instead of painted. (Since 2026-09-30 the game's icons are rendered from the artifacts' models built in code,
-`src/items/artifactIcons.ts`; a painted icon is for a special model's.)
+`src/items/artifactIcons.ts`; since 2026-10-23 an icon drawn in Aseprite replaces that for the artifacts that have one,
+`--drawn` below, in Aseprite (2D pixel art).)
 
 **Coins** (2026-10-02, from the owner's coins in `inspiration/coins/`) follow them without 3D too: a coin's face, flat
 and seen straight on, on a plain ground (white is fine) or cut out, 512 px or more across.
@@ -416,12 +417,19 @@ export and preview without opening it; the owner draws and edits in it by hand.
 4. **Export** with `Aseprite -b`: the PNG at its final size, and a copy 8× larger with nearest scaling for review.
 5. **Review** (the rule from Tamer, 2026-10-06): the 8× preview and the `.aseprite` are shown to the owner before
    anything goes into the game. Back to step 3 until the owner accepts it.
-6. **Prepare** with `npm run prepare-texture -- <png> --kind icon --id <artifact id>` or
-   `--kind coin --id <name>`, then its line in `data/assets.json` (`icons` or `coins`, and `obol` for the face the obols
-   wear) as above, and a row in the asset log. Neither kind takes drawn pixel art cleanly yet: `icon` resizes to 128 px
-   with smoothing (a 24 px drawing would blur), and `coin` warns below 512 px and cuts it to 16 colours.
-   The first drawn icon or face gives `prepare-texture` a path for drawn art (its pixels kept as drawn, checked against
-   the export); until then, export at a whole multiple of the final size and compare the result pixel for pixel.
+6. **Prepare** an icon with `python tools/aseprite/redraw.py export --id <artifact id> --game`: the `.aseprite`
+   exported fresh (never a review export lying about) and handed to
+   `npm run prepare-texture -- <png> --kind icon --id <artifact id> --drawn`, which keeps its pixels exactly (no
+   resample), fails unless it is `images.icon.drawn` (24) px square with every pixel drawn or clear, warns when its
+   outline isn't closed in ink, writes `public/assets/icons/<id>.png`, reads it back and compares it pixel for pixel,
+   and makes a sheet at 1× and 2× in `asset-previews/icons/game/`. Then its line in `data/assets.json` `icons` (it
+   prints it) and a row in the asset log. The game shows a drawn icon instead of the one rendered from the model,
+   wherever an artifact's icon shows (`artifactIcon` in `ui/hud.ts`: the HUD, the lore card, the inventory, the
+   merchant's panel, the end screen; the dev menu's artifacts and its icon sheet in Galleries), with no outline added
+   (it carries its own ink) and in whole steps only: 1× in the HUD and the end screen, 2× on the cards (`svg.art` in
+   `style.css`). The made-assets switch (dev menu, Look) shows the model-rendered ones again to compare. A coin face
+   has no drawn path yet: `--kind coin` warns below 512 px and cuts it to 16 colours, so export a coin at a whole
+   multiple of its size and compare the result pixel for pixel.
 
 **The tool** (2026-10-23, made for the first ten artifact icons, after Tamer's `tools/aseprite/redraw.py`):
 `tools/aseprite/redraw.py` (Python with Pillow and numpy, the colour maths from `tools/art/oklab.py`) drives
@@ -437,7 +445,7 @@ and 1 the ink `#0b0910`; `keep` names indices the cleaning leaves alone, a highl
 - `redraw.py dump --id <id>` prints the sprite as a text grid (a character a pixel: `.` clear, `#` ink, then `2`..`9`,
   `a`..); `redraw.py paint --id <id> <grid.txt> [--outline] [--repalette]` writes an edited grid back (step 3 by
   script), `--outline` closing the outline again, `--repalette` taking the palette from its JSON again.
-- `redraw.py export --id <id>`: step 4, `asset-previews/icons/out/<id>.png` and `<id>@8x.png`.
+- `redraw.py export --id <id>`: step 4, `asset-previews/icons/out/<id>.png` and `<id>@8x.png`; with `--game`, step 6.
 
 The first ten's concepts were made in Route 2 from `docs/art/icons/icons-prompts.json` (pictures in
 `asset-previews/icons/<id>/`); the trace gave each a start, and each was then redrawn by hand as a grid, so the
@@ -585,6 +593,7 @@ asset is accepted.
 | Ember Sigil | artifact | gem placeholder | | | dropped 2026-09-30 (built in code) |
 | Crypt floor | texture | procedural floor, floor 1 | | | dropped 2026-09-30 (drawn in code, M3.5 step 3) |
 | Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | dropped 2026-09-30 (rendered from the models built in code) |
+| Ten drawn artifact icons (`icons/apprentice_wand.png`, `drowned_orb`, `bone_lens`, `saints_knucklebone`, `mourning_bell`, `twin_staff`, `ember_sigil`, `pilgrims_boots`, `rosary_of_haste`, `reliquary_shard`; sources `inspiration/icons/<id>.aseprite`) | icons, 24 px | those ten's icons rendered from their models (the render stays for the others) | Nano Banana 2 concepts (`docs/art/icons/icons-prompts.json`), traced and redrawn by hand in Aseprite (`tools/aseprite/redraw.py`) | the art bible 4.6 | chosen by the owner 2026-10-23; in the game the same day (`redraw.py export --game`) |
 | Seven coin faces (Arcane eye, Silver owl, Star and crystal, Grave coin, Arcane sigil, Pale obol, Plain profile; `inspiration/coins/`) | coin faces | the obol built in code (Star and crystal worn by the obols) | the owner's images | | in the game 2026-10-02; Star and crystal chosen by the owner, drawn on the fine layer; made again at 48 px the same day (the coin a little smaller, at the owner's ask) |
 | Owlbear (`creatures/owlbear.glb`) | creature, boss budget | nothing yet (the owner's experiment, called a success 2026-10-03: animated in code, looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (faces turned outward, skin, clips, padding, sounds; `tools/animate-creature.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures); 14,550 triangles, 1,024 px. |
 | Dragonling (`creatures/dragonling.glb`) | creature, boss budget | nothing yet (the owner's example of a new creature, 2026-10-03: about a horse, 1.8 tiles, after a first try at a medium dog's size; looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (turned to face +z, skin, stance from a mid-stride pose, clips, padding, sounds; `tools/creatures/dragonling.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures), approved by the owner at horse size the same day; 14,550 triangles (from 19,367), 1,024 px. |

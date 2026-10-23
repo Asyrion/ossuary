@@ -21,6 +21,8 @@ export interface ImageSpec {
   /** Pixels across, as shipped. */ size: number;
   /** Pixels across of the original to keep, so the image can be redone later. */ source?: number;
   /** A coin's icon, pixels across. */ icon?: number;
+  /** An icon drawn as pixel art, pixels across: kept as drawn, shown at whole multiples (`CFG.roomKit.icon.out`, the
+      size the icons rendered from models are made at). */ drawn?: number;
   folder: string;
 }
 

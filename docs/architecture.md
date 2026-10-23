@@ -504,10 +504,13 @@ Artifacts (61 in `data/artifacts.json`: foci, passive, cursed): stats, effects, 
 Effects are carried out where they apply: the cantrip in `projectiles.ts`; companions in `combat/familiars.ts`;
 economy hooks (`freeVault`, `ferryman`, `glyphWard`, `blastMul`, `graveLantern`, `pedlar`, `obolDamage`); magic hooks
 (`spellDamageMul`, `killMana`, `thurible`, `witchKnot` in `spellCost`, `noRegen` in `updateMagic`). Looks:
-`artifactLooks.ts`; HUD icons are rendered from them (`artifactIcons.ts`; a painted icon wins if `data/assets.json`
-has one). To add an artifact: an entry in `data/artifacts.json` (stats or an `Effect`, `lore`, a `costume` decision),
+`artifactLooks.ts`; HUD icons are rendered from them (`artifactIcons.ts`), unless the artifact has an icon drawn in
+Aseprite (`data/assets.json` `icons`, 24 px, its own ink outline; `iconUrl` in `assets/models.ts`, chosen in
+`artifactIcon`, `ui/hud.ts`; shown in whole steps, `svg.art` in `style.css`). Drawn icons go in through
+`tools/aseprite/redraw.py export --id <id> --game` (`prepare-texture --kind icon --drawn`). To add an artifact: an entry in `data/artifacts.json` (stats or an `Effect`, `lore`, a `costume` decision),
 a look in `artifactLooks.ts`, and for a new mechanic an `Effect` or stat key in `artifactData.ts` with its hook.
-Dev: `__game.give(...ids)`, `artifactGallery()` (`dev/artifactGallery.ts`).
+Dev: `__game.give(...ids)`, `artifactGallery()` (`dev/artifactGallery.ts`); the Mage tab's artifacts wear their drawn
+icons, and Galleries' "Every icon, 2×" lays out all of them, the drawn ones ringed in amber.
 
 Costumes: an artifact's `costume` puts a piece on the mage. Pure `costumeData.ts` (slots head, face, shoulders,
 back, hands, belt, feet, aura), fitting `costumeFit.ts`, game side `costume.ts` (`dress`, `fitCostumes`, `handAt`),
