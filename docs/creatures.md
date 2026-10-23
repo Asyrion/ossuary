@@ -5,7 +5,8 @@ the first and the template (2026-10-03, approved by the owner); the dragonling t
 the size of a horse, 1.8 tiles, boss budget: `tools/creatures/dragonling.ts`, the recipe for a model that came facing the wrong way, on a
 two-legged rig, in a mid-stride pose); the Chameleon Wyvern the third (2026-10-05, a feathered wyvern the size of a pony,
 1.4 tiles, boss budget: `tools/creatures/chameleon.ts`, the recipe for a model that came through the owner's
-EDA-ModelWebViewer, for wings, and the first with sound files). For now creatures are looks only; they don't fight.
+EDA-ModelWebViewer, for wings, and the first with sound files). The Hallowed Hart (2026-10-23) is the first that
+fights (below, "A creature that fights"); the others are looks only.
 The thirteen people of M7 (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly and Kaelith) came a third way,
 rigged by Tripo with its humanoid **Mixamo** skeleton and no clips: one recipe for all of them (below, "People on a Mixamo
 rig").
@@ -166,5 +167,31 @@ Tripo's humanoid rig gives every figure the same skeleton (`mixamorig:Hips` to t
 | Pixel art from its texture | `tools/texel-bake.ts`, `src/render/texelBake.ts`, `src/actors/texturePixel.ts`, `CFG.creatures.texel` |
 | Tests | `tests/unit/creatureTools.test.ts`, `tests/unit/sounds.test.ts`; the browser test "a creature made in Tripo…" |
 
-**Next:** a creature that fights would get a behaviour in `foes.ts` or `bosses.ts`, playing `walk` while it moves and its
-attack clip at the telegraph. That waits on the owner's choice of creature.
+## A creature that fights: the Hallowed Hart (2026-10-23)
+
+Floor 4's boss, the first creature that fights (`tools/creatures/hart.ts`). Tripo's quadruped rig (`rig.glb` carried no
+armature; `walk.glb`, with Tripo's preset walk, did and was the input) named most bones (`tripo::Spine_0`, the legs'
+`Limb`s) and bound the skin well enough to keep (`SKIN = null`); it came facing +x (`face = -90`). Tripo has only `walk`
+for a quadruped (idle and run answer "invalid parameter"), so all five clips are made in code: `idle`, `walk` (a
+lateral-sequence walk), `charge` (a rotary gallop, neck low), `stamp` (rearing about the hind hips, `rear`, both forefeet
+driven down at its `at`, 0.55 s) and `hit` (a flinch and a dazed shake). A clip may say how fast it carries the creature
+(`speed`) and when its blow falls (`at`); both go into data/creatures.json. Height 2.8 tiles (the still model's size in
+the fight), boss budget (1.48 million triangles simplified to 14,548).
+
+**How a boss plays its clips** (`madeBosses.ts`): a boss whose `CFG.madeBosses` entry names a `creature` is loaded at
+boot (`preloadBossCreatures`, `preloadCreature`), since a boss's look is built at once; once loaded it replaces the
+still model, fitted and dressed the same way (its surface `madeSurface` on the creature's baked pixel-art texture, so a
+hit lights it as it lit the still). The look returns `clip(name, { speed, beat })`, which the fight calls each step in
+its states (`updateHart`): the clip is cross-faded in once (`blend`) and paced, to the speed it covers (the walk by
+`walkSpeed`, the gallop by its `speed`, times the model's scale) or so its `at` falls in `beat` seconds, within `pace`.
+The mixer runs on the boss's own clock in its `idle(t)`. What the fight did to its code look's parts still shows: the
+head it lowers to aim and shakes when stunned bows the neck's bones (`bow`) on top of the clip, about the creature's own
+left-right axis, and the eye's glow rides the head bone (`head`). The kept parts (ring, halo, floor circle) are as for a
+still. ?assets=off, a model that failed, or the dev menu's switch (Galleries → Animated creatures, "The Hallowed Hart
+fights as"; `__game.bossCreatures(on)`, `__game.bossClip`) leave the still model, and without that the look in code.
+
+The gallery plays every clip a creature has besides `idle` and `walk` in turn (its roar first); "Roar now" plays the
+first. `disposeTree` disposes a skinned mesh's skeleton (its bones' texture) with it.
+
+**Next:** another boss or foe fights as its creature the same way: a `creature` in its `CFG.madeBosses` entry and
+`e.clip?.(...)` in its states.

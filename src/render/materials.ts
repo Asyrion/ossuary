@@ -359,5 +359,6 @@ export function disposeTree(obj: THREE.Object3D) {
     if (!(o as THREE.Sprite).isSprite && m.geometry && !m.geometry.userData.shared) m.geometry.dispose(); // sprites share one internal geometry
     const mats = m.material ? (Array.isArray(m.material) ? m.material : [m.material]) : [];
     for (const mat of mats) if (!mat.userData.shared) mat.dispose();
+    if ((o as THREE.SkinnedMesh).isSkinnedMesh) (o as THREE.SkinnedMesh).skeleton.dispose(); // (its bones' texture: each copy has its own)
   });
 }

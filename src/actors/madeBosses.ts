@@ -5,13 +5,19 @@
    to them shows on the model as a whole a frame later: the Abbess rears and swells as she wails, the Pyre Knight leans
    into his blade and bobs as he strides. Its size is the look in code's (`CFG.madeBosses`: `size` times it). A boss whose
    look is a head alone (the Pillar Dragon's, the jelly serpent's: their bodies are chains built in code) is `centre`d on
-   its look in code rather than stood on the floor, and its glows set `at` points of the model (its eyes, its maw). */
+   its look in code rather than stood on the floor, and its glows set `at` points of the model (its eyes, its maw).
+   A boss with a `creature` (the Hallowed Hart, docs/creatures.md) fights as that animated creature once it has loaded
+   (`preloadBossCreatures`, at boot): the same fit and kept parts, its body a skinned mesh whose clips the fight plays by
+   its states (`clip`, cross-faded), the head the fight lowers bowing its neck's bones on top of the clip, the eye's glow
+   riding its head bone. Without it the still model stands, and without that the look in code. */
 import * as THREE from 'three';
 import type { BossBuilt } from './bossLooks';
-import { modelFor } from '../assets/models';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
+import { assetsOn, modelFor } from '../assets/models';
 import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
 import { madeSurface, type MadeSurface } from './madeFoes';
+import { CREATURES, preloadCreature, readyCreature } from './madeCreatures';
 
 const box = new THREE.Box3(),
   size = new THREE.Vector3(),
@@ -27,6 +33,41 @@ interface MadeBoss extends MadeSurface {
   eye?: number;
   centre?: boolean;
   at?: Readonly<Record<string, readonly number[]>>; // (x, y, z: 0 to 1 across its box)
+  creature?: Creature;
+}
+/** A boss that fights as an animated creature (`CFG.madeBosses`, see the config's note). */
+interface Creature {
+  id: string;
+  head: string;
+  bow: Readonly<Record<string, number>>;
+  blend: number;
+  pace: readonly number[]; // (its slowest and fastest)
+}
+
+const BOSS_CREATURES_KEY = 'ossuary.bossCreatures';
+let creaturesOn = (() => {
+  try {
+    return localStorage.getItem(BOSS_CREATURES_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+})();
+/** Whether a boss with a creature fights as it (the dev menu turns it off to compare with the still model). */
+export const bossCreatures = () => creaturesOn;
+/** Set it (from the next boss built on), remembered in this browser. */
+export function setBossCreatures(on: boolean) {
+  creaturesOn = on;
+  try {
+    localStorage.setItem(BOSS_CREATURES_KEY, on ? 'on' : 'off');
+  } catch {
+    /* kept for this session */
+  }
+}
+/** Load the creatures bosses fight as (at boot, after the assets: none while they are off). Never rejects. */
+export async function preloadBossCreatures() {
+  if (!assetsOn()) return;
+  const all = Object.values(CFG.madeBosses as Record<string, MadeBoss>);
+  await Promise.all(all.flatMap((h) => (h.creature ? [preloadCreature(h.creature.id)] : [])));
 }
 
 /** How the fight's parts move the model as a whole, by boss: from the empty places it moves (`p`) onto the body. */
@@ -112,11 +153,52 @@ function moved(body: THREE.Object3D, place: THREE.Object3D) {
 /** The made look of boss `id`, wrapping its look in code `code`, or undefined while it has none. */
 export function madeBossLook(id: string, code: () => BossBuilt): (() => BossBuilt) | undefined {
   const how = (CFG.madeBosses as Record<string, MadeBoss>)[id];
-  if (!how || !modelFor('props', `foe_${id}`)) return undefined;
-  return () => build(id, code(), how);
+  if (!how) return undefined;
+  const c = how.creature;
+  if (c && creaturesOn && assetsOn() && readyCreature(c.id)) return () => build(id, code(), how, animated(c));
+  if (!modelFor('props', `foe_${id}`)) return undefined;
+  return () => build(id, code(), how, { model: modelFor('props', `foe_${id}`)! });
 }
 
-function build(id: string, made: BossBuilt, how: MadeBoss): BossBuilt {
+/** What a made look is: its model, and when it is an animated creature, its mixer and clips. */
+interface Worn {
+  model: THREE.Object3D;
+  creature?: Creature;
+  mixer?: THREE.AnimationMixer;
+  actions?: Record<string, THREE.AnimationAction>;
+}
+/** A copy of an animated creature loaded ahead: its own geometry (disposed with it) and skeleton, its clips in a mixer. */
+function animated(c: Creature): Worn {
+  const { gltf } = readyCreature(c.id)!,
+    info = CREATURES[c.id],
+    model = cloneSkinned(gltf.scene);
+  model.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.isMesh) {
+      m.geometry = m.geometry.clone();
+      m.frustumCulled = false; // (its bones carry it beyond the box of its rest)
+    }
+  });
+  const mixer = new THREE.AnimationMixer(model),
+    actions: Record<string, THREE.AnimationAction> = {};
+  for (const clip of gltf.animations) {
+    const a = mixer.clipAction(clip);
+    a.setLoop(info.clips[clip.name]?.loop === false ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
+    a.clampWhenFinished = true;
+    actions[clip.name] = a;
+  }
+  return { model, creature: c, mixer, actions };
+}
+
+/** The clip a boss made as a creature plays now, its time and pace (the dev hooks), or null. */
+export const bossClipNow = (e: { model?: THREE.Object3D }) =>
+  (e.model?.userData.clipNow as (() => { clip: string; time: number; rate?: number }) | undefined)?.() ?? null;
+
+const bowAxis = new THREE.Vector3(),
+  bowQ = new THREE.Quaternion(),
+  upQ = new THREE.Quaternion();
+
+function build(id: string, made: BossBuilt, how: MadeBoss, worn: Worn): BossBuilt {
   const { size: scale, keep, fire, eye = 0.55, centre = false, at = {} } = how;
   made.idle(0);
   made.group.updateMatrixWorld(true);
@@ -132,13 +214,15 @@ function build(id: string, made: BossBuilt, how: MadeBoss): BossBuilt {
   box.getCenter(mid);
   const g = new THREE.Group(),
     body = new THREE.Group(),
-    model = modelFor('props', `foe_${id}`)!;
+    { model } = worn;
+  model.updateMatrixWorld(true);
   box.setFromObject(model, true).getSize(size);
   model.scale.multiplyScalar((scale * Math.max(had.x, had.y, had.z)) / Math.max(size.x, size.y, size.z, 1e-3));
   model.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    m.material = madeSurface((m.material as THREE.MeshToonMaterial).map, how); // (`tint` darkens a pale one off a pale floor)
+    const map = worn.creature ? readyCreature(worn.creature.id)!.map : (m.material as THREE.MeshToonMaterial).map;
+    m.material = madeSurface(map, how); // (`tint` darkens a pale one off a pale floor; a creature's own baked texture)
   });
   body.add(model);
   g.add(body);
@@ -212,6 +296,7 @@ function build(id: string, made: BossBuilt, how: MadeBoss): BossBuilt {
     }
   }
   disposeTree(made.group);
+  if (worn.creature) return fights(made, g, body, parts, worn);
   const pose = POSE[id];
   return {
     group: g,
@@ -224,6 +309,82 @@ function build(id: string, made: BossBuilt, how: MadeBoss): BossBuilt {
       body.rotation.set(0, Math.sin(t * 0.6) * 0.05, 0);
       body.scale.setScalar(1);
       pose?.(body, parts, t);
+    },
+  };
+}
+
+/** The made look of a boss that fights as an animated creature: its clips played by `clip` (the fight's states), on the
+    boss's own clock (`idle(t)`), the fight's lowered head bowing its neck on top of the clip, its eye's glow on its head. */
+function fights(
+  made: BossBuilt,
+  g: THREE.Group,
+  body: THREE.Group,
+  parts: Record<string, THREE.Object3D>,
+  worn: Worn,
+): BossBuilt {
+  const { model, mixer, actions } = worn as Required<Worn>,
+    c = worn.creature!,
+    info = CREATURES[c.id];
+  model.updateMatrixWorld(true);
+  const head = model.getObjectByName(c.head);
+  if (head && parts.eye) {
+    // (the eye's place rides the head, so its glow goes where the antlers go; a holder keeps the model's scale off it)
+    const eye = parts.eye,
+      holder = new THREE.Object3D();
+    holder.position.copy(eye.position);
+    body.add(holder);
+    body.updateMatrixWorld(true);
+    head.attach(holder);
+    eye.removeFromParent();
+    eye.position.set(0, 0, 0);
+    holder.add(eye);
+  }
+  const bows = Object.entries(c.bow).flatMap(([name, k]) => {
+    const b = model.getObjectByName(name);
+    return b ? [{ b, k, rest: b.quaternion.clone() }] : [];
+  });
+  const scale = model.scale.x; // (the model's units to the room's)
+  let clip = '',
+    last = 0;
+  const play = (name: string, o: { speed?: number; beat?: number } = {}) => {
+    const a = actions[name],
+      ci = info.clips[name];
+    if (!a || !ci || (name === clip && o.beat !== undefined)) return; // (a blow's timing is set once, as it starts)
+    // its pace: a walk or gallop at the speed it covers, a stamp timed so its hooves fall as the fight's blow does
+    const per = name === 'walk' ? info.walkSpeed : ci.speed;
+    let rate = 1;
+    if (o.speed !== undefined && per) rate = o.speed / (per * scale);
+    else if (o.beat !== undefined && ci.at) rate = ci.at / Math.max(o.beat, 1e-3);
+    a.timeScale = THREE.MathUtils.clamp(rate, c.pace[0], c.pace[1]);
+    if (name === clip) return;
+    const was = actions[clip];
+    a.reset().play();
+    if (was) was.crossFadeTo(a, c.blend, false);
+    clip = name;
+  };
+  play('idle');
+  g.userData.clipNow = () => ({ clip, time: +(actions[clip]?.time ?? 0).toFixed(2), rate: actions[clip]?.timeScale });
+  return {
+    group: g,
+    shadow: made.shadow,
+    openShadow: true,
+    school: made.school,
+    parts: parts as BossBuilt['parts'],
+    clip: play,
+    idle(t) {
+      const dt = THREE.MathUtils.clamp(t - last, 0, 0.1);
+      last = t;
+      for (const w of bows) w.b.quaternion.copy(w.rest); // (a bone no clip turns would keep the last bow)
+      mixer.update(dt);
+      // the fight's head (lowered as it aims, shaken when stunned): the neck bowed about the creature's own left-right axis
+      const lower = parts.head?.rotation.x ?? 0;
+      if (lower)
+        for (const w of bows) {
+          upQ.identity();
+          for (let p = w.b.parent; p && p !== model; p = p.parent) upQ.premultiply(p.quaternion);
+          bowAxis.set(1, 0, 0).applyQuaternion(upQ.invert());
+          w.b.quaternion.premultiply(bowQ.setFromAxisAngle(bowAxis, lower * w.k));
+        }
     },
   };
 }

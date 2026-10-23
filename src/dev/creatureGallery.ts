@@ -1,6 +1,7 @@
 /* The Galleries tab's creatures made in Tripo (docs/creatures.md): one stood in the room to look at, worn as pixel art,
-   walking a lap, stopping, turning to the mage and roaring, and resting, its sounds falling on its clips' events (a paw
-   down, the roar) where it stands. Looks only: no fight, no collision. */
+   walking a lap, stopping, turning to the mage and roaring (or playing each of its other clips in turn: the Hallowed
+   Hart's charge, stamp and hit), and resting, its sounds falling on its clips' events (a paw down, the roar) where it
+   stands. Looks only: no fight, no collision. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { G, player } from '../state';
@@ -13,7 +14,8 @@ import { Rand } from '../audio/synth';
 import { CREATURES, madeModel } from '../actors/madeCreatures';
 import { onDevClear, onDevStep } from '../devDoor';
 
-type State = 'walk' | 'idle' | 'roar';
+/** Walking its lap, resting, or playing one of its other clips (its roar, a boss's charge or stamp) at the mage. */
+type State = string;
 interface Shown {
   id: string;
   room: Room;
@@ -50,7 +52,7 @@ export async function showCreature(id: string, room: Room, x: number, z: number)
   group.position.set(x - room.cx, 0, z - room.cz);
   room.group.add(group);
   const walks = !!actions.walk,
-    roars = !!actions.roar; // (a figure with neither, a townsperson, stands and breathes)
+    acts = actsOf(actions); // (a figure with neither, a townsperson, stands and breathes)
   const s: Shown = {
     id,
     room,
@@ -59,10 +61,7 @@ export async function showCreature(id: string, room: Room, x: number, z: number)
     actions,
     state: 'idle',
     left: CFG.creatures.firstRest,
-    next:
-      walks || roars
-        ? (['walk', 'idle', 'roar', 'idle'].filter((k) => k === 'idle' || (k === 'walk' ? walks : roars)) as State[])
-        : ['idle'],
+    next: walks || acts.length ? [...(walks ? ['walk', 'idle'] : []), ...acts.flatMap((a) => [a, 'idle'])] : ['idle'],
     at: { x, z: z - CFG.creatures.lap },
     angle: 0,
     last: 0,
@@ -74,6 +73,12 @@ export async function showCreature(id: string, room: Room, x: number, z: number)
   shown.push(s);
   return s;
 }
+
+/** Its clips besides its idle and walk, its roar first (the talk of a townsperson is its own: town.ts plays it). */
+const actsOf = (actions: Record<string, THREE.AnimationAction>) =>
+  Object.keys(actions)
+    .filter((k) => k !== 'idle' && k !== 'walk' && k !== 'talk')
+    .sort((a, b) => +(b === 'roar') - +(a === 'roar'));
 
 function play(s: Shown, clip: string) {
   const a = s.actions[clip];
@@ -98,8 +103,8 @@ function updateCreatures(dt: number, current: Room) {
     if (s.left <= 0) {
       s.state = s.next[0];
       s.next.push(s.next.shift()!);
-      s.left = s.state === 'walk' ? C.walkFor : s.state === 'roar' ? info.clips.roar.duration : C.restFor;
-      play(s, s.state === 'walk' ? 'walk' : s.state === 'roar' ? 'roar' : 'idle');
+      s.left = s.state === 'walk' ? C.walkFor : s.state === 'idle' ? C.restFor : info.clips[s.state].duration;
+      play(s, s.state);
     }
     if (s.state === 'walk') {
       // round a lap about where it was stood (it starts on the lap's south side), at the pace its paws set
@@ -108,7 +113,7 @@ function updateCreatures(dt: number, current: Room) {
         z = s.at.z + Math.cos(s.angle) * C.lap;
       s.group.position.set(x - s.room.cx, 0, z - s.room.cz);
       s.heading = s.angle + Math.PI / 2;
-    } else if (s.state === 'roar') {
+    } else if (s.state !== 'idle') {
       // turned on the mage
       const wx = s.group.position.x + s.room.cx,
         wz = s.group.position.z + s.room.cz,
@@ -161,14 +166,14 @@ export const creaturesNow = () =>
     x: +(s.group.position.x + s.room.cx).toFixed(2),
     z: +(s.group.position.z + s.room.cz).toFixed(2),
   }));
-/** Make every creature shown roar now (the dev menu). */
+/** Make every creature shown roar now (the dev menu), or play its first other clip (the Hart's charge). */
 export function roarNow() {
   for (const s of shown) {
-    if (!s.actions.roar) continue;
-    s.state = 'roar';
-    s.left = CREATURES[s.id].clips.roar.duration;
-    s.next = ['idle', 'walk', 'idle', 'roar'];
-    play(s, 'roar');
+    const act = actsOf(s.actions)[0];
+    if (!act) continue;
+    s.state = act;
+    s.left = CREATURES[s.id].clips[act].duration;
+    play(s, act);
   }
 }
 /** Take the creatures shown in `room` away. */

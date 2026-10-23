@@ -59,6 +59,7 @@ import { startLoop, uiHooks } from './loop';
 import { cleanSeed } from './rng';
 import { isTouch } from './util';
 import { loadAssets } from './assets/models';
+import { preloadBossCreatures } from './actors/madeBosses';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -236,7 +237,8 @@ async function boot() {
   initLevelUp({ pause, resume });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map((f) => document.fonts.load(f)));
-  const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)
+  // (models, tiles and icons from data/assets.json: before the first floor is built; then the creatures a boss fights as)
+  const assets = loadAssets().then(preloadBossCreatures);
   try {
     await Promise.race([chalkFonts, new Promise((r) => setTimeout(r, 1500))]);
   } catch {
