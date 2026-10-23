@@ -1087,5 +1087,78 @@
       "colours": 24,
       "glowing": 45
     }
+  },
+  "twins2": {
+    "file": "assets/creatures/twins2.glb",
+    "height": 2.6,
+    "modelHeight": 0.996,
+    "modelLength": 0.499,
+    "walkSpeed": 0.5953,
+    "clips": {
+      "idle": {
+        "duration": 15.333333015441895,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 2.3333332538604736,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawFront"
+          },
+          {
+            "t": 1.167,
+            "sound": "pawFront"
+          }
+        ]
+      },
+      "slam": {
+        "duration": 1.4000000000000001,
+        "loop": false,
+        "at": 0.7499999999999998,
+        "events": [
+          {
+            "t": 0.75,
+            "sound": "slam",
+            "loud": true
+          }
+        ]
+      },
+      "rear": {
+        "duration": 0.7,
+        "loop": false,
+        "events": [
+          {
+            "t": 0.1,
+            "sound": "inhale"
+          }
+        ]
+      },
+      "guard": {
+        "duration": 0.6,
+        "loop": false,
+        "events": []
+      },
+      "statue": {
+        "duration": 0.5,
+        "loop": false,
+        "events": []
+      },
+      "hit": {
+        "duration": 0.5,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/twins2.texel.png",
+      "glow": "assets/creatures/twins2.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 28
+    }
   }
 }

@@ -25,6 +25,7 @@ import * as tiger from './creatures/tiger';
 import * as abbess from './creatures/abbess';
 import * as pyre from './creatures/pyre';
 import * as twins from './creatures/twins';
+import * as twins2 from './creatures/twins2';
 import { TOWNSFOLK_RECIPES } from './creatures/townsfolk';
 import { BUDGETS } from '../src/assets/assetData';
 import { texelBake } from './texel-bake';
@@ -41,6 +42,7 @@ const RECIPES = {
   abbess: { ...abbess, height: 1.5, budget: 'boss' as const }, // (floor 2's boss, its gills counted; it fights: madeBosses.ts)
   pyre: { ...pyre, height: 3.2, budget: 'boss' as const }, // (floor 2's knight, his helm counted; he fights: madeBosses.ts)
   twins: { ...twins, height: 2.45, budget: 'boss' as const }, // (floor 3's first guardian, crouched; it fights: madeBosses.ts)
+  twins2: { ...twins2, height: 2.6, budget: 'boss' as const }, // (the second, its crest counted, on the first's skeleton)
   ...TOWNSFOLK_RECIPES, // (the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
 } as Record<
   string,

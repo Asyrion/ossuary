@@ -1168,8 +1168,8 @@ export const CFG = {
       keep: ['ring', 'halo', 'rime', 'floor'],
       creature: { id: 'tiger', head: 'bone_19', blend: 0.15, pace: [0.4, 2.5], moves: 'body' },
     },
-    // (the first guardian fights as its creature, its head turning after the mage by `look`; the second's rig came out
-    // wrong, so it stands as its still)
+    // (each guardian fights as its creature, its head turning after the mage by `look`; the second on the first's
+    // skeleton, fitted to its body in Blender, so it plays the same clips)
     twins: {
       size: 1,
       keep: ['ring', 'halo'],
@@ -1183,7 +1183,19 @@ export const CFG = {
         over: { hit: 1.2 },
       },
     },
-    twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
+    twins2: {
+      size: 1,
+      keep: ['ring', 'halo'],
+      eye: 0.74,
+      creature: {
+        id: 'twins2',
+        head: 'Head',
+        look: { NeckTwist01: 0.5, Head: 0.5 },
+        blend: 0.2,
+        pace: [0.4, 2.5],
+        over: { hit: 1.2 },
+      },
+    },
     // (a boss with a `creature` fights as that animated creature once loaded, data/creatures.json `<id>`: the bone its eye's
     // glow rides (`head`), its neck's bones bowed by `bow` times the fight's lowered head, its clips cross-faded over
     // `blend` seconds and their pace (the walk to its speed, a blow to the fight's) held within `pace`, a clip played over

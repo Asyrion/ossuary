@@ -6,7 +6,7 @@ the size of a horse, 1.8 tiles, boss budget: `tools/creatures/dragonling.ts`, th
 two-legged rig, in a mid-stride pose); the Chameleon Wyvern the third (2026-10-05, a feathered wyvern the size of a pony,
 1.4 tiles, boss budget: `tools/creatures/chameleon.ts`, the recipe for a model that came through the owner's
 EDA-ModelWebViewer, for wings, and the first with sound files). The Hallowed Hart (2026-10-23) is the first that
-fights, the Hollow Warden the second, then the War-Tiger, the Drowned Abbess, the Pyre Knight, the first Twin Guardian and
+fights, the Hollow Warden the second, then the War-Tiger, the Drowned Abbess, the Pyre Knight, both Twin Guardians and
 Kaelith (below, "A creature that fights"); the others are looks only.
 The thirteen people of M7 (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly and Kaelith) came a third way,
 rigged by Tripo with its humanoid **Mixamo** skeleton and no clips: one recipe for all of them (below, "People on a Mixamo
@@ -218,7 +218,8 @@ arc and shakes, Kaelith sinking into shadow, `under`, may go below the floor); `
 Pyre Knight's helm); `look` the neck bones the fight's head turning turns (the Twin Guardian's gaze, even as stone);
 `tint` the creature's own tint where its texture is lighter or darker than the still's. A clip with no `at` is timed by
 its first sound (Kaelith's sweep). A boss that stands as a statue holds a `statue` clip (the fight calls its `idle` in
-that state too). `__game.bossClip` reads the first boss in the room that is a creature (of the twins, the first).
+that state too). `__game.bossClip` reads the first boss in the room that is a creature (of the twins, the first), `__game.bossClips` every
+boss in it.
 Recipes share `tools/creatures/moves.ts` (keys, turns, a step cycle, rearing, Tripo's preset clips read and replayed)
 and, for Tripo's biped rig, `tools/creatures/biped.ts`. Frames of each fight, creature on and off:
 `npx tsx asset-previews/rig/fightshots.ts <boss> on|off` (asset-previews is not in the repo, nor are the rigged sources
@@ -252,8 +253,36 @@ lighter than the still's (`tint` 0.75). Height 3.2, 14,548 triangles.
 Floor 3's pair (`tools/creatures/twins.ts`). The first guardian on Tripo's biped rig: `idle`, `walk` (in place) and `slam`
 (a window of Tripo's slash, its hips kept square to the mage: `square`) from the presets; `statue`, `guard` (its left paw
 raised as a shield), `rear` (its gaze) and `hit` (`over`) in code; `look` turns its neck after the mage. Height 2.45,
-14,548 triangles. The second guardian's rig came out wrong (its head bone in its chest, its thighs at two heights; the
-presets fold it onto the floor), so it fights as its still until Tripo rigs it again.
+14,548 triangles.
+
+The second guardian (`tools/creatures/twins2.ts`, height 2.6, 14,549 triangles) is **the recipe for a model Tripo can't
+rig**. Tripo's biped auto-rig failed on it twice (the thighs' rest heights 0.41 and 0.61 of the top bone, the head 0.44;
+then 0.65, 0.95 and 0.81; the first guardian's are 0.49, 0.49 and 1.00), so it was rigged in Blender 5.2 headless on the
+first guardian's Tripo skeleton (the scripts and renders in asset-previews/rig/twins2/blender/; `build.sh` runs them in
+turn):
+- **The fit** (`fitjoints.py`): both came from Tripo in the same frame (facing +x, a metre wide), so the armature is not
+  scaled; the key joints (knees, ankles, toes, neck and head, shoulders, elbows and wrists, mirrored) are placed by hand
+  inside twins2's mesh, read off side and front slabs of it with the joints drawn in (`fitcheck.py`), every other bone
+  following its placed ancestor and the twist bones kept at their fraction of the limb. Its body is more upright and
+  shallower than the first's: the knees come forward, the arms and the head back.
+- **The bind** (`rig2.py`): Blender's automatic (bone heat) weights on a welded, decimated proxy (85,000 faces; heat finds
+  no solution at the model's size, so it is weighed ten times larger), carried to the full mesh by nearest-face
+  interpolation. The model is one fused shell, its forearms grown into its thighs and its beard onto its knees, so heat
+  spreads across them: a mask (`mask.py`) keeps the neck and head bones to the head, crest and beard and each side's
+  bones to its side, and below the shoulders the arms are **cut free** (each face goes to an arm or to the rest by its
+  weights, the edges between them are split, each side keeps only its own bones); else a raised arm drags a sheet of
+  skin up from the thigh. Bones Tripo bound nothing to (twists, share bones, the root) bind nothing here.
+- **The GLB** (`assemble.ts`): not Blender's export of the armature (its importer changes the bones' rest rotations) but
+  the first guardian's GLB itself, only its joints' translations moved to the fitted places, its inverse binds made
+  again from them and its mesh replaced by Blender's (joints matched by name, twins2's textures). The bones' rest
+  rotations stay the first guardian's, so Tripo's preset clips (local rotations, read from asset-previews/rig/twins/ by
+  bone name) replay on it as on the first: its seven clips are the first's, and its recipe re-exports twins.ts. Its skin
+  is kept (`SKIN = null`).
+- **The check**: `clips.py` renders frames of each baked clip beside the first guardian's; `stretch.py` marks on the rest
+  pose the edges a frame stretches. Weak points: its fists and inner thighs stretch in the slam's highest frames, the
+  slam twists it as Tripo's slash twists the first, and its feet slide a little in the walk (the first's legs were
+  shorter); nothing tears into sheets. In the game: `npx tsx asset-previews/rig/twins2/fightshots.ts` (both guardians
+  side by side in each state).
 
 ### Kaelith
 

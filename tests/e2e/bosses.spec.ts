@@ -430,8 +430,8 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
     g.sim(0.7, true);
     const twins = g.enemies.filter((f) => f.isBoss) as Twin[],
       still = twins.map((t) => [t.state, t.contact]),
-      clipNow = () => (g as unknown as { bossClip: { clip: string; over: string[] } | null }).bossClip, // (the first guardian's animated creature)
-      clips = new Set<string>([clipNow()?.clip ?? 'none']);
+      clipsNow = () => (g as unknown as { bossClips: ({ clip: string; over: string[] } | null)[] }).bossClips, // (each guardian's animated creature)
+      clips = clipsNow().map((c) => new Set<string>([c?.clip ?? 'none']));
     g.sim(1);
     const stay = twins.map((t) => t.state);
     g.player.x = twins[0].x;
@@ -462,11 +462,12 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
     for (let k = 0; k < 240 && shield.role === 'shield'; k++) {
       g.player.hp = g.player.maxHp;
       g.sim(0.05);
-      const c = clipNow();
-      if (c) for (const n of [c.clip, ...c.over]) clips.add(n);
+      clipsNow().forEach((c, i) => {
+        if (c) for (const n of [c.clip, ...c.over]) clips[i].add(n);
+      });
     }
     out.traded = [shield.role, strike.role, !!strike.ward];
-    out.clips = [...clips];
+    out.clips = clips.map((c) => [...c]);
     // one falls: the other rages, and the fight isn't over
     const fall = g.enemies.indexOf(shield);
     g.hit(fall, 9999);
@@ -496,8 +497,12 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
     traded: ['strike', 'shield', true],
   });
   expect(woke.states).toEqual(['guard', 'stalk']);
-  // the first guardian fights as its animated creature: still as stone, then its clips following its states
-  expect(woke.clips).toEqual(expect.arrayContaining(['statue', 'guard', 'slam']));
+  // both guardians fight as their animated creatures (the second on the first's skeleton): still as stone, then their
+  // clips following their states: each shields in its turn, and between them they stalk and slam
+  const twinClips = woke.clips as string[][];
+  expect(twinClips).toHaveLength(2);
+  for (const c of twinClips) expect(c).toEqual(expect.arrayContaining(['statue', 'guard']));
+  expect(twinClips.flat()).toEqual(expect.arrayContaining(['walk', 'slam']));
   expect(woke.rage).toEqual({ left: 1, rage: true, glance: false, ward: false, cleared: false });
   const fight = await page.evaluate(() => {
     const w = window as unknown as W,
