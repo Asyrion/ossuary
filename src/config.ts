@@ -548,6 +548,20 @@ export const CFG = {
     toDoor: [1.5, 0.8],
     dark: 0.55,
     lane: [4.5, 1.2, 2.6],
+    // the waystone room's rubble built as the Wardens' cairns (world/mechLooks.ts cairnLook): flat stones from the
+    // bottom up ([radius, height]), shaded in turn by `shade` from the waystone's grey, set off centre by up to `offset`,
+    // and the rune lit faintly on the capstone (the waystone's own cold rune is near black, and the rubble read as rubble)
+    cairn: {
+      stones: [
+        [0.36, 0.13],
+        [0.3, 0.12],
+        [0.24, 0.12],
+        [0.17, 0.11],
+      ] as readonly (readonly [number, number])[],
+      shade: [0.62, 0.78] as readonly [number, number],
+      offset: 0.06,
+      rune: 0xd08a34,
+    },
   },
   // daylight (world/daylight.ts): the shaft of light where Kaelith's way out opens (how near the mage steps into
   // it); the cave mouth at dawn: where it is built, far from every floor (x, z), how far behind the terrace's edge the camera
@@ -836,6 +850,9 @@ export const CFG = {
     caveDelay: 0.8,
     caveDamage: 8,
     daylightClear: 3,
+    // and this many tiles from any pool (water or oil): its shaft stood cut off at the pool's edge and its pool of light
+    // sank under the water (the overgrown garden's middle pool)
+    daylightDry: 2,
     bedrollClear: 2,
     // a lamp on its pole (the shore's): only where its tile's neighbours, and `lampNorth` tiles north of it, are free
     // floor, and it keeps them to itself (its tall pole stood over rocks, pillars and the walls, scatter on its post)
@@ -1033,6 +1050,18 @@ export const CFG = {
     // size across, in `poolSteps` flat steps (render/textures.ts lightPoolTex)
     haloPool: 0.8,
     poolSteps: 3,
+    // a wall torch's glow on the floors named in `looks` (world/fireLooks.ts torchLook): in these hard bands (as
+    // `bandsTex`), at `size` of its size elsewhere: floor 3's soft glow, its faint outer steps over the dark red wall,
+    // read as a lit box round the sconce (art bible 4.22: light a round stepped pool, never a lit box)
+    torchHalo: {
+      looks: ['burning'] as readonly string[],
+      size: 0.72,
+      rings: [
+        [0.3, 1],
+        [0.62, 0.5],
+        [1, 0.2],
+      ] as readonly (readonly [number, number])[],
+    },
     // a patch of moss, a stain, the daylight's pale disc (world/themes.ts blotch): drawn `art` pixels across, its
     // lumps held in `steps` flat steps with a hard edge
     blotch: { art: 32, steps: 3 },
@@ -1099,9 +1128,9 @@ export const CFG = {
     // floor 3's (sized near their looks in code, which their fights were tuned with)
     cinderSalamander: { motion: 'crawl', main: 'body', span: 1.4 },
     magmaOoze: { motion: 'squat', main: 'body', span: 1.3, keep: ['disc'] },
-    hexImp: { motion: 'float', main: 'body', span: 1.3, keep: ['ring'] },
+    hexImp: { motion: 'float', main: 'body', span: 1.3, keep: ['ring'], tint: 1.7, lift: '#3a1c48' }, // (its dark violet lifted off the red herringbone)
     waspNest: { motion: 'squat', main: 'body', span: 1.0 },
-    emberWasp: { motion: 'bank', main: 'body', span: 1.0, tint: 1.3, lift: '#4a1c0c', hot: 3 },
+    emberWasp: { motion: 'bank', main: 'body', span: 1.1, hot: 1 }, // (its ember bands glow of themselves)
     cinderDjinn: { motion: 'float', main: 'body', span: 1.4 },
     rimeDrakeling: { motion: 'crawl', main: 'body', span: 1.5, keep: ['ground'] },
     phoenix: { motion: 'bank', main: 'body', span: 2.2 },
@@ -1136,7 +1165,7 @@ export const CFG = {
     // model is its shell alone, its head and legs kept as built, so it is seen to shut itself in)
     rootling: { motion: 'squat', main: 'body', span: 0.9, keep: ['mound'], tint: 1.3, lift: '#1e2a1c' }, // (its dark bark lifted off the shore)
     rimeWolf: { motion: 'crawl', main: 'body', span: 1.2 },
-    frostJackalope: { motion: 'squat', main: 'body', span: 0.8, tint: 0.75 }, // (its pale fur held off the floor's mist)
+    frostJackalope: { motion: 'squat', main: 'body', span: 0.8, tint: 0.55 }, // (its pale fur held off the floor's mist)
     stormRay: { motion: 'bank', main: 'body', span: 1.0 },
     voidMote: { motion: 'float', main: 'body', span: 0.85, lift: '#22163a', hot: 1.5 }, // (its maw's violet of its own)
     gloomRaven: { motion: 'bank', main: 'body', span: 1.7, roll: 0.1, tint: 1.3, lift: '#1e1838' }, // (black wings lifted off the shore)
@@ -1305,6 +1334,23 @@ export const CFG = {
     // shadow colour, drawn over the floor (in front of it they were outlined to near-black specks)
     splashEdge: { opacity: 0.5, steps: 3, inner: 0.72, outer: 1.1 },
     shard: 0.6,
+    // the made splash (data/assets.json `decals.splash`, tools/art/splash.py) in place of that edge: its tones (0 the rim,
+    // 1 the glass, the rest the liquid, dark to light); the liquid's darkest tone at `dark` of the potion's lightness and
+    // `cool` of the way to the floor's shadow, its lighter ones `light` of the way to white; its rim the floor's shadow
+    // colour (or the floor's own `items.splashEdge`) `rimTint` of the way to the liquid's dark; it spreads from `from` of
+    // its size to all of it in `grow` seconds (so it lies a texel to a game pixel while it shows; grown with the ring it
+    // was seen only scaled) and fades in `steps` flat steps from `opacity` as the ring does
+    splashLook: {
+      tones: 6,
+      dark: 0.6,
+      cool: 0.25,
+      light: [0, 0.15, 0.35],
+      rimTint: 0.2,
+      from: 0.6,
+      grow: 0.1,
+      opacity: 1,
+      steps: 3,
+    },
     // the least lightness of a splash's ring, in the potion's hue (the hex brew's dark violet vanished into a dark floor)
     splashLight: 0.45,
   },

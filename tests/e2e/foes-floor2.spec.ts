@@ -30,6 +30,7 @@ test("foes in code: floor 2's toad leaps and breathes cold that chills; the lurk
     g.player.maxHp = g.player.hp = 60;
     g.warp(1);
     g.sim(0.5);
+    const home = { x: g.enemies[0].x, z: g.enemies[0].z }; // (where the room put it: open floor)
     const seen = new Set<string>();
     let high = 0,
       cold = 0;
@@ -42,21 +43,19 @@ test("foes in code: floor 2's toad leaps and breathes cold that chills; the lurk
       high = Math.max(high, e.model.position.y);
       cold = Math.max(cold, g.shots.filter((s) => s.chill).length);
     }
-    for (let i = 0; i < 300 && !g.player.chill; i++) {
-      // (in the cone's way: on a cold shot's path, wherever the toad landed, clear of its touch;
+    // A breath met head on: the toad back where it was put, about to breathe, the mage 1.5 tiles before it (the cone's middle
+    // shot flies straight at the mage). Where it chased the mage has no bearing (pressed against a wall or a stone, the mage
+    // set beyond it, its shots die on the stone), and each try faces another way, so a stone in one way can't stop them all.
+    for (let k = 0; k < 16 && !g.player.chill; k++) {
       const e = g.enemies[0],
-        s = g.shots.find((o) => o.chill); //  with none in flight, close enough for it to breathe again)
-      if (s) {
-        const v = Math.hypot(s.vx, s.vz) || 1,
-          d = Math.max(1.3, Math.hypot(s.x - e.x, s.z - e.z) + 0.3);
-        g.player.x = e.x + (s.vx / v) * d;
-        g.player.z = e.z + (s.vz / v) * d;
-      } else {
-        g.player.x = e.x + 2.2;
-        g.player.z = e.z;
+        t = (k * Math.PI) / 4;
+      Object.assign(e, { x: home.x, z: home.z, state: 'puff', st: 0.05, cycle: 0 });
+      for (let i = 0; i < 20 && !g.player.chill; i++) {
+        g.player.x = home.x + Math.cos(t) * 1.5;
+        g.player.z = home.z + Math.sin(t) * 1.5;
+        g.player.invuln = 0;
+        g.sim(0.05);
       }
-      g.player.invuln = 0;
-      g.sim(0.05);
     }
     return { seen: [...seen].sort(), high, cold, chilled: g.player.chill > 0 };
   });

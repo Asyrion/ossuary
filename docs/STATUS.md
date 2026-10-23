@@ -34,9 +34,7 @@ townspeople (M7 steps 1 to 9).
 
 From the last sweeps and balance runs (taken over from the old handoff note). R3 (the look) and R2 (tests) pick them up.
 
-- Hard to read: the Hex Imps dark on floor 3's red herringbone; foes' dark stains can read as holes in the floor.
-- The `waystone_cairns` cairns read as rubble while the room waits dark; the bargain stone is brown on floor 1's brown
-  walls (seen only under `?room=`, since shrines are on floors 2 and 4).
+- Hard to read: foes' dark stains can read as holes in the floor.
 - Balance: the Pale Unicorn (`moonstagFawn`) outlasts the bot's cantrip and Frost (`docs/balance.md`). The bot leaves some
   rooms uncleared (the Frost Jackalope, wasp nests behind cover): its own limits, not stuck rooms.
 
