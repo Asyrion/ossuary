@@ -1152,7 +1152,15 @@ export const CFG = {
     tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
     twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
-    hart: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.62 },
+    // (the Hart fights as its animated creature once loaded, data/creatures.json `hart`: the bone its eye's glow rides
+    // (`head`), its neck's bones bowed by `bow` times the fight's lowered head, its clips cross-faded over `blend` seconds
+    // and their pace (the walk to its speed, the stamp to its blow) held within `pace`; else the still model)
+    hart: {
+      size: 1,
+      keep: ['ring', 'halo', 'floor'],
+      eye: 0.62,
+      creature: { id: 'hart', head: 'bone_5', bow: { bone_3: 0.55, bone_5: 0.45 }, blend: 0.18, pace: [0.4, 2.5] },
+    },
     // (its lamp kept as built, as the fight swells it; `hover`, how high it swims, as its look in code)
     warden: { size: 1, keep: ['ring', 'halo'], eye: 0.8, hot: 1.2, tint: 0.6 }, // (its brown fur held off floor 1's brown; its candle crown glows of itself)
     angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4, tint: 1.3, lift: '#1c1630' }, // (its black body lifted off the shore)

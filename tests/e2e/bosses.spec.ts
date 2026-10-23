@@ -100,13 +100,16 @@ for (const boss of ['hart', 'angler'])
         g.sim(0.5);
         drawn = d0 - Math.hypot(g.player.x - foe.x, g.player.z - foe.z);
       }
-      const states = new Set<string>();
+      const states = new Set<string>(),
+        clips = new Set<string>();
       let called = false,
         seconds = 0;
       // (every step: a charge that meets a wall at once can last a step or two, and the fight is random)
       for (; seconds < 240 && g.enemies.length; seconds += 1 / 60) {
         w.__fight(1 / 60, 1 / 60);
         states.add(foe.state);
+        const clip = (g as unknown as { bossClip: { clip: string } | null }).bossClip; // (the Hart's animated creature)
+        if (clip) clips.add(clip.clip);
         called ||= !!foe.summoned;
       }
       g.sim(0.5);
@@ -118,6 +121,7 @@ for (const boss of ['hart', 'angler'])
         drawn,
         seconds,
         states: [...states],
+        clips: [...clips],
         called,
         left: g.enemies.length,
         cleared: g.current.cleared,
@@ -136,6 +140,8 @@ for (const boss of ['hart', 'angler'])
       ),
     );
     if (boss === 'angler') expect(result.drawn).toBeGreaterThan(0.5);
+    // the Hart fights as its animated creature, its clips following its states
+    if (boss === 'hart') expect(result.clips).toEqual(expect.arrayContaining(['idle', 'walk', 'charge', 'stamp']));
     expect(errors).toEqual([]);
   });
 

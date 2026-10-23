@@ -154,6 +154,7 @@ import type { MantleId } from '../actors/mantleData';
 import { groundPace, layDevGround } from '../actors/foeGround';
 import { AudioDirector, type Forced } from '../audio/director';
 import { creaturesNow, roarNow, showCreature, takeCreatures } from './creatureGallery';
+import { bossClipNow, bossCreatures, setBossCreatures } from '../actors/madeBosses';
 import { freeSpotNear } from '../world/rooms';
 import { renderAudio, type RenderAsk } from '../audio/render';
 import { SOUND_FILES, preloadSamples } from '../audio/samples';
@@ -386,6 +387,16 @@ export function installHooks() {
     },
     roarNow: () => roarNow(),
     takeCreatures: () => takeCreatures(G.room.current),
+    /** Whether a boss with an animated creature (the Hallowed Hart) fights as it, from the next boss built; and set it.
+        `bossClip`: the clip the boss in the room plays, and its time (null for a boss that is no creature). */
+    bossCreatures: (on?: boolean) => {
+      if (on !== undefined) setBossCreatures(on);
+      return bossCreatures();
+    },
+    get bossClip() {
+      const b = G.room.enemies.find((e) => e.isBoss && !e.dead);
+      return b?.clip ? bossClipNow(b) : null;
+    },
     // the sounds played from files (data/sounds.json), each loaded and decoded: its seconds, or null where it failed
     soundFiles: async () => {
       const ctx = new OfflineAudioContext(1, 44100, 44100),

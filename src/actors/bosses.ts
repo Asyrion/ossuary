@@ -159,10 +159,11 @@ function buildBossBody(e: Enemy) {
       P = L.parts,
       C = CFG.enemy[e.type];
     const keep = e.type === 'hart' ? [P.eye, P.ring, P.head, ...P.legs.children] : [P.eye, P.ring, P.lure];
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type + (made ? ':made' : ''), keep);
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type + (L.clip ? ':creature' : made ? ':made' : ''), keep);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group;
     e.idle = L.idle;
+    e.clip = L.clip; // (the Hart as its animated creature: its clips played by its states, updateHart)
     e.shadow = L.shadow;
     e.openShadow = L.openShadow;
     e.bossSchool = L.school;
@@ -832,6 +833,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     e.vx = ux * sp;
     e.vz = uz * sp;
     trot(9, 0.45);
+    e.clip?.('walk', { speed: sp });
     P.head.rotation.x = lerp(P.head.rotation.x, 0, 0.15);
     eye.scale.setScalar(1);
     halo.material.opacity = 0.35;
@@ -848,6 +850,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     // it lowers its antlers, and the way it will run lights up on the floor
     e.vx = e.vz = 0;
     trot(0, 0);
+    e.clip?.('idle'); // (its head lowered by the fight, as P.head turns: madeBosses.ts bows its neck)
     const k = 1 - Math.max(0, e.st) / 0.8;
     P.head.rotation.x = 0.55 * k;
     eye.scale.setScalar(1 + k * 0.5);
@@ -875,6 +878,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     e.vx = d.x * C.charge * speedMul;
     e.vz = d.z * C.charge * speedMul;
     trot(20, 0.75);
+    e.clip?.('charge', { speed: C.charge * speedMul });
     if (Math.random() < dt * 25) burst(e.x, 0.1, e.z, SCHOOL_LIGHT.hallow, 1, 1, 0.04);
     if (e.st <= 0) {
       e.state = 'walk';
@@ -885,6 +889,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     // its antlers in the wall: dazed, and open to bolts
     e.vx = e.vz = 0;
     trot(0, 0);
+    e.clip?.('hit');
     P.head.rotation.x = 0.55 + Math.sin(e.t * 20) * 0.08;
     if (e.st <= 0) {
       e.state = 'walk';
@@ -892,9 +897,10 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     }
     return e.face;
   } else if (e.state === 'windSpokes') {
-    // its candles flare
+    // its candles flare, and it rears to stamp the spokes out
     e.vx = e.vz = 0;
     trot(0, 0);
+    e.clip?.('stamp', { beat: e.st });
     const k = 1 - Math.max(0, e.st) / 0.6;
     halo.material.opacity = 0.35 + k * 0.6;
     eye.scale.setScalar(1 + k * 0.5);
@@ -908,6 +914,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
   } else if (e.state === 'spokes') {
     // it turns, and light streams out along its spokes
     e.vx = e.vz = 0;
+    e.clip?.('walk', { speed: 1.3 * C.r }); // (stepping round on the spot as it turns)
     e.spin = e.spin! + dt * 1.3;
     e.fireT = e.fireT! - dt;
     if (e.fireT <= 0) {
@@ -927,9 +934,10 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     }
     return e.face + dt * 1.3;
   } else if (e.state === 'windStamp') {
-    // it rears
+    // it rears (its stamp's clip plays on through the recovery, settling)
     e.vx = e.vz = 0;
     trot(0, 0);
+    e.clip?.('stamp', { beat: e.st });
     const k = 1 - Math.max(0, e.st) / 0.55;
     P.body.rotation.x = -0.3 * k;
     P.body.position.z = -0.25 * k;

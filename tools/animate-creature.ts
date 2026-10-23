@@ -19,6 +19,7 @@ import { orientOutward } from './orientFaces';
 import * as owlbear from './creatures/owlbear';
 import * as dragonling from './creatures/dragonling';
 import * as chameleon from './creatures/chameleon';
+import * as hart from './creatures/hart';
 import { TOWNSFOLK_RECIPES } from './creatures/townsfolk';
 import { BUDGETS } from '../src/assets/assetData';
 import { texelBake } from './texel-bake';
@@ -29,6 +30,7 @@ const RECIPES = {
   owlbear: { ...owlbear, face: 0, height: 1.45, budget: 'boss' as const },
   dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse)
   chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony)
+  hart: { ...hart, height: 2.8, budget: 'boss' as const }, // (floor 4's boss, its antlers counted; it fights: madeBosses.ts)
   ...TOWNSFOLK_RECIPES, // (the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
 } as Record<
   string,
@@ -231,7 +233,13 @@ async function main() {
     clips: Object.fromEntries(
       Object.entries(R.CLIPS).map(([name, c]) => [
         name,
-        { duration: c.duration, loop: c.loop, events: c.events.map((e) => ({ ...e, t: +e.t.toFixed(3) })) },
+        {
+          duration: c.duration,
+          loop: c.loop,
+          ...(c.speed && { speed: +c.speed.toFixed(4) }),
+          ...(c.at !== undefined && { at: c.at }),
+          events: c.events.map((e) => ({ ...e, t: +e.t.toFixed(3) })),
+        },
       ]),
     ),
     budget: R.budget,

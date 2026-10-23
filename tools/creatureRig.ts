@@ -324,12 +324,17 @@ export function mixamoFacing(rig: Rig) {
 }
 
 /** A clip: how long it lasts, whether it loops, and the pose at time `t` (from rest each frame); its events are when
-    its sounds play (a paw down, the roar; `loud` ones at the creature's roar's loudness, CFG.creatures). */
+    its sounds play (a paw down, the roar; `loud` ones at the creature's roar's loudness, CFG.creatures); a clip a boss
+    fights with may say how fast it carries it (`speed`) and when its blow falls (`at`). */
 export interface ClipDef {
   duration: number;
   loop: boolean;
   pose(rig: Rig, t: number): void;
   events: { t: number; sound: string; at?: string; loud?: boolean }[];
+  /** How far a clip that carries it (a gallop) goes each second, in the model's units, so a game can pace it. */
+  speed?: number;
+  /** The clip's moment (a stamp's hooves down), so a game can time it to what it does there. */
+  at?: number;
 }
 
 /** Sample every clip at `fps` and write them into the document as glTF animations (rotations of the bones that move,

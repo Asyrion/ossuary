@@ -126,6 +126,7 @@ import { MOODS, PIECES, type Mood } from '../audio/musicData';
 import { renderAudio } from '../audio/render';
 import { CREATURES } from '../actors/madeCreatures';
 import { roarNow, showCreature, takeCreatures } from './creatureGallery';
+import { bossCreatures, setBossCreatures } from '../actors/madeBosses';
 import { THEMES } from '../world/themeData';
 
 const S = DEV_STR;
@@ -1229,6 +1230,17 @@ function build() {
     }),
     btn(S.takeOptions, () => takeCreatures(G.room.current)),
   );
+  // (the Hallowed Hart fights as its animated creature, or as the still model: from the next boss built)
+  const fightsAs = btn('', () => {
+    setBossCreatures(!bossCreatures());
+    fightsLabel();
+  });
+  const fightsLabel = () => {
+    fightsAs.textContent = S.bossCreature[bossCreatures() ? 'on' : 'off'];
+    fightsAs.classList.toggle('on', !bossCreatures());
+  };
+  fightsLabel();
+  made.append(fightsAs);
 
   // the coin faces: every face side by side ahead of the mage, as the room draws them
   const coins = section(pages.galleries, S.coinGallery);

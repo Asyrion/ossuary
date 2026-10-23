@@ -608,5 +608,101 @@
       "colours": 24,
       "glowing": 952
     }
+  },
+  "hart": {
+    "file": "assets/creatures/hart.glb",
+    "height": 2.8,
+    "modelHeight": 0.997,
+    "modelLength": 0.754,
+    "walkSpeed": 0.3509,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 0.95,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "clawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.237,
+            "sound": "clawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.475,
+            "sound": "clawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.712,
+            "sound": "clawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "charge": {
+        "duration": 0.42,
+        "loop": true,
+        "speed": 2.2487,
+        "events": [
+          {
+            "t": 0,
+            "sound": "clawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.042,
+            "sound": "clawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.189,
+            "sound": "clawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.231,
+            "sound": "clawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "stamp": {
+        "duration": 1.15,
+        "loop": false,
+        "at": 0.55,
+        "events": [
+          {
+            "t": 0.05,
+            "sound": "inhale"
+          },
+          {
+            "t": 0.55,
+            "sound": "slam",
+            "loud": true
+          }
+        ]
+      },
+      "hit": {
+        "duration": 0.9,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/hart.texel.png",
+      "glow": "assets/creatures/hart.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 82
+    }
   }
 }

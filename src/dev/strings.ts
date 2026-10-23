@@ -17,12 +17,17 @@ export const DEV_STR = {
   creatures: 'Animated creatures (made in Tripo, animated in code)',
   creatureHere: (name: string) => `${name}: stand it here`,
   roarNow: 'Roar now',
+  bossCreature: {
+    on: 'The Hallowed Hart fights as: its animated creature (from the next boss built)',
+    off: 'The Hallowed Hart fights as: its still model (from the next boss built)',
+  },
   creaturesNote:
-    'Its walk, roar and rest baked by tools/animate-creature.ts; it walks a lap, roars at the mage and rests, its sounds on its paws and its roar. Looks only: no fight.',
+    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the Hallowed Hart its charge, stamp and hit) and rests, its sounds on its paws and its roar. The Hart also fights as its creature (floor 4); the rest are looks only.',
   creatureNames: {
     owlbear: 'Owlbear',
     dragonling: 'Dragonling',
     chameleon: 'Chameleon Wyvern',
+    hart: 'Hallowed Hart',
     stormcaller: 'The storm caller',
     wizard: 'The cloud-forest wizard',
     forager: 'The forager',
