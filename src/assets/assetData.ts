@@ -5,8 +5,9 @@ import raw from '../../data/assets.json';
 import { WALL_KINDS } from '../world/kitData';
 
 export type ModelKind = 'hero' | 'enemy' | 'boss' | 'prop' | 'large-prop' | 'artifact';
-export type ImageKind = 'floor' | 'wall' | 'icon' | 'coin';
+export type ImageKind = 'floor' | 'wall' | 'icon' | 'coin' | 'decal';
 export const MODEL_KINDS: readonly ModelKind[] = ['hero', 'enemy', 'boss', 'prop', 'large-prop', 'artifact'];
+/** The kinds tools/prepare-texture.ts makes (a decal is made by tools/art/splash.py). */
 export const IMAGE_KINDS: readonly ImageKind[] = ['floor', 'wall', 'icon', 'coin'];
 
 export interface Budget {
@@ -50,6 +51,10 @@ export interface Manifest {
   /** A floor look's made floor faces, by look name and a name of their own (tools/art/floortile.py): a grey PNG of steps
       of light at the kit's texel, which a look's `floor.face` names and the room's floor colours paint. */
   floorFaces?: Record<string, Record<string, string>>;
+  /** Marks made from pictures that lie on the floor (tools/art/splash.py), by `DECAL_SLOTS`: a grey PNG of tones at the
+      kit's texel (48 across, 34 down a unit, so it lies as wide as it is texels over 48), which the game paints; the ones
+      left out are drawn in code. */
+  decals?: Record<string, string>;
   /** An artifact's painted icon, by artifact id. */ icons: Record<string, { file: string }>;
   /** Coin faces, by a name of their own: the face drawn on a coin in the room, at
       the game's pixel (`images.coin.size` across), and its icon for the HUD and the lore card. */ coins?: Record<
@@ -97,6 +102,7 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   wrecked_skiff: 'large-prop',
   mooring_post: 'large-prop',
   net_heap: 'prop',
+  broken_oars: 'prop',
   ferry_lantern: 'large-prop',
   frozen_cairn: 'large-prop',
   // floor 1's foes and the Hollow Warden (actors/madeFoes.ts, madeBosses.ts)
@@ -199,12 +205,18 @@ export const PROP_SLOTS: Record<string, ModelKind> = {
   urn_shore: 'prop',
   altar_shore: 'large-prop',
 };
+/** The decals a made picture can draw, and what each is. */
+export const DECAL_SLOTS: Record<string, string> = {
+  splash: "a thrown potion's splash (items/potionThrow.ts)",
+  splash_wide: "the Cracked Retort's wider splash (without it, the splash's grown)",
+};
 export const MANIFEST: Manifest = {
   props: raw.props,
   artifacts: raw.artifacts,
   floors: raw.floors,
   walls: raw.walls,
   floorFaces: raw.floorFaces,
+  decals: raw.decals,
   icons: raw.icons,
   coins: raw.coins,
   obol: raw.obol,
@@ -268,6 +280,10 @@ export function validateManifest(m: Manifest, known: Known): string[] {
       file(`floorFaces.${look}.${name}`, f, /\.png$/);
     }
   }
+  for (const [id, f] of Object.entries(m.decals ?? {})) {
+    if (!DECAL_SLOTS[id]) errs.push(`decals.${id}: no such decal (${Object.keys(DECAL_SLOTS).join(', ')})`);
+    file(`decals.${id}`, f, /\.png$/);
+  }
   for (const [id, e] of Object.entries(m.icons ?? {})) {
     if (!known.artifacts.has(id)) errs.push(`icons.${id}: no such artifact`);
     file(`icons.${id}`, e?.file, /\.png$/);
@@ -295,6 +311,7 @@ export function manifestFiles(m: Manifest): { where: string; file: string }[] {
     ...Object.entries(m.floorFaces ?? {}).flatMap(([look, faces]) =>
       Object.entries(faces).map(([name, file]) => ({ where: `floorFaces.${look}.${name}`, file })),
     ),
+    ...Object.entries(m.decals ?? {}).map(([id, file]) => ({ where: `decals.${id}`, file })),
     ...Object.entries(m.icons ?? {}).map(([id, e]) => ({ where: `icons.${id}`, file: e.file })),
     ...Object.entries(m.coins ?? {}).flatMap(([id, e]) => [
       { where: `coins.${id}.face`, file: e.face },

@@ -572,6 +572,11 @@ export function dressTheme(room: Room) {
     for (let c = 0; c < t.w; c++) (t.tiles[r][c] === 'void' ? voids : inside).push({ c, r });
   const clear = (c: number, r: number) =>
     Math.min(c + 1, r + 1, t.w - c, t.h - r, ...voids.map((v) => Math.max(Math.abs(v.c - c), Math.abs(v.r - r))));
+  const pools: { c: number; r: number }[] = [];
+  for (let r = 0; r < t.h; r++)
+    for (let c = 0; c < t.w; c++) if (t.tiles[r][c] === 'water' || t.tiles[r][c] === 'oil') pools.push({ c, r });
+  const dry = (q: { c: number; r: number }) =>
+    pools.every((p) => Math.max(Math.abs(p.c - q.c), Math.abs(p.r - q.r)) >= C.daylightDry);
   const mid = {
     c: inside.reduce((s, q) => s + q.c, 0) / inside.length,
     r: inside.reduce((s, q) => s + q.r, 0) / inside.length,
@@ -594,7 +599,9 @@ export function dressTheme(room: Room) {
                 : need
                   ? free.filter((q) => clear(q.c, q.r) >= need)
                   : free,
-        from = open.length ? open : free;
+        // (daylight keeps off the pools too, where it can)
+        dryOpen = kind === 'daylight' ? open.filter(dry) : open,
+        from = dryOpen.length ? dryOpen : open.length ? open : free;
       const pick =
         kind === 'daylight'
           ? from.sort((a, b) => Math.hypot(a.c - mid.c, a.r - mid.r) - Math.hypot(b.c - mid.c, b.r - mid.r))[

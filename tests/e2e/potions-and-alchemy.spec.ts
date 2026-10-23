@@ -208,7 +208,7 @@ test("potions drunk and thrown: each drink does its own and shows a chip while i
     }
     return out;
   });
-  expect(thrown.mana).toMatchObject({ stun: true });
+  expect(thrown.mana).toMatchObject({ stun: true, decals: 1, edges: 0 }); // (the made splash lies there, not the edge drawn in code)
   expect(thrown.liquidEmber).toMatchObject({ burn: true });
   expect(thrown.frostbrew).toMatchObject({ frozen: true });
   expect(thrown.bottledStorm).toMatchObject({ storms: 1 });

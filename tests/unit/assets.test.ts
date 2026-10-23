@@ -210,6 +210,22 @@ describe('the asset manifest', () => {
       expect([png.readUInt32BE(16), png.readUInt32BE(20)], id).toEqual([IMAGES.icon.drawn, IMAGES.icon.drawn]);
     }
   });
+  it("the made splash lies at the kit's texel: as wide as `images.decal`, the Retort's half again, 34 down for 48 across", () => {
+    const size = (id: string) => {
+      const png = readFileSync(join('public/assets', MANIFEST.decals![id]));
+      return [png.readUInt32BE(16), png.readUInt32BE(20)];
+    };
+    const [tx, tz] = CFG.roomKit.texel,
+      [w, h] = size('splash'),
+      [ww, wh] = size('splash_wide');
+    expect(w).toBe(IMAGES.decal.size);
+    expect(Math.abs(h - (w * tz) / tx)).toBeLessThanOrEqual(1);
+    expect(Math.abs(ww - w * CFG.alchemy.retort.splashMul)).toBeLessThanOrEqual(1);
+    expect(Math.abs(wh - (ww * tz) / tx)).toBeLessThanOrEqual(1);
+    expect(validateManifest({ ...MANIFEST, decals: { puddle: 'textures/decals/p.jpg' } }, known).join('\n')).toContain(
+      'decals.puddle: no such decal',
+    );
+  });
   it('budgets are positive for every kind', () => {
     for (const b of Object.values(BUDGETS)) {
       expect(b.triangles).toBeGreaterThan(0);

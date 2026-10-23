@@ -6,7 +6,8 @@ import * as THREE from 'three';
 import type { FloorLook } from '../types';
 import { blob, glow, markShared, mergeStill } from '../render/materials';
 import { SCHOOL_LIGHT, lit, shine, type School } from '../render/arcane';
-import { MAT, joinAll, mesh, runeStrokes, shared, stoneOf, tone } from './kitParts';
+import { CFG } from '../config';
+import { MAT, glowTone, joinAll, mesh, runeStrokes, shade, shared, stoneOf, tone } from './kitParts';
 
 const GOLD = 0xffd98a;
 const GEO = {
@@ -583,6 +584,34 @@ const faceAt = (y: number) => {
   return r * Math.cos(Math.PI / 6) + 0.012;
 };
 export const WAYSTONE_RUNES = { cold: 0x2a1d16, lit: 0xffbe3a };
+const CAIRN = {
+  stone: shared(new THREE.CylinderGeometry(1, 1.1, 1, 7)), // (a flat stone: scaled to each one's width and height)
+  rune: shared(runeStrokes(0.15).rotateX(-Math.PI / 2)), // (lying on the capstone's top, which the camera sees)
+};
+/** A Wardens' cairn, the waystone room's rubble (world/props.ts): flat stones of the waystone's own grey stacked smaller to the top, each
+    turned a little, a rune faintly lit on the capstone (`CFG.waystone.cairn`), so they read as set up by hand while the
+    room waits dark, never as rubble. They stand where the rubble would and a glyph's blast clears them as it. */
+export function cairnLook(R: () => number) {
+  const g = new THREE.Group(),
+    C = CFG.waystone.cairn;
+  let y = 0;
+  C.stones.forEach(([r, h], i) => {
+    const m = mesh(
+      g,
+      CAIRN.stone,
+      tone(shade(WAYSTONE_STONE, i % 2 ? C.shade[1] : C.shade[0]), 0.14),
+      (R() - 0.5) * C.offset,
+      y + h / 2,
+      (R() - 0.5) * C.offset,
+    );
+    m.scale.set(r, h, r * 0.9);
+    m.rotation.y = R() * Math.PI;
+    y += h;
+  });
+  mesh(g, CAIRN.rune, glowTone(C.rune), 0, y + 0.004, 0);
+  g.add(blob(1.1));
+  return g;
+}
 export function waystoneLook() {
   const g = new THREE.Group(),
     stone = tone(WAYSTONE_STONE, 0.16); // (a cool grey of its own: the Wardens' stone, apart from every floor's)

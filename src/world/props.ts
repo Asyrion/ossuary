@@ -30,6 +30,7 @@ import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
 import { PROPS, isMechanism, type PropKind } from './propData';
 import { MECH_LOOKS, elementAt, strikeMechanism } from './mechanisms';
+import { cairnLook } from './mechLooks';
 import type { SpellStatus } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
@@ -83,7 +84,11 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
   const a = worldOf(room, c, r),
     x = a.x + (down ? 0 : (len - 1) / 2),
     z = a.z + (down ? (len - 1) / 2 : 0);
-  const mesh = isMechanism(kind) ? MECH_LOOKS[kind](R, len, room.look) : OBJECT_LOOKS[kind](R, len, room.look);
+  const mesh = isMechanism(kind)
+    ? MECH_LOOKS[kind](R, len, room.look)
+    : kind === 'rubble' && room.type === 'waystone'
+      ? cairnLook(R) // (the waystone room's heaps are the Wardens' cairns, set up by hand)
+      : OBJECT_LOOKS[kind](R, len, room.look);
   mergeStill(mesh); // a few draw calls, not a dozen
   mesh.position.set(x - room.cx, 0, z - room.cz);
   if (down) mesh.rotation.y = Math.PI / 2;

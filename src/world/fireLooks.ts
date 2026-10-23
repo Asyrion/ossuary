@@ -4,7 +4,8 @@
    cold) and its glow. */
 import * as THREE from 'three';
 import type { FloorLook } from '../types';
-import { blob, glow, markShared, paint } from '../render/materials';
+import { bandGlow, blob, glow, markShared, paint } from '../render/materials';
+import { CFG } from '../config';
 import { MAT, joinAll, mesh, runeStrokes, shared } from './kitParts';
 import { EMBER_FIRE, firePalette, makeFire, type FirePalette, type FlameSpec } from '../render/fire';
 import type { BrazierKind, TorchKind } from './kitData';
@@ -172,15 +173,24 @@ export const torchPalette = (t: FloorLook['torch']) =>
 /** A light on a wall, built facing south (+Z, into the room) from the wall's face, of the room's kind (kitData.ts): each
     floor offers two or three. Upright and close to the wall: seen from above at 45°, whatever leans out towards the
     camera drops down the screen, so the fire always stands above its holder. `lit` is what shows while it burns (the
-    fire, a lantern's glass, eyes that glow); the glow is apart, for the flicker. */
-export function torchLook(t: FloorLook['torch'], kind: TorchKind) {
+    fire, a lantern's glass, eyes that glow); the glow is apart, for the flicker. `look`: the floor look's name. */
+export function torchLook(t: FloorLook['torch'], kind: TorchKind, look?: string) {
   const holder = new THREE.Group(),
     lit = new THREE.Group(),
     pal = torchPalette(t);
   lit.userData.fire = true; // (its fire moves by itself: no flicker from outside)
-  const gl = TORCHES[kind](holder, lit, pal, t);
+  let gl = TORCHES[kind](holder, lit, pal, t);
+  if (look && CFG.pixelLook.torchHalo.looks.includes(look)) gl = banded(gl, pal);
   holder.add(lit, gl);
   return { holder, lit, glow: gl };
+}
+/** The torch's glow drawn again in hard bands, smaller, where it stood (`CFG.pixelLook.torchHalo`). */
+function banded(soft: THREE.Sprite, pal: FirePalette) {
+  const H = CFG.pixelLook.torchHalo,
+    s = bandGlow(pal.body, soft.scale.x * H.size, soft.material.opacity, H.rings);
+  s.position.copy(soft.position);
+  soft.material.dispose(); // (its own material: `glow` makes one a sprite)
+  return s;
 }
 type TorchBuild = (holder: THREE.Group, lit: THREE.Group, pal: FirePalette, t: FloorLook['torch']) => THREE.Sprite;
 const at = (s: THREE.Sprite, x: number, y: number, z: number) => {

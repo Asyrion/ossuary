@@ -847,7 +847,7 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
 function addTorch(room: Room, x: number, z: number, normal: [number, number], t: FloorLook['torch']) {
   const lit = room.plan.variant !== 'dark',
     at = { x: x + normal[0] * 0.6, z: z + normal[1] * 0.6 };
-  const { holder, lit: fire, glow: gl } = torchLook(t, room.look.kinds.torch);
+  const { holder, lit: fire, glow: gl } = torchLook(t, room.look.kinds.torch, room.look.name);
   holder.userData.parts = { fire, gl };
   mergeStill(holder);
   holder.position.set(x - room.cx, 0, z - room.cz);

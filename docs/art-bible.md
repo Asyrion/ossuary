@@ -318,8 +318,12 @@ every fix; those for the spells hold on every floor.
   `tools/art/floortile.py`: the picture's steps of light, painted in the room's own floor colours) for the boss rooms
   (large calm slabs, `bossFloor`) and the collapsed crypt (irregular broken stones; a first face of slabs in a grid fell
   on the tiles' and read as a grid); the merchant's ward circle a mask from a made picture, its runes the Wardens'
-  glyphs, drawn rather than added, under a fainter column. No splash picture could be made (Tripo refused every
-  wording), so a splash keeps a stepped dark edge under its ring, its glass in the floor's shadow.
+  glyphs, drawn rather than added, under a fainter column. A thrown potion's splash is a made picture (Tripo, a pool and
+  its droplets in dark rims, glass beside it; `docs/art/items/splash.jpg`) cut out and turned into tones at the texel by
+  `tools/art/splash.py` (`decals.splash` and the Cracked Retort's wider `splash_wide`): the game paints its liquid in the
+  potion's colour in four flat steps, its rims leaning to the floor's shadow (floor 3's own deep violet there), its glass
+  as the shards, under the ring; it spreads in a tenth of a second and fades in the ring's flat steps. Without it
+  (`?assets=off`) the stepped dark edge stays under the ring.
 - **Kept from code:** a thing's inner lines only at a deeper step (`thingGap`: a bottle's edge pixel sat outside its
   line), darker bottle glass, the lodestone shard's pale cyan veins, artifacts' smaller darker halos and thin parts two
   pixels, the lighter blob under the pedestal and the briar, Fen-Nex outlined.

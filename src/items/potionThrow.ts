@@ -23,6 +23,7 @@ import { renderHearts } from '../notify';
 import { disposeTree } from '../render/materials';
 import { gradeNow } from '../render/pixelLook';
 import { itemTones } from '../world/kitColours';
+import { decalImage } from '../assets/models';
 import { mesh, tone } from '../world/kitParts';
 import { potionHold } from '../input';
 import { POTIONS, type PotionDef, type PotionId, type ThrowEffect } from './alchemyData';
@@ -254,25 +255,145 @@ function stepEdge(e: Edge, dt: number) {
   e.m.material.opacity = (E.opacity * Math.ceil((1 - k) * E.steps)) / E.steps;
   return k >= 1;
 }
-/** A spray of glass, in the floor's shadow's colour, and drawn over the floor (`burst`'s, recoloured). */
-function shards(x: number, z: number, n: number, spd: number) {
-  const from = G.fx.particles.length,
-    g = gradeNow(),
+/** The glass of a splash, in the floor's shadow's colour. */
+function glassCol() {
+  const g = gradeNow(),
     c = new THREE.Color(0xd8e8f0);
   if (g.amount > 0) c.lerp(new THREE.Color(g.shadow), A.shard);
-  burst(x, 0.2, z, c.getHex(), n, spd, 0.03);
+  return c;
+}
+/** A spray of glass, in the floor's shadow's colour, and drawn over the floor (`burst`'s, recoloured). */
+function shards(x: number, z: number, n: number, spd: number) {
+  const from = G.fx.particles.length;
+  burst(x, 0.2, z, glassCol().getHex(), n, spd, 0.03);
   for (const p of G.fx.particles.slice(from)) p.m.material.depthWrite = false;
 }
 const RING_LIFE = 0.45;
 
-/** A bottle lands: it shatters, its splash rings out in its colour over a dark edge, and its throw effect lands there. */
+/* the made splash (data/assets.json `decals`, tools/art/splash.py): a picture's tones at the kit's texel, painted per
+   potion and floor, lying on the floor under the ring in place of the edge */
+interface Decal {
+  m: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  t: number;
+  /** its scale at full size (1: a texel to a game pixel) */ to: number;
+  /** its flips (a flip keeps the texel grid, a turn would not) */ fx: number;
+  fz: number;
+  /** its size in units at scale 1 */ w: number;
+  d: number;
+}
+const decals: Decal[] = [],
+  idleDecals: Decal[] = [];
+let decalGeo: THREE.PlaneGeometry | null = null;
+const WHITE = new THREE.Color(0xffffff);
+const tonesOf = new Map<HTMLImageElement, Uint8Array>(),
+  painted = new Map<string, THREE.CanvasTexture>();
+/** A decal's tone a texel (255 clear), read once from its grey PNG. */
+function tones(img: HTMLImageElement) {
+  let t = tonesOf.get(img);
+  if (t) return t;
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const g = c.getContext('2d', { willReadFrequently: true })!;
+  g.drawImage(img, 0, 0);
+  const px = g.getImageData(0, 0, c.width, c.height).data,
+    n = A.splashLook.tones - 1;
+  t = new Uint8Array(c.width * c.height);
+  for (let i = 0; i < t.length; i++) t[i] = px[i * 4 + 3] < 128 ? 255 : Math.round((px[i * 4] * n) / 255);
+  tonesOf.set(img, t);
+  return t;
+}
+/** The made splash painted: its liquid in the potion's colour (`ringCol`), stepped dark to light, its rim leaning to the
+    floor's shadow (or the floor's own splash edge), its glass as the shards are. Made once a colour and floor. */
+function splashPaint(img: HTMLImageElement, def: PotionDef) {
+  const L = A.splashLook,
+    g = gradeNow(),
+    edge = new THREE.Color(itemTones().splashEdge ?? (g.amount > 0 ? g.shadow : '#101018')),
+    liquid = new THREE.Color(ringCol(def)),
+    glass = glassCol(),
+    key = `${img.src}|${liquid.getHex()}|${edge.getHex()}|${glass.getHex()}`;
+  let tex = painted.get(key);
+  if (tex) return tex;
+  const hsl = liquid.getHSL({ h: 0, s: 0, l: 0 }),
+    dark = new THREE.Color().setHSL(hsl.h, hsl.s, hsl.l * L.dark).lerp(edge, L.cool),
+    ramp = [edge.clone().lerp(dark, L.rimTint), glass, dark, ...L.light.map((k) => liquid.clone().lerp(WHITE, k))],
+    bytes = ramp.map((c) => {
+      const h = c.getHex(); // (sRGB bytes, as the canvas holds them)
+      return [(h >> 16) & 255, (h >> 8) & 255, h & 255];
+    });
+  const t = tones(img),
+    c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d')!,
+    out = ctx.createImageData(c.width, c.height);
+  for (let i = 0; i < t.length; i++) {
+    const b = bytes[t[i]];
+    if (!b) continue; // (clear)
+    out.data.set([b[0], b[1], b[2], 255], i * 4);
+  }
+  ctx.putImageData(out, 0, 0);
+  tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.magFilter = tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  painted.set(key, tex);
+  return tex;
+}
+/** The made splash where a bottle lands (`r` its reach), or false when none is loaded (the edge drawn in code stays). */
+function splashDecal(x: number, z: number, r: number, def: PotionDef) {
+  const wide = r > A.splash * 1.01,
+    img = (wide ? decalImage('splash_wide') : null) ?? decalImage('splash');
+  if (!img) return false;
+  const [tx, tz] = CFG.roomKit.texel;
+  let e = idleDecals.pop();
+  if (!e) {
+    decalGeo ??= new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+    decalGeo.userData.shared = true;
+    const m = new THREE.Mesh(
+      decalGeo,
+      // (no depth, as every mark on the floor: written, it hid the fire a throw lays; both sides, for its flips)
+      new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    m.renderOrder = -1; // (drawn before the ring, so the ring lies over it)
+    scene.add(m);
+    e = { m, t: 0, to: 1, fx: 1, fz: 1, w: 1, d: 1 };
+  }
+  if (!e.m.material.map) e.m.material.needsUpdate = true; // (a map where there was none: the shader changes, once)
+  e.m.material.map = splashPaint(img, def);
+  e.m.position.set(x, 0.07, z);
+  e.m.visible = true;
+  e.t = 0;
+  // (a picture made for the plain splash grown for the Retort's; one made wide lies as it is)
+  e.to = img === decalImage('splash_wide') ? 1 : r / A.splash;
+  e.w = img.naturalWidth / tx; // (texels over the kit's texel: it lies a texel to a game pixel)
+  e.d = img.naturalHeight / tz;
+  e.fx = Math.random() < 0.5 ? -1 : 1; // (visual only)
+  e.fz = Math.random() < 0.5 ? -1 : 1;
+  decals.push(e);
+  stepDecal(e, 0);
+  return true;
+}
+function stepDecal(e: Decal, dt: number) {
+  e.t += dt;
+  const k = Math.min(1, e.t / RING_LIFE),
+    L = A.splashLook,
+    g = Math.min(1, e.t / L.grow),
+    f = e.to * (L.from + (1 - L.from) * (1 - (1 - g) ** 2));
+  e.m.scale.set(e.w * f * e.fx, 1, e.d * f * e.fz);
+  e.m.material.opacity = (L.opacity * Math.ceil((1 - k) * L.steps)) / L.steps;
+  return k >= 1;
+}
+
+/** A bottle lands: it shatters, its splash rings out in its colour over the made splash (or a dark edge), and its throw
+    effect lands there. */
 function splash(f: Flight) {
   const def = POTIONS[f.id],
     c = ringCol(def),
     retort = player.stats.effects.has('retort'),
     r = A.splash * (retort ? A.retort.splashMul : 1);
   Sfx.at(f.x1, f.z1).bottleBreak();
-  splashEdge(f.x1, f.z1, r);
+  if (!splashDecal(f.x1, f.z1, r, def)) splashEdge(f.x1, f.z1, r);
   ringFx(f.x1, 0.08, f.z1, c, 0.2, r, RING_LIFE, true);
   const from = G.fx.particles.length;
   burst(f.x1, 0.3, f.z1, c, 18, 2.6, 0.05);
@@ -413,6 +534,11 @@ export function updateThrows(dt: number) {
       edges[i].m.visible = false;
       idleEdges.push(...edges.splice(i, 1));
     }
+  for (let i = decals.length - 1; i >= 0; i--)
+    if (stepDecal(decals[i], dt)) {
+      decals[i].m.visible = false;
+      idleDecals.push(...decals.splice(i, 1));
+    }
   updateThrall(dt);
   // the aim: a ring where it will land (two for a split throw, as wide as the Retort makes the splash), in the potion's
   // colour once it is known
@@ -454,8 +580,16 @@ export function clearThrows() {
   storms.length = 0;
   for (const e of edges) e.m.visible = false;
   idleEdges.push(...edges.splice(0));
+  for (const e of decals) e.m.visible = false;
+  idleDecals.push(...decals.splice(0));
   dropThrall();
   for (const m of markers) m.visible = false;
 }
 /** For the tests: what is in the air, the storms, and the thrall. */
-export const throwsNow = () => ({ flying: flights.length, storms: storms.length, thrall: !!thrall });
+export const throwsNow = () => ({
+  flying: flights.length,
+  storms: storms.length,
+  thrall: !!thrall,
+  decals: decals.length,
+  edges: edges.length,
+});

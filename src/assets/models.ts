@@ -1,5 +1,5 @@
 /* Loading the assets data/assets.json names (docs/assets.md: Pipeline, step 8): models, a floor look's tile,
-   a floor look's wall faces,
+   a floor look's wall faces, the decals made from pictures (a splash),
    artifacts' icons and coin faces, at boot, next to the hero. A model wears its texture as pixel art
    (`texel`, baked by prepare-asset; actors/texturePixel.ts). Each model is loaded once, stood on the
    floor at its height, and every use is a clone sharing its geometry and materials (marked shared, so removing a use
@@ -27,6 +27,7 @@ const models = new Map<string, THREE.Object3D>(),
   floors = new Map<string, HTMLImageElement>(),
   walls = new Map<string, HTMLImageElement>(),
   floorFaces = new Map<string, HTMLImageElement>(),
+  decals = new Map<string, HTMLImageElement>(),
   icons = new Map<string, string>();
 /** A coin's face as loaded: the image, and the colour round its edge (the coin's rim, for its edge in the room). */
 export interface CoinFace {
@@ -102,6 +103,7 @@ export async function loadAssets(search = location.search) {
           walls.set(f.where.slice(6), img); // (look.kind)
         else if (group === 'floorFaces')
           floorFaces.set(f.where.slice(11), img); // (look.name)
+        else if (group === 'decals') decals.set(id, img);
         else if (group === 'coins') {
           if (f.where.endsWith('.face')) faces.set(id, { img, rim: rimOf(img) });
           else coinIcons.set(id, url);
@@ -168,6 +170,9 @@ export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null)
 export const wallTile = (look: string, kind: string) => (enabled ? (walls.get(`${look}.${kind}`) ?? null) : null);
 /** A floor look's made floor face of that name (its look's `floor.face`), or null for the paving the room kit draws. */
 export const floorFace = (look: string, name: string) => (enabled ? (floorFaces.get(`${look}.${name}`) ?? null) : null);
+/** A decal made from a picture (data/assets.json `decals`: a grey PNG of tones at the kit's texel), or null for the
+    one drawn in code. */
+export const decalImage = (id: string) => (enabled ? (decals.get(id) ?? null) : null);
 /** An artifact's drawn icon (its URL: 24 px of pixel art, tools/aseprite), or null for the one rendered from its model
     (items/artifactIcons.ts). */
 export const iconUrl = (id: string) => (enabled ? (icons.get(id) ?? null) : null);
