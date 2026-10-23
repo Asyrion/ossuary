@@ -149,6 +149,14 @@ Small pixel-art panels with brass and stone frames, matching the diorama and the
 Panels stay small and appear only where something stands. Icons are pixel art with the hard outline. The panels and
 icons are built in R3 step 5.
 
+**The artifact icons are drawn pixel art (2026-10-23, the owner's choice).** Each of the 61 artifacts shows an icon
+drawn in Aseprite at 24 pixels (the sources in `inspiration/icons/`, their prompts in `docs/art/icons/`; `tools/aseprite/`:
+`redraw.py` traces a picture to an indexed sprite on a palette ramp, round-trips a text grid for hand edits and exports
+at size). `npm run prepare-texture -- --drawn` keeps a drawn icon as drawn: exactly the icon's size, no soft pixels,
+checked pixel for pixel against its export. It is shown wherever an artifact's icon is (the HUD, the cards, the
+merchant's shelf, the dev menu's sheet of every icon), scaled only in whole steps (1x in the HUD, 2x on the cards and at
+the merchant). An artifact without a drawn icon keeps its icon rendered from its model.
+
 ### 4.7 Humanoid proportions
 
 The humanoids (the mage, townsfolk, human foes) follow the ranger's proportions (reference 2): chibi, a little over three
@@ -323,7 +331,12 @@ every fix; those for the spells hold on every floor.
   `tools/art/splash.py` (`decals.splash` and the Cracked Retort's wider `splash_wide`): the game paints its liquid in the
   potion's colour in four flat steps, its rims leaning to the floor's shadow (floor 3's own deep violet there), its glass
   as the shards, under the ring; it spreads in a tenth of a second and fades in the ring's flat steps. Without it
-  (`?assets=off`) the stepped dark edge stays under the ring.
+  (`?assets=off`) the stepped dark edge stays under the ring. Painted once a colour and floor from its picture's tones
+  (`CFG.alchemy.splashLook`), it lies a texel to a game pixel while it shows, flipped at random but never turned (a turn
+  would break the texel grid), and the Retort's splash lies the wide picture as it is.
+- **The waystone room's rubble** is the Wardens' cairns (2026-10-23): flat stones of the waystone's own cool grey stacked
+  smaller to the top, each turned a little, a rune faintly lit amber on the capstone (`CFG.waystone.cairn`), so they
+  read as set up by hand while the room waits dark, not as rubble. They stand and break as the rubble did.
 - **Kept from code:** a thing's inner lines only at a deeper step (`thingGap`: a bottle's edge pixel sat outside its
   line), darker bottle glass, the lodestone shard's pale cyan veins, artifacts' smaller darker halos and thin parts two
   pixels, the lighter blob under the pedestal and the briar, Fen-Nex outlined.
@@ -363,7 +376,11 @@ took every fix; the code is shared, so each holds on every floor.
   puffs piled up into a soft purple blur (`CFG.steamLook`).
 - **Light:** a boss's halo a round stepped pool of light on the floor under it (`CFG.pixelLook.haloPool`), not a glow
   standing behind it that cut into floor and wall as a lit box; the garth's daylight one flat stepped band over a round
-  pool; moss and stains in flat steps with a hard edge (`blotch`).
+  pool; moss and stains in flat steps with a hard edge (`blotch`). Floor 3's wall torches (2026-10-23): their glow a
+  round glow in hard bands, smaller, where the soft one stood (`CFG.pixelLook.torchHalo`, by floor look: the soft glow
+  read as a lit box on the burning crypt's walls). Daylight, on every floor (2026-10-23): a shaft keeps
+  `CFG.themes.daylightDry` tiles (two) from any water or oil where the room has floor for it (in the overgrown garden it
+  fell into the middle pool, its band cut off at the pool's edge and its pool of light sunk under the water).
 - **Foes:** the phoenix's ashes a heap of flat-shaded grey lumps with ember specks (`CFG.foeLook.ashes`); the salt
   golem's pale made body takes a third of the burn's tint and a softer hit flash, its wax running off in drips
   (`CFG.foeLook`); the rubble golem's falling stones warned by a warm ring two pixels thick that fills as the stone
@@ -438,9 +455,11 @@ this bible asks of a floor, deep-blue mortar and shadow (`#141f33`), the grade i
 amber torch and lantern light, the kit's materials in its ramps, and rooms strewn with pebbles, stains, rime, bones, lamps
 on poles, ropes and a relic. Its walls are made faces: slate, dry stone and pilings. It has its own urn (dark blue clay
 with an amber band) and a boat-hull altar, darkened after the survey, the stone a shade deeper. Lamps burn amber from the
-look and stand clear of rocks and walls. Its five relics are made in Tripo (a wrecked skiff, a mooring post, a net heap, a
-ferry lantern, a frozen cairn); four stand in the way and the net heap lies on the floor. The skiff's oars were dropped
-because the model stood upright.
+look and stand clear of rocks and walls: a lamp stands only where its eight neighbours and the tiles north of it
+(`CFG.themes.lampNorth`, where its tall pole rises before the camera) are free floor, and keeps them to itself, so it
+never shares a tile with a rock, a pillar or a relic. Its six relics are made in Tripo (a wrecked skiff, a mooring post,
+a net heap, broken oars, a ferry lantern, a frozen cairn); four stand in the way, the net heap and the oars lie on the
+floor (the oars, first dropped because the model stood upright, came back laid flat on 2026-10-23).
 
 ### 4.30 Floor 5's foes and the Deep Angler made in Tripo (2026-10-22, accepted by the owner)
 

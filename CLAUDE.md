@@ -31,8 +31,10 @@ systems, only cleaning, the look and the story.
   has its own package in `tools/lint/`). Code is committed formatted and lint-clean.
 - `npm run test:unit` (Vitest, ~500 tests, under a minute), `npm run test:e2e` (Playwright, 148 tests in a file a
   system, fully parallel, about 11 minutes), `npm run test:fast` (the 22 tagged `@fast`, under 2 minutes), `npm test`
-  unit and e2e. In a cloud session set `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run and for
-  `npm run inspect`, `foe-sheet` and `balance` (those three need the dev server running).
+  unit and e2e. Playwright starts its own Vite unless `OSSUARY_URL` names a dev server already running
+  (`OSSUARY_URL=http://localhost:5173/`): then it uses that one, as `inspect`, `foe-sheet` and `balance` do. In a cloud
+  session set `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run and for `npm run inspect`, `foe-sheet` and
+  `balance` (those three need the dev server running).
 - CI (`.github/workflows/deploy.yml`) is lean on Actions minutes (the repo is private, its quota ran out once): a PR and
   a push to `main` run one job, `build` (format, lint, unit tests, build), and `main` deploys from it (live 2 minutes
   later); docs-only changes run nothing. The browser suite runs **locally before every PR** (the ship skill), on CI only

@@ -184,6 +184,7 @@ function buildBossBody(e: Enemy) {
       e.st = 2;
     } else {
       e.flying = true;
+      e.ring.rotation.order = 'YXZ'; // (its ring turned back by the way its body faces before its tilt and spin: updateAngler)
       e.state = 'drift';
       e.st = 2.2;
     }
@@ -635,7 +636,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   } else if (e.state === 'recover') {
     // a moment to strike back
     e.vx = e.vz = 0;
-    e.clip?.('wail', { beat: 0.25 }); // (it bursts up, rearing, its gills flung out)
+    e.clip?.('wail', { beat: C.wail }); // (it bursts up, rearing, its gills flung out)
     e.body.position.y = 0.08;
     pose(0, 0, 1);
     if (e.st <= 0) {
@@ -939,8 +940,8 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
   } else if (e.state === 'spokes') {
     // it turns, and light streams out along its spokes
     e.vx = e.vz = 0;
-    e.clip?.('walk', { speed: 1.3 * C.r }); // (stepping round on the spot as it turns)
-    e.spin = e.spin! + dt * 1.3;
+    e.clip?.('walk', { speed: C.spokes.spin * C.r }); // (stepping round on the spot as it turns)
+    e.spin = e.spin! + dt * C.spokes.spin;
     e.fireT = e.fireT! - dt;
     if (e.fireT <= 0) {
       const S = C.spokes;
@@ -1006,8 +1007,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
   e.ring!.rotation.z += dt * (winding ? 5 : 1);
   // its ring kept facing the camera as it circles (turned with its body, side on it stood on edge): turned back by the
   // way its body faces, before its tilt and its spin
-  e.ring!.rotation.order = 'YXZ';
-  e.ring!.rotation.y = -e.face;
+  e.ring!.rotation.y = -e.face; // (its order YXZ, set as it was built)
   if (e.state === 'drift') {
     // it keeps a few tiles off, circling
     const want = d > 3.6 ? 1 : d < 2.4 ? -1 : 0,

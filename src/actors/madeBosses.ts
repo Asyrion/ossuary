@@ -84,79 +84,90 @@ export async function preloadBossCreatures() {
   await Promise.all(all.flatMap((h) => (h.creature ? [preloadCreature(h.creature.id)] : [])));
 }
 
-/** How the fight's parts move the model as a whole, by boss: from the empty places it moves (`p`) onto the body. */
+const P = CFG.bossPose;
+/** How the fight's parts move the model as a whole, by boss: from the empty places it moves (`p`) onto the body
+    (`CFG.bossPose`). */
 const POSE: Record<string, (body: THREE.Object3D, p: Record<string, THREE.Object3D>, t: number) => void> = {
   abbess(body, p) {
-    const wail = Math.max(0, p.jaw.rotation.x),
+    const A = P.abbess,
+      wail = Math.max(0, p.jaw.rotation.x),
       flare = Math.abs(p.gillL.rotation.z);
-    body.rotation.x = -wail * 0.45; // (her head comes up as her jaw opens)
-    body.scale.set(1 + flare * 0.12, 1 + wail * 0.1, 1);
+    body.rotation.x = -wail * A.rear; // (her head comes up as her jaw opens)
+    body.scale.set(1 + flare * A.flare, 1 + wail * A.wail, 1);
   },
   pyre(body, p) {
-    const stride = p.legL.rotation.x;
-    body.rotation.x = Math.max(-0.35, Math.min(0.35, p.arms.rotation.x * 0.2)); // (leaning into the blade, back to raise it)
-    body.position.y = Math.abs(Math.sin(stride)) * 0.06;
-    body.rotation.z = stride * 0.08;
+    const K = P.pyre,
+      stride = p.legL.rotation.x;
+    body.rotation.x = Math.max(-K.leanMost, Math.min(K.leanMost, p.arms.rotation.x * K.lean)); // (leaning into the blade, back to raise it)
+    body.position.y = Math.abs(Math.sin(stride)) * K.bob;
+    body.rotation.z = stride * K.roll;
   },
   tiger(body, p) {
+    const T = P.tiger;
     moved(body, p.body); // (its crouch, its pounce's arc, its shake when stunned)
     const stride = p.legs.children[0]?.rotation.x ?? 0;
-    body.position.y += Math.abs(Math.sin(stride)) * 0.04;
-    body.rotation.x = -p.head.rotation.x * 0.25; // (its head comes up as it roars, down as it lunges)
-    body.rotation.z = p.head.rotation.z * 0.5;
-    body.rotation.y += (p.legs.children[1]?.rotation.x ?? 0) * 0.08; // (a paw swiped)
+    body.position.y += Math.abs(Math.sin(stride)) * T.bob;
+    body.rotation.x = -p.head.rotation.x * T.nod; // (its head comes up as it roars, down as it lunges)
+    body.rotation.z = p.head.rotation.z * T.roll;
+    body.rotation.y += (p.legs.children[1]?.rotation.x ?? 0) * T.swipe; // (a paw swiped)
   },
   twins(body, p) {
     moved(body, p.body); // (its bob and its shake)
-    body.rotation.x = p.body.rotation.x + Math.min(0, p.armR.rotation.x) * 0.1; // (rearing, and leaning back to raise a paw)
-    body.rotation.y += p.head.rotation.y * 0.35; // (its gaze following the mage)
+    body.rotation.x = p.body.rotation.x + Math.min(0, p.armR.rotation.x) * P.twins.rear; // (rearing, and leaning back to raise a paw)
+    body.rotation.y += p.head.rotation.y * P.twins.gaze; // (its gaze following the mage)
   },
 };
 POSE.twins2 = POSE.twins; // (the second guardian fights as the first)
 POSE.hart = (body, p) => {
+  const H = P.hart;
   moved(body, p.body);
   const stride = p.legs.children[0]?.rotation.x ?? 0;
-  body.position.y += Math.abs(Math.sin(stride)) * 0.05;
-  const charge = Math.max(0, Math.abs(stride) - 0.45) * 0.4; // (a wide stride is its charge: it lowers its antlers)
-  body.rotation.x = p.body.rotation.x + p.head.rotation.x * 0.25 + charge;
+  body.position.y += Math.abs(Math.sin(stride)) * H.bob;
+  const charge = Math.max(0, Math.abs(stride) - H.stride) * H.charge; // (a wide stride is its charge: it lowers its antlers)
+  body.rotation.x = p.body.rotation.x + p.head.rotation.x * H.nod + charge;
 };
 POSE.warden = (body, p) => {
-  const k = p.eye.scale.x - 1; // (its eye swells as its shots come due: it rears back and puffs up)
-  body.rotation.x = -k * 0.35;
-  body.scale.set(1 + k * 0.12, 1 + k * 0.08, 1 + k * 0.12);
+  const W = P.warden,
+    k = p.eye.scale.x - 1; // (its eye swells as its shots come due: it rears back and puffs up)
+  body.rotation.x = -k * W.rear;
+  body.scale.set(1 + k * W.puff[0], 1 + k * W.puff[1], 1 + k * W.puff[0]);
 };
 POSE.dragon = (body, p, t) => {
-  const gape = Math.max(0, p.jaw.rotation.x); // (a still can't open its jaw: it rears a little and swells as it would)
-  body.rotation.x = p.head.rotation.x - gape * 0.25 + Math.sin(t * 0.9) * 0.05; // (its head dropping to breathe, as built)
-  body.rotation.z = p.head.rotation.z + Math.sin(t * 1.2) * 0.06; // (its thrash when knocked down)
-  body.scale.set(1 + gape * 0.06, 1 + gape * 0.14, 1);
+  const D = P.dragon,
+    gape = Math.max(0, p.jaw.rotation.x); // (a still can't open its jaw: it rears a little and swells as it would)
+  body.rotation.x = p.head.rotation.x - gape * D.rear + Math.sin(t * D.breathe[0]) * D.breathe[1]; // (its head dropping to breathe, as built)
+  body.rotation.z = p.head.rotation.z + Math.sin(t * D.thrash[0]) * D.thrash[1]; // (its thrash when knocked down)
+  body.scale.set(1 + gape * D.swell[0], 1 + gape * D.swell[1], 1);
 };
 POSE.serpent = (body, p, t) => {
+  const S = P.serpent;
   moved(body, p.head); // (drawn back before its lunge)
   const gape = Math.max(0, p.jaw.rotation.x);
-  body.rotation.x = -gape * 0.3 + Math.sin(t * 1.1) * 0.05; // (it rears as its jaw drops to spit or bite)
-  body.rotation.z = p.head.rotation.z + Math.sin(t * 1.4) * 0.07; // (its twitch when trapped)
+  body.rotation.x = -gape * S.rear + Math.sin(t * S.sway[0]) * S.sway[1]; // (it rears as its jaw drops to spit or bite)
+  body.rotation.z = p.head.rotation.z + Math.sin(t * S.twitch[0]) * S.twitch[1]; // (its twitch when trapped)
   const fin = p.fins.scale.y - 1; // (its crest raised as it winds up, lowered as it dives)
-  body.scale.set(1 + gape * 0.05, 1 + gape * 0.1 + fin * 0.12, 1);
+  body.scale.set(1 + gape * S.swell[0], 1 + gape * S.swell[1] + fin * S.crest, 1);
 };
 POSE.kaelith = (body, p) => {
+  const K = P.kaelith;
   moved(body, p.body); // (it sinks into shadow and rises; it shakes as it reels; it bows to hold the seal)
   const spread = p.mantle.scale.x - 1;
   // (leaning back to raise its blade, then into the sweep; bowed forward over the seal its hand holds)
-  body.rotation.x = p.blade.rotation.x * 0.12 - p.hand.rotation.x * 0.2;
-  body.scale.set(1 + spread * 0.25, 1, 1 + spread * 0.1); // (its wings spread in the sweep's tell, folded as it sinks)
+  body.rotation.x = p.blade.rotation.x * K.lean - p.hand.rotation.x * K.bow;
+  body.scale.set(1 + spread * K.spread[0], 1, 1 + spread * K.spread[1]); // (its wings spread in the sweep's tell, folded as it sinks)
   // (the code look's idle put these back each step, so a state that stops setting them lets them go; so does this)
   const rest = p.body.userData.rest as THREE.Vector3;
   p.body.position.y = rest.y;
   p.mantle.scale.x = 1;
 };
 POSE.angler = (body, p, t) => {
+  const A = P.angler;
   moved(body, p.body); // (its flinch's shake)
-  body.position.y += CFG.madeBosses.angler.hover + Math.sin(t * 1.3) * 0.08; // (it swims above the floor, as its look in code)
+  body.position.y += CFG.madeBosses.angler.hover + Math.sin(t * A.swim[0]) * A.swim[1]; // (it swims above the floor, as its look in code)
   body.scale.copy(p.body.scale); // (it swells as it calls its ring of shots)
   const gape = Math.max(0, p.jaw.rotation.x);
-  body.rotation.x = -gape * 0.35; // (it rears as its jaw drops to pull or bite)
-  body.scale.y *= 1 + gape * 0.08;
+  body.rotation.x = -gape * A.rear; // (it rears as its jaw drops to pull or bite)
+  body.scale.y *= 1 + gape * A.swell;
 };
 /** The body moved as the fight moved its empty place, from that place's rest. */
 function moved(body: THREE.Object3D, place: THREE.Object3D) {
@@ -216,7 +227,7 @@ const bowAxis = new THREE.Vector3(),
   upQ = new THREE.Quaternion();
 
 function build(id: string, made: BossBuilt, how: MadeBoss, worn: Worn): BossBuilt {
-  const { size: scale, keep, fire, eye = 0.55, centre = false, at = {} } = how;
+  const { size: scale, keep, fire, eye = P.eye, centre = false, at = {} } = how;
   made.idle(0);
   made.group.updateMatrixWorld(true);
   // (its solid body only, as madeFoes.ts measures it)
@@ -263,7 +274,7 @@ function build(id: string, made: BossBuilt, how: MadeBoss, worn: Worn): BossBuil
       ),
     face = at.eye
       ? spot(at.eye)
-      : new THREE.Vector3(0, centre ? THREE.MathUtils.lerp(box.min.y, box.max.y, eye) : tall * eye, box.max.z * 0.9); // (its eyes' height: eye of its own)
+      : new THREE.Vector3(0, centre ? THREE.MathUtils.lerp(box.min.y, box.max.y, eye) : tall * eye, box.max.z * P.face); // (its eyes' height: eye of its own)
   // the fire of its part `fire` (a texture's painted flames don't light, the code's do): at the same height on the model
   const flames: THREE.Object3D[] = [];
   made.parts[fire ?? '']?.traverse((o) => {
@@ -301,7 +312,7 @@ function build(id: string, made: BossBuilt, how: MadeBoss, worn: Worn): BossBuil
     } else if ((p as THREE.Sprite).isSprite) {
       // (on the eye's place when there is one, so what the fight does to the eye shows in its glow)
       p.removeFromParent();
-      if (parts.eye) p.position.set(0, 0, 0.02);
+      if (parts.eye) p.position.set(0, 0, P.glowOut);
       else p.position.copy(face);
       (parts.eye ?? body).add(p);
       parts[name] = p;
@@ -325,7 +336,7 @@ function build(id: string, made: BossBuilt, how: MadeBoss, worn: Worn): BossBuil
     parts: parts as BossBuilt['parts'],
     idle(t) {
       body.position.set(0, 0, 0);
-      body.rotation.set(0, Math.sin(t * 0.6) * 0.05, 0);
+      body.rotation.set(0, Math.sin(t * P.sway[0]) * P.sway[1], 0);
       body.scale.setScalar(1);
       pose?.(body, parts, t);
     },
@@ -428,7 +439,7 @@ function fights(
     parts: parts as BossBuilt['parts'],
     clip: play,
     idle(t) {
-      const dt = THREE.MathUtils.clamp(t - last, 0, 0.1);
+      const dt = THREE.MathUtils.clamp(t - last, 0, P.stepMost);
       last = t;
       for (const w of [...bows, ...looks]) w.b.quaternion.copy(w.rest); // (a bone no clip turns would keep the last bow)
       mixer.update(dt);

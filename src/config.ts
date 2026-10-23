@@ -29,7 +29,17 @@ export const CFG = {
     dummy: { hp: 1000, r: 0.34, speed: 0 }, // the dev menu's training dummy: stands still, never falls
     // bosses (each floor's boss block in data/floors.json scales them)
     warden: { hp: 120, r: 0.78, speed: 1.15, windUp: { windBurst: 0.75, windAim: 0.5 } }, // windUp: seconds of each wind-up
-    abbess: { hp: 120, r: 0.7, speed: 0.95, dive: 2.7, under: 1.8, weak: 'storm' as const, resist: 'frost' as const }, // dive: speed of her ripple; under: seconds below
+    // dive: speed of her ripple; under: seconds below; wail: as her creature, the beat (s) of the wail she rises into
+    abbess: {
+      hp: 120,
+      r: 0.7,
+      speed: 0.95,
+      dive: 2.7,
+      under: 1.8,
+      wail: 0.25,
+      weak: 'storm' as const,
+      resist: 'frost' as const,
+    },
     pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2, weak: 'frost' as const, resist: 'ember' as const },
     // floors 4 and 5, built in code, with a weakness and a resistance like the foes: the hart's charge speed; the
     // angler's pull on the mage (units a second), how long it pulls, how close its bite reaches, and the share of its
@@ -41,10 +51,10 @@ export const CFG = {
       charge: 8.6,
       weak: 'umbral' as const,
       resist: 'hallow' as const,
-      spokes: { every: 0.16, count: 4, hurtCount: 6, speed: 3.1 },
+      spokes: { every: 0.16, count: 4, hurtCount: 6, speed: 3.1, spin: 1.3 },
       stamp: { count: 18, speed: 3, later: 2.6 },
       shotFrom: 0.5,
-    }, // its spokes of light, and its stamp's ring (a second below half health), each shot leaving `shotFrom` out from its middle (all on its centre, their halos piled into one white disc)
+    }, // its spokes of light (turning `spin` radians a second), and its stamp's ring (a second below half health), each shot leaving `shotFrom` out from its middle (all on its centre, their halos piled into one white disc)
     angler: {
       hp: 165,
       r: 0.9,
@@ -550,8 +560,14 @@ export const CFG = {
     lane: [4.5, 1.2, 2.6],
     // the waystone room's rubble built as the Wardens' cairns (world/mechLooks.ts cairnLook): flat stones from the
     // bottom up ([radius, height]), shaded in turn by `shade` from the waystone's grey, set off centre by up to `offset`,
-    // and the rune lit faintly on the capstone (the waystone's own cold rune is near black, and the rubble read as rubble)
+    // and the rune lit faintly on the capstone (the waystone's own cold rune is near black, and the rubble read as rubble),
+    // `runeSize` across; each stone mottled `mottle` (kitParts `tone`), its depth `deep` of its width (a stone a
+    // little longer than deep), its blob shadow `shadow` across
     cairn: {
+      runeSize: 0.15,
+      mottle: 0.14,
+      deep: 0.9,
+      shadow: 1.1,
       stones: [
         [0.36, 0.13],
         [0.3, 0.12],
@@ -996,12 +1012,14 @@ export const CFG = {
       reach: 4,
       leash: 9,
       bite: { every: 1.3, mul: [0.6, 0.85, 1.1] },
-      breath: { every: 3.2, range: 3.2, count: 5, spread: 0.6, speed: 7, mul: 0.45, burn: 2 },
+      breath: { every: 3.2, range: 3.2, reach: 0.5, count: 5, spread: 0.6, speed: 7, mul: 0.45, burn: 2 },
       // as its animated creature (fennexLook.ts, docs/creatures.md): the cross-fade between clips (s); the pace a clip may
       // play at to match its speed (slowest, fastest); below `still` tiles a second it stands, above `run` times its heel
       // speed it gallops (and always on a dart), its speed smoothed at `settle` a second (at the heel it catches up in
-      // small steps); its bite starts as far out as it runs in the time its clip takes to snap shut
-      made: { blend: 0.15, pace: [0.5, 2.6], still: 0.6, run: 1.25, settle: 6 },
+      // small steps), and a step under `moved` tiles counts as standing; its bite starts as far out as it runs in the time
+      // its clip takes to snap shut; its clips advanced by at most `stepMost` seconds a frame; while it draws a breath it
+      // keeps facing a foe within the breath's range and `breath.reach` (its bolts' own reach past the range)
+      made: { blend: 0.15, pace: [0.5, 2.6], still: 0.6, run: 1.25, settle: 6, moved: 0.05, stepMost: 0.1 },
     },
     // Candle Moth: seconds between stings, reach (and its halo's size: a larger one read as a white blot in a soft cloud)
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7, glow: 0.5 },
@@ -1277,6 +1295,39 @@ export const CFG = {
       creature: { id: 'kaelith', head: 'mixamorigHead', blend: 0.2, pace: [0.4, 2.5] },
     },
   },
+  // how the fight's parts move a made boss's model as a whole (actors/madeBosses.ts POSE): each number the share of a
+  // part's turn, stride or swell carried onto the body, or how far it bobs; a pair of a wave's [pace, amount] or a
+  // swell's [across, up]. `sway` the still model's idle turn [pace, radians]; `eye` its eyes' height (a share of its
+  // height) and `face` how far forward (a share of its front) where a boss names none; `glowOut` a glow set before its
+  // eye's place; `stepMost` the longest step a creature's clips are advanced by (seconds)
+  bossPose: {
+    sway: [0.6, 0.05] as [number, number],
+    eye: 0.55,
+    face: 0.9,
+    glowOut: 0.02,
+    stepMost: 0.1,
+    abbess: { rear: 0.45, flare: 0.12, wail: 0.1 },
+    pyre: { lean: 0.2, leanMost: 0.35, bob: 0.06, roll: 0.08 },
+    tiger: { bob: 0.04, nod: 0.25, roll: 0.5, swipe: 0.08 },
+    twins: { rear: 0.1, gaze: 0.35 },
+    hart: { bob: 0.05, stride: 0.45, charge: 0.4, nod: 0.25 },
+    warden: { rear: 0.35, puff: [0.12, 0.08] as [number, number] },
+    dragon: {
+      rear: 0.25,
+      breathe: [0.9, 0.05] as [number, number],
+      thrash: [1.2, 0.06] as [number, number],
+      swell: [0.06, 0.14] as [number, number],
+    },
+    serpent: {
+      rear: 0.3,
+      sway: [1.1, 0.05] as [number, number],
+      twitch: [1.4, 0.07] as [number, number],
+      swell: [0.05, 0.1] as [number, number],
+      crest: 0.12,
+    },
+    kaelith: { lean: 0.12, bow: 0.2, spread: [0.25, 0.1] as [number, number] },
+    angler: { swim: [1.3, 0.08] as [number, number], rear: 0.35, swell: 0.08 },
+  },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across
   hud: { pixel: [2, 3] as [number, number], tall: 900, spellIcon: 16, coin: 12 },
@@ -1339,9 +1390,15 @@ export const CFG = {
     // `cool` of the way to the floor's shadow, its lighter ones `light` of the way to white; its rim the floor's shadow
     // colour (or the floor's own `items.splashEdge`) `rimTint` of the way to the liquid's dark; it spreads from `from` of
     // its size to all of it in `grow` seconds (so it lies a texel to a game pixel while it shows; grown with the ring it
-    // was seen only scaled) and fades in `steps` flat steps from `opacity` as the ring does
+    // was seen only scaled) and fades in `steps` flat steps from `opacity` as the ring does; a texel under `clear` alpha
+    // (of 255) in its picture is clear; the wide picture is laid for a splash more than `wide` times the plain one's;
+    // it and the edge lie `lift` units over the floor, the edge in `noShadow` on a floor without a grade
     splashLook: {
       tones: 6,
+      clear: 128,
+      wide: 1.01,
+      lift: 0.07,
+      noShadow: '#101018',
       dark: 0.6,
       cool: 0.25,
       light: [0, 0.15, 0.35],

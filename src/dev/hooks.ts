@@ -81,6 +81,7 @@ import type { Attr } from '../progression/attributes';
 import { STEP, step } from '../loop';
 import { FLOORS, planToText } from '../world/generate';
 import { CFG } from '../config';
+import { paleFx, shoreFx } from '../world/paleFx';
 import { damageEnemy } from '../combat/damage';
 import { DROPS, type Drop, type Resource, type Soul } from '../items/loot';
 import { gainSoul, hallowedMend } from '../items/souls';
@@ -107,7 +108,7 @@ import { marksNow } from '../actors/spellMarks';
 import type { TransformId } from '../items/transformData';
 import { placeProp } from '../world/props';
 import { assetList, assetsOn } from '../assets/models';
-import { scatterOf } from '../world/themes';
+import { scatterOf, scatterPlaces } from '../world/themes';
 import {
   drawnRows,
   gradeNow,
@@ -358,6 +359,23 @@ export function installHooks() {
     /** What the room's scatter put down, by kind (a theme's, or a plain room's from its floor's `scatter`). */
     get scatterHere() {
       return scatterOf(G.room.current);
+    },
+    /** Every room of this floor: its template's tiles, its theme, and where its scatter put each piece (by tile). */
+    scatterPlaces: () =>
+      G.floor.rooms.map((r) => ({
+        id: r.plan.id,
+        theme: r.theme?.id ?? null,
+        tiles: r.template.tiles.map((row) => [...row]),
+        at: scatterPlaces(r),
+      })),
+    /** The rules the scatter keeps (CFG.themes): a lamp's tiles north of it, daylight's tiles from walls and pools. */
+    get scatterRules() {
+      const T = CFG.themes;
+      return { lampNorth: T.lampNorth, daylightClear: T.daylightClear, daylightDry: T.daylightDry };
+    },
+    /** Whether this floor draws foes' magic as a pale floor's (floor 4) or the dark shore's (floor 5): world/paleFx.ts. */
+    get floorFx() {
+      return { pale: paleFx(), shore: shoreFx() };
     },
     dropsHere: () => dropsHere(),
     /** One of each relic of the vault ahead of the mage (the made models floor 1 strews). */

@@ -216,7 +216,7 @@ lid, a fallen candelabrum, an angel's head, a skull pile, a broken urn; `relicLo
 neighbours are free, none in the start, two in a room two different ones; none while assets are off. The standing ones
 (`CFG.themes.relicBlock`) block as breakable rocks (`standRelic`: a collider from the model's footprint, `relicFit`, its
 tile `rock` until it breaks). Dev:
-`__game.scatterHere`, `relicsHere()`; the Look tab's readout under Objects here, and Relics here.
+`__game.scatterHere`, `scatterPlaces()` (each piece's tile, every room), `scatterRules`, `relicsHere()`; the Look tab's readout under Objects here, and Relics here.
 
 Twists: sleepers (`asleep` foes wake when hit or approached); rising bones; scroll heaps break to pages; cave-in on
 a blast (`caveIn`); the chapel's blessing; the mausoleum's rime (entombs foes, freezes water, charges rune stones,
@@ -724,7 +724,7 @@ look from `applyKitColours` on every floor and the Vigil; `paleFx()`, `paleShado
 hard steps, lobs (`paleLob`: shaded and outlined, with `fallWarn`), the radiant eye's ray (`beamFx`), the stun tint, the
 rime, web and pollen tones, capped blob shadows (`paleBlobs`), the vault's ward seal, and a dark halo under pickups and
 artifacts with the key and the souls in deeper colours.
-Floor 5's dark shore has its own switch (`CFG.shoreFx`, `looks: ['shore']`; `shoreFx()` in the same module, set by `setPaleFx` with the floor's colours), where frost burnt pale foes white and black or pale effects were lost on its mist and dark water. It switches foes' telegraphs to edged bands (`edgedBandsTex`) in the floor's shadow colour, drawn without depth test so the floor cuts no lit box; rime a deeper frost in 2-pixel crystals (`rimeTex(stroke)` for foes' rime, `rimeMat(look)` for the scatter's); black ice in hard steps; spore clouds in flat bands (`addSpores`); the gloom raven's gloom as umbral bands inside a violet rim (`rimmedDiscTex`); and the scorch under burning ground in a charcoal of its own. Pickups and artifacts sit on a pale lilac halo (the look's `items.halo`).
+Floor 5's dark shore has its own switch (`CFG.shoreFx`, `looks: ['shore']`; `shoreFx()` in the same module, set by `setPaleFx` with the floor's colours), where frost burnt pale foes white and black or pale effects were lost on its mist and dark water. It switches foes' telegraphs to edged bands (`edgedBandsTex`) in the floor's shadow colour, drawn without depth test so the floor cuts no lit box; rime a deeper frost in 2-pixel crystals (`rimeTex(stroke)` for foes' rime, `rimeMat(look)` for the scatter's); black ice in hard steps; spore clouds in flat bands (`addSpores`); the gloom raven's gloom as umbral bands inside a violet rim (`rimmedDiscTex`); and the scorch under burning ground in a charcoal of its own. Pickups and artifacts sit on a pale lilac halo (the look's `items.halo`). Dev: `__game.floorFx` (`{ pale, shore }` on this floor).
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
@@ -780,7 +780,10 @@ round bases; `tools/prepare-asset.ts` shares them. Clips: `standing_relax`, `run
   Dev: Made assets section; `__game.assets`, `useAssets(false)`, `showAssets()`.
 - Tripo creatures animated in code (guide: `docs/creatures.md`): `tools/animate-creature.ts` simplifies the mesh to
   its budget, turns inside-out patches outward, rebinds the skin (`reskin` in `creatureRig.ts`), bakes the recipe's
-  clips (`tools/creatures/<id>.ts`: owlbear, dragonling, chameleon, townsfolk), pads texture islands and writes
+  clips (`tools/creatures/<id>.ts`: owlbear, dragonling, chameleon, townsfolk; the bosses `hart.ts`, `warden.ts`,
+  `tiger.ts`, `abbess.ts`, `pyre.ts`, `twins.ts`, `twins2.ts` and Fen-Nex's `fennex.ts`, `fennex_full.ts`, sharing
+  `moves.ts` and, on Tripo's biped rig, `biped.ts`; the second Twin Guardian rigged in Blender by
+  `tools/creatures/twins2-rig/build.sh`), pads texture islands and writes
   `public/assets/creatures/<id>.glb` plus clip data in `data/creatures.json`. In the game `actors/madeCreatures.ts`
   dresses one in the pixel-art look (`madeModel`, for any use); `dev/creatureGallery.ts` stands one to look at. Sounds: `audio/creatureSounds.ts`
   (`Sfx.place(x, z)`) and WAVs listed in `data/sounds.json` (`soundData.ts`, `samples.ts`). Dev: Galleries Animated
@@ -931,7 +934,9 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 | `inspect` | `inspect-rooms.ts`: shoots rooms; flags errors, hidden mage, dark rooms. |
 | `render-audio`, `review-checks`, `milestone` | Offline audio; diff checks; GitHub milestones. |
 | `devboard`, `devboard:selftest` | The content dev board (`tools/devboard/`). |
-| (none; Python and `npx tsx`) | `tools/art/`: R3's art tools, the bake, pixelize to a floor's ramps, rooms at the game pixel (`tools/art/README.md`). |
+| (none; Python and `npx tsx`) | `tools/art/`: R3's art tools, the bake, pixelize to a floor's ramps, rooms at the game pixel, the splash decal (`splash.py`) (`tools/art/README.md`). |
+| (none; Python) | `tools/aseprite/`: the drawn artifact icons, `redraw.py` driving `sprite.lua` in Aseprite headless (trace, text-grid round trip, export). |
+| (none; Git Bash, Blender) | `tools/creatures/twins2-rig/`: the second Twin Guardian rigged on the first's skeleton (`build.sh`; `docs/creatures.md`, Rebuilding a creature). |
 
 Dev board: `npm run devboard` serves http://127.0.0.1:8770, a local page to browse, create, edit and delete the
 content in `data/`, validated by the game's own validators after every save. A new kind of content in `data/` gets

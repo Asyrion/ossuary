@@ -259,8 +259,8 @@ raised as a shield), `rear` (its gaze) and `hit` (`over`) in code; `look` turns 
 The second guardian (`tools/creatures/twins2.ts`, height 2.6, 14,549 triangles) is **the recipe for a model Tripo can't
 rig**. Tripo's biped auto-rig failed on it twice (the thighs' rest heights 0.41 and 0.61 of the top bone, the head 0.44;
 then 0.65, 0.95 and 0.81; the first guardian's are 0.49, 0.49 and 1.00), so it was rigged in Blender 5.2 headless on the
-first guardian's Tripo skeleton (the scripts and renders in asset-previews/rig/twins2/blender/; `build.sh` runs them in
-turn):
+first guardian's Tripo skeleton (the scripts in `tools/creatures/twins2-rig/`; `build.sh` runs them in turn, what they
+make goes in asset-previews/rig/twins2/blender/: Rebuilding a creature, below):
 - **The fit** (`fitjoints.py`): both came from Tripo in the same frame (facing +x, a metre wide), so the armature is not
   scaled; the key joints (knees, ankles, toes, neck and head, shoulders, elbows and wrists, mirrored) are placed by hand
   inside twins2's mesh, read off side and front slabs of it with the joints drawn in (`fitcheck.py`), every other bone
@@ -279,8 +279,9 @@ turn):
   rotations stay the first guardian's, so Tripo's preset clips (local rotations, read from asset-previews/rig/twins/ by
   bone name) replay on it as on the first: its seven clips are the first's, and its recipe re-exports twins.ts. Its skin
   is kept (`SKIN = null`).
-- **The check**: `clips.py` renders frames of each baked clip beside the first guardian's; `stretch.py` marks on the rest
-  pose the edges a frame stretches. Weak points: its fists and inner thighs stretch in the slam's highest frames, the
+- **The check** (`build.sh --check`): `clips.py` renders frames of each baked clip beside the first guardian's (sheets by
+  `sheet.py`, which needs Pillow); `stretch.py` marks on the rest pose the edges a frame stretches, `colors.py` colours
+  each vertex by its strongest bone, `fitcheck.py` draws the fitted joints on slabs of the mesh. Weak points: its fists and inner thighs stretch in the slam's highest frames, the
   slam twists it as Tripo's slash twists the first, and its feet slide a little in the walk (the first's legs were
   shorter); nothing tears into sheets. In the game: `npx tsx asset-previews/rig/twins2/fightshots.ts` (both guardians
   side by side in each state).
@@ -294,6 +295,48 @@ sinking and reeling come from the fight's `body` (`moves`, `under`). No walk or 
 
 **Next:** another boss or foe fights as its creature the same way: a `creature` in its `CFG.madeBosses` entry and
 `e.clip?.(...)` in its states.
+
+## Rebuilding a creature
+
+The Tripo GLBs a recipe reads are 40 to 60 MB each and stay out of the repo (asset-previews/ is gitignored); the game's
+files they make are in it (`public/assets/creatures/<id>.glb`, `data/creatures.json`, the texel bake). To make one again,
+fetch its inputs into `asset-previews/rig/<id>/` and run the recipe:
+
+```sh
+# Tripo's preset clip on the rig already made (retargeted again, no new rig; `walk.glb` carries the armature and the
+# skin the recipe binds, and is its input)
+tripo process animate <project> --rig-type <type> --animations preset:<type>:walk -o asset-previews/rig/<id>/walk.glb --timeout 20m
+npm run animate-creature -- <id> asset-previews/rig/<id>/walk.glb
+# the model as rigged, without its armature (only the second Twin Guardian needs it)
+tripo export <project> -o asset-previews/rig/<id>/rig.glb --export-timeout 10m
+```
+
+A biped's recipe (`biped.ts` `presets`) also reads `idle.glb`, `slash.glb` and `hurt.glb` from the same folder, fetched
+the same way (`preset:biped:idle`, `:slash`, `:hurt`). `tripo project history <project>` lists a project's operations;
+the rigging operator is in the table for reference only: `tripo export --operator-id` downloads it meshopt-compressed
+(a quarter of the size), which neither Blender's importer nor the tools here read without a decoder. Note that Tripo's
+CLI ran a real export under `--dry-run` (2026-10-23). A fresh export is the same model and textures but not the same
+file: twins2's came back with 737,012 vertices against the 737,268 of the `rig.glb` it was rigged from (fetched by
+`tripo process rig` itself), so a rebuild from it is close, not byte for byte.
+
+| Creature | Tripo project | Rigging operator | Rig type | Fetch into `asset-previews/rig/<id>/` | Rebuild |
+| --- | --- | --- | --- | --- | --- |
+| `hart` | `234b5943-6de7-4050-b797-3f7fe9c688f8` | `5859e51f-7c25-4240-86d2-403398e4eea9` | quadruped | `walk` | `animate-creature -- hart …/walk.glb` |
+| `warden` | `392a24e0-0b9b-46f4-b14a-c8570b807d45` | `4fce911c-6134-4afb-9589-a8c3a26172ca` | quadruped | `walk` | `animate-creature -- warden …/walk.glb` |
+| `tiger` | `17b1bdb3-b9d9-4b06-ae3e-b8557e5a6b6d` | `4da8097c-a297-44a6-b470-bf066a04e4b9` | quadruped | `walk` | `animate-creature -- tiger …/walk.glb` |
+| `abbess` | `2dd0cfe4-4d3e-4c86-9f97-6d72af637100` | `045c46cd-a6fb-475c-a46c-488a96a63d3b` | quadruped | `walk` | `animate-creature -- abbess …/walk.glb` |
+| `pyre` | `2a631aee-2c79-47c6-8567-9416f79a10ff` | `5921990b-d67f-4370-b439-d1068a21a0d1` | biped | `idle`, `walk`, `slash`, `hurt` | `animate-creature -- pyre …/walk.glb` |
+| `twins` | `598be10b-fc8b-4070-b6d1-9dacfa7608e8` | `e3a2a983-7345-4d9e-8e9a-1776233efbe1` | biped | `idle`, `walk`, `slash`, `hurt` | `animate-creature -- twins …/walk.glb` |
+| `twins2` | `00fd5c62-0710-4ec4-9043-d9740f9725d3` | `40bf7641-e737-4655-a0f8-3fee57b5ceab` (its rig unusable) | biped | `rig.glb` only; and `twins`' `walk` and presets | `tools/creatures/twins2-rig/build.sh` |
+| `fennex` | `5ff71fbe-4053-496a-bcd9-d5715897b146` | `22403fc2-c52f-4c25-98c8-739ad72f21f6` | quadruped | `walk` | `animate-creature -- fennex …/walk.glb` |
+| `fennex_full` | `955ffb1a-8d94-4e67-b5c4-64a68777d5f9` | `b195ec2f-d9d2-41e6-b9c4-10f06fbc6797` | quadruped | `walk` | `animate-creature -- fennex_full …/walk.glb` |
+
+The second Twin Guardian's rig from Tripo is unusable (its two auto-rigs failed), so only its mesh is fetched: its rigging
+operator's `rig.glb` as `asset-previews/rig/twins2/rig.glb`, with the first guardian's `walk.glb` and presets in
+`asset-previews/rig/twins/`. `tools/creatures/twins2-rig/build.sh [--check] [twins walk.glb] [twins2 rig.glb] [work dir]`
+(Git Bash; Blender 5.2 at its default Windows path or `$BLENDER`) fits the joints, binds the mesh, assembles the GLB in
+`asset-previews/rig/twins2/blender/` and bakes the clips; run on the same inputs it makes the same `rigged.glb`, byte for
+byte (checked 2026-10-23). Kaelith and the townspeople come from the owner's Mixamo exports (People on a Mixamo rig), not from these.
 
 ## A familiar as a creature: Fen-Nex (2026-10-23)
 
