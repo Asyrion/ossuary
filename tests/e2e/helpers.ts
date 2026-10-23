@@ -36,6 +36,7 @@ export interface GameHooks {
   warp(id: number): void;
   sim(sec: number, draw?: boolean): void;
   wayDown: { x: number; z: number; room: string | null; kind?: string } | null;
+  creaturesReady(): Promise<void>;
 }
 
 export type W = { __game: GameHooks; __manual: boolean; __fight(limit: number, step?: number): number };
@@ -45,8 +46,11 @@ export type W = { __game: GameHooks; __manual: boolean; __fight(limit: number, s
     test plays out the same on every run and a pass never rests on a lucky roll. */
 export const SEEDED_RANDOM = `(() => { let s = 1; Math.random = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; window.__reseed = () => { s = 1; }; })();`;
 
-/** Collect console errors, open the game with Math.random seeded and press Descend. */
-export async function start(page: Page, query: string) {
+/** Collect console errors, open the game with Math.random seeded and press Descend. The animated creatures it has asked
+    for by then (Fen-Nex's, a ?boss='s, the floor's boss's) have loaded before and after it is pressed, unless
+    `waitCreatures` is false: the title waits for none of them, and a boss built before its creature has come stands as
+    its still model. */
+export async function start(page: Page, query: string, { waitCreatures = true } = {}) {
   const errors: string[] = [];
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
@@ -63,8 +67,12 @@ export async function start(page: Page, query: string) {
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('title');
   expect(await page.evaluate(() => (window as unknown as W).__game.hero.info)).toContain('rigged');
+  const creatures = () =>
+    waitCreatures ? page.evaluate(() => (window as unknown as W).__game.creaturesReady()) : null;
+  await creatures();
   await page.click('#btnStart');
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
+  await creatures();
   // a simple auto-player: line up with the nearest foe and cast at it, backing off when too close
   await page.evaluate(() => {
     const w = window as unknown as W;

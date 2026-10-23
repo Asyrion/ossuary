@@ -1,6 +1,6 @@
 /* Fen-Nex, for the familiar (combat/fennex.ts): the Rune Fox and its full shape as animated creatures made in Tripo
-   (docs/creatures.md: public/assets/creatures/fennex.glb and fennex_full.glb, loaded at boot), their clips played by what
-   it does, its glows, mist, stars and fire built in code on their bones; or, under ?assets=off, a file that failed or the
+   (docs/creatures.md: public/assets/creatures/fennex.glb and fennex_full.glb, loaded once the title is up), their clips
+   played by what it does, its glows, mist, stars and fire built in code on their bones; or, under ?assets=off, a file that failed or the
    dev menu's switch, both built in code. */
 import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -8,7 +8,7 @@ import { glow } from '../render/materials';
 import { box, limb, lit, motes, part, rune, shine, sphere, std } from '../render/arcane';
 import { CFG } from '../config';
 import { assetsOn } from '../assets/models';
-import { CREATURES, overClip, preloadCreature, readyCreature } from './madeCreatures';
+import { CREATURES, keepMixer, overClip, preloadCreature, readyCreature } from './madeCreatures';
 
 /** A built look: its group, how it idles, the size of the shadow under it, and the parts the familiar moves beyond its
     idle (its head and mouth). As an animated creature it also plays clips by name (`clip`: cross-faded, a gait paced to
@@ -20,7 +20,7 @@ export interface Built {
   parts?: Record<string, THREE.Object3D>;
   /** The creature it is (data/creatures.json), when it is one. */
   creature?: string;
-  clip?: (name: string, o?: { speed?: number }) => void;
+  clip?: (name: string, speed?: number) => void;
   clipNow?: () => { clip: string; time: number; rate: number; over: string[] };
 }
 
@@ -185,7 +185,7 @@ function runeFox(): Built {
     dustB = motes(g, 0xb080ff, 4, 0.45, 0.8, 0.013);
   return {
     group: g,
-    shadow: 0.8,
+    shadow: CFG.artifacts.fennex.made.shadow[0],
     idle: (t) => {
       const w = t * 5.5;
       legs.forEach(({ l, phase }) => {
@@ -313,7 +313,7 @@ function fenNex(): Built {
   const embers = motes(g, 0xff9a3a, 5, 0.6, 0.7, 0.016);
   return {
     group: g,
-    shadow: 1,
+    shadow: CFG.artifacts.fennex.made.shadow[1],
     parts: { head, mouth },
     idle: (t) => {
       const w = t * 6;
@@ -362,8 +362,8 @@ export function setFennexCreature(on: boolean) {
 }
 /** The creature of each stage: the Rune Fox for stages 1 and 2, its full shape for 3. */
 export const fennexCreatureOf = (stage: number) => (stage >= 3 ? 'fennex_full' : 'fennex');
-/** Load both creatures ahead (at boot, after the assets: none while they are off), since its look is built at once.
-    Never rejects. */
+/** Load both creatures ahead (once the title is up, and again, at once, as the rune is bound: none while the assets are
+    off), since its look is built at once. Never rejects. */
 export async function preloadFennex() {
   if (!assetsOn()) return;
   await Promise.all(['fennex', 'fennex_full'].map((id) => preloadCreature(id)));
@@ -408,11 +408,12 @@ function runeFoxLights(g: THREE.Group): { ride: Riding[]; idle: (t: number) => v
   });
   const dustA = motes(g, 0x8ff0ff, 5, 0.55, 0.55, 0.015),
     dustB = motes(g, 0xb080ff, 4, 0.45, 0.8, 0.013);
+  const { mist: Mi, twinkle: Tw } = CFG.artifacts.fennex.made;
   return {
     ride,
     idle(t) {
-      mists.forEach((m, i) => (m.material.opacity = 0.45 + 0.15 * Math.sin(t * 3 + i * 1.7)));
-      twinkles.forEach((tw, i) => tw.scale.setScalar(0.4 + Math.max(0, Math.sin(t * 2.5 + i * 1.7)) * 0.9));
+      mists.forEach((m, i) => (m.material.opacity = Mi[0] + Mi[1] * Math.sin(t * Mi[2] + i * Mi[3])));
+      twinkles.forEach((tw, i) => tw.scale.setScalar(Tw[0] + Math.max(0, Math.sin(t * Tw[2] + i * Tw[3])) * Tw[1]));
       dustA(t, 0.7);
       dustB(t, -0.5);
     },
@@ -428,12 +429,13 @@ function fenNexLights(g: THREE.Group): { ride: Riding[]; idle: (t: number) => vo
   ride.push(['tripo::Head_2', [-0.004, 0.53, 0.5], mouth]);
   const tip = glow(0xff8a2a, 0.7, 0.6);
   ride.push(['tripo::Tail_1', [0.16, 0.43, -0.47], tip]);
-  const embers = motes(g, 0xff9a3a, 5, 0.6, 0.7, 0.016);
+  const embers = motes(g, 0xff9a3a, 5, 0.6, 0.7, 0.016),
+    T = CFG.artifacts.fennex.made.tip;
   return {
     ride,
     mouth,
     idle(t) {
-      tip.material.opacity = 0.5 + 0.12 * Math.sin(t * 17) + 0.06 * Math.sin(t * 7.3);
+      tip.material.opacity = T[0] + T[1] * Math.sin(t * T[2]) + T[3] * Math.sin(t * T[4]);
       embers(t, 0.6);
     },
   };
@@ -476,9 +478,9 @@ function madeFennex(stage: number): Built | null {
     g.updateMatrixWorld(true);
     to.attach(holder);
   }
-  const mixer = new THREE.AnimationMixer(model),
+  const mixer = keepMixer(model),
     actions: Record<string, THREE.AnimationAction> = {},
-    OVER = ['bite', 'breathe']; // (played over the rest: it bites on the run, breathes at the mage's heel)
+    OVER = M.over; // (played over the rest: it bites on the run, breathes at the mage's heel)
   for (const c of r.gltf.animations) {
     const over = OVER.includes(c.name),
       a = mixer.clipAction(over ? overClip(id, c) : c);
@@ -488,7 +490,7 @@ function madeFennex(stage: number): Built | null {
   }
   let now = '',
     last = 0;
-  const play = (name: string, o: { speed?: number } = {}) => {
+  const play = (name: string, speed?: number) => {
     const a = actions[name],
       ci = info.clips[name];
     if (!a || !ci) return;
@@ -500,7 +502,7 @@ function madeFennex(stage: number): Built | null {
     if (name !== now && info.clips[now]?.loop === false && actions[now]?.isRunning()) return;
     const world = unit * (g.parent?.scale.x ?? 1); // (the model's units to the room's, once the familiar scaled its look)
     a.timeScale =
-      o.speed !== undefined && ci.speed ? THREE.MathUtils.clamp(o.speed / (ci.speed * world), M.pace[0], M.pace[1]) : 1;
+      speed !== undefined && ci.speed ? THREE.MathUtils.clamp(speed / (ci.speed * world), M.pace[0], M.pace[1]) : 1;
     if (name === now) return;
     const was = actions[now];
     a.reset().play();
@@ -510,7 +512,7 @@ function madeFennex(stage: number): Built | null {
   play('idle');
   return {
     group: g,
-    shadow: stage >= 3 ? 1 : 0.8,
+    shadow: M.shadow[stage >= 3 ? 1 : 0],
     parts: lights.mouth ? { mouth: lights.mouth } : {},
     creature: id,
     clip: play,
@@ -527,6 +529,11 @@ function madeFennex(stage: number): Built | null {
     },
   };
 }
+
+/** Whether Fen-Nex at `stage` would now be its animated creature (it was built in code while its creature loaded: once
+    it has, combat/fennex.ts builds it again). */
+export const fennexCreatureReady = (stage: number) =>
+  creatureOn && assetsOn() && !!readyCreature(fennexCreatureOf(stage));
 
 /** Fen-Nex as it is at `stage` (1 and 2: the Rune Fox, 3: its full shape), facing +Z, for the game (combat/fennex.ts):
     its animated creature once loaded, else built in code. */

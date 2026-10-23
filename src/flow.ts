@@ -69,6 +69,7 @@ import { emit } from './events';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
+import { preloadBossCreatures } from './actors/madeBosses';
 import { recordRun, resetRunFirsts, runFirsts, vigil } from './vigil/save';
 import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
 import { vigilWalled } from './vigil/unfold';
@@ -194,6 +195,7 @@ export function buildFloor(index: number) {
   // the floor's boss: from its pool, one this run hasn't met (or the one ?boss= asked for)
   G.run.boss = forcedBoss ?? pickBoss(Rng.from(G.run.seed, 'boss' + index), FLOORS[index].boss.pool, G.run.bossesMet);
   G.run.bossesMet.push(G.run.boss);
+  void preloadBossCreatures(G.run.boss); // (the creature it fights as, loading while the mage finds its room; Kaelith's at the Seal)
   const plan = testTemplate
     ? testPlan(testTemplate, testVariant)
     : generateFloor(Rng.from(G.run.seed, 'floor' + index), floorConfig(index), index);

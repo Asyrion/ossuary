@@ -371,7 +371,7 @@ rune ring, halo and named part's fire it keeps; what its fight does to the parts
 model as a whole, and its blob shadow is the open one (`blob(size, true)`, lighter where the floor shows between legs).
 The Abbess, the Pyre Knight, the War-Tiger and both Twin Guardians wear one (`twins2`, the second, its own); an entry's
 `eye` sets its eyes' height on the model (a crouched guardian's face is high), and its surface takes `tint`, `lift` and
-`hot` as the foes' do. The Hallowed Hart wears one too, keeping its floor circle, ring and halo, and fights as its animated creature once that has loaded (`CFG.madeBosses.hart.creature`, data/creatures.json `hart`; `preloadBossCreatures` at boot, after the assets): the same fit and kept parts, its body a skinned mesh in a mixer, its clips played by `updateHart`'s states through `BossBuilt.clip` / `Enemy.clip` (walk paced to its speed, aim idle, charge paced to the charge, windSpokes and windStamp the stamp timed so its hooves fall as the shots go out, spokes a slow walk round, stun the hit), the fight's lowered head (`parts.head`) bowing its neck's bones on top of the clip and the eye's glow riding its head bone (docs/creatures.md, "A creature that fights"). Without the creature (not loaded, ?assets=off, or the dev menu's switch, `ossuary.bossCreatures`) the still model stands (`POSE.hart`: its legs' stride bobs the body, and a wide stride, its charge, lowers the antlers), and without that the look in code. The Hollow Warden fights as its creature the same way (`CFG.madeBosses.warden.creature`, data/creatures.json `warden`): `updateWarden` plays walk paced to its speed, the rear timed to each wind-up so its forepaws slam down as the shots go out, idle through the volleys once the rear has settled (`after`), and a flinch over them when struck (`over`: an additive clip, resting between); without it, `POSE.warden` on the still. So do the War-Tiger (`updateTiger`: a `statue` clip held while it stands as stone, its pounce's arc from its `body`), the Drowned Abbess, the Pyre Knight (his flames on his head bone), both Twin Guardians (`updateTwin`, their necks turned after the mage; the second on the first's skeleton, fitted in Blender) and Kaelith (`updateKaelith`, and kneeling at the end in `kaelithKneeling`) (docs/creatures.md). Any boss gets a creature by its config entry (`bossCreatureIds`; one dev switch for all). So does the Deep Angler (`POSE.angler`: it hovers at `CFG.madeBosses.angler.hover` and swells as it calls its ring, and rears as its jaw gapes), keeping its ring, halo and lure; a part inside a kept part goes with it, so the lure keeps its glow. Its lure is an amber lamp in stepped bands (`CFG.enemy.angler.lure`, `bandGlow`, drawn over its face without depth test), its ring is turned back by the way its body faces so it keeps facing the camera, and its halo pool is capped (`haloMost`). A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
+`hot` as the foes' do. The Hallowed Hart wears one too, keeping its floor circle, ring and halo, and fights as its animated creature once that has loaded (`CFG.madeBosses.hart.creature`, data/creatures.json `hart`; loaded as its floor is built, see Creature loading below): the same fit and kept parts, its body a skinned mesh in a mixer, its clips played by `updateHart`'s states through `BossBuilt.clip` / `Enemy.clip` (walk paced to its speed, aim idle, charge paced to the charge, windSpokes and windStamp the stamp timed so its hooves fall as the shots go out, spokes a slow walk round, stun the hit), the fight's lowered head (`parts.head`) bowing its neck's bones on top of the clip and the eye's glow riding its head bone (docs/creatures.md, "A creature that fights"). Without the creature (not loaded, ?assets=off, or the dev menu's switch, `ossuary.bossCreatures`) the still model stands (`POSE.hart`: its legs' stride bobs the body, and a wide stride, its charge, lowers the antlers), and without that the look in code. The Hollow Warden fights as its creature the same way (`CFG.madeBosses.warden.creature`, data/creatures.json `warden`): `updateWarden` plays walk paced to its speed, the rear timed to each wind-up so its forepaws slam down as the shots go out, idle through the volleys once the rear has settled (`after`), and a flinch over them when struck (`over`: an additive clip, resting between); without it, `POSE.warden` on the still. So do the War-Tiger (`updateTiger`: a `statue` clip held while it stands as stone, its pounce's arc from its `body`), the Drowned Abbess, the Pyre Knight (his flames on his head bone), both Twin Guardians (`updateTwin`, their necks turned after the mage; the second on the first's skeleton, fitted in Blender) and Kaelith (`updateKaelith`, and kneeling at the end in `kaelithKneeling`) (docs/creatures.md). Any boss gets a creature by its config entry (`bossCreatureIds`; one dev switch for all). So does the Deep Angler (`POSE.angler`: it hovers at `CFG.madeBosses.angler.hover` and swells as it calls its ring, and rears as its jaw gapes), keeping its ring, halo and lure; a part inside a kept part goes with it, so the lure keeps its glow. Its lure is an amber lamp in stepped bands (`CFG.enemy.angler.lure`, `bandGlow`, drawn over its face without depth test), its ring is turned back by the way its body faces so it keeps facing the camera, and its halo pool is capped (`haloMost`). A boss's halo lies on the floor as a round stepped light pool (`lightPoolTex` in
 `render/textures.ts`, `haloOnFloor` in `bosses.ts`): a sprite stood up behind it cut into the floor and the wall.
 
 | Boss | Id | Fight |
@@ -531,9 +531,10 @@ Dev: `DEV.arc`, `__game.arc`, `setArc(n)`.
 
 Fen-Nex, the Rune Fox (Rune of Fen-Nex): `combat/fennex.ts`; keeps at the mage's heel, darts to bite, grows a stage
 a floor from the floor it was bound on (`G.run.fennexFrom`), breathes Ember in its full shape. `__game.fennex`. Its look
-(`actors/fennexLook.ts`) is an animated creature for each shape once loaded at boot (`preloadFennex`; docs/creatures.md,
-"A familiar as a creature"), its clips chosen from its speed and what it does; the looks in code stay for ?assets=off
-and the dev switch (`__game.fennexCreature`).
+(`actors/fennexLook.ts`) is an animated creature for each shape once loaded (`preloadFennex`, in the background once the
+title is up and again as the rune is bound; built in code until then and built again as its creature once it has come;
+docs/creatures.md, "A familiar as a creature"), its clips chosen from its speed and what it does; the looks in code stay
+for ?assets=off and the dev switch (`__game.fennexCreature`).
 
 ## Items and economy
 
@@ -785,9 +786,23 @@ round bases; `tools/prepare-asset.ts` shares them. Clips: `standing_relax`, `run
   `moves.ts` and, on Tripo's biped rig, `biped.ts`; the second Twin Guardian rigged in Blender by
   `tools/creatures/twins2-rig/build.sh`), pads texture islands and writes
   `public/assets/creatures/<id>.glb` plus clip data in `data/creatures.json`. In the game `actors/madeCreatures.ts`
-  dresses one in the pixel-art look (`madeModel`, for any use); `dev/creatureGallery.ts` stands one to look at. Sounds: `audio/creatureSounds.ts`
+  dresses one in the pixel-art look (`madeModel`, for any use); `dev/creatureGallery.ts` stands one to look at. The files
+  a run loads (the bosses' creatures and Fen-Nex's: `tools/creature-strip.ts` `RUN_CREATURES`) carry no texture once
+  it is baked (`npm run creature-strip`, run by `animate-creature`): the game wears the bake, and a material marked
+  `extras.texel` tells `wearTexel` which meshes wear it; the townspeople keep theirs for their speaker icons.
+  data/creatures.json is checked by `validateCreatures` (`actors/creatureData.ts`, the unit tests and the dev board), and
+  `tests/unit/creatures.test.ts` finds every clip and bone the bosses and Fen-Nex ask for in their files. Sounds: `audio/creatureSounds.ts`
   (`Sfx.place(x, z)`) and WAVs listed in `data/sounds.json` (`soundData.ts`, `samples.ts`). Dev: Galleries Animated
   creatures; `__game.showCreature(id)`, `creatures`, `roarNow()`, `soundFiles()`.
+- Creature loading: the title waits for no animated creature (`main.ts` awaits the assets of data/assets.json and the
+  hero only). `madeCreatures.ts` `preloadCreature(id)` loads one ahead, once, never rejecting; `buildFloor` (flow.ts)
+  starts the floor's boss's (`preloadBossCreatures(boss)`: its own and the looks named after it, the second Twin
+  Guardian's and Kaelith kneeling's; Kaelith's as the Seal is built), Fen-Nex's start once the title is up. A boss built
+  before its creature has come stands as its still model for that fight (`madeBossLook` falls back), and Fen-Nex as its
+  look in code until its creature arrives. A mixer an animated copy runs (`keepMixer`) is stopped and let go when the copy
+  is disposed (`disposeTree`, `userData.stop`). Dev: `__game.creaturesReady()` resolves once every creature asked for
+  has loaded or failed, which the browser tests' `start()` waits on before and after Descend; a ?boss= starts its
+  creature's load as the dev hooks install, and the dev menu's boss buttons load it before they start.
 - Texel bake: `tools/texel-bake.ts` (run by `animate-creature` and `prepare-asset`) shrinks a model's texture to one
   texel a game pixel within each UV island, keeps glowing markings, lifts painted shadows, cuts it to a palette (pure
   `render/texelBake.ts`, `CFG.creatures.texel`) into `<file>.texel.png` and `<file>.glow.png`;
@@ -928,7 +943,7 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 | `dev`, `build`, `typecheck`, `test`, `test:unit`, `test:e2e`, `test:fast` | Vite server; build; Vitest and Playwright (`test:fast`: the browser tests tagged `@fast`). |
 | `lint`, `lint:install`, `format`, `format:check` | ESLint (type-checked rules); its own install; Prettier. |
 | `prepare-asset`, `prepare-texture`, `prepare-sound` | Prepare GLBs, tiles, icons, coin faces, WAVs. |
-| `animate-creature`, `texel-bake` | Rig and clips for a Tripo creature; pixel-art texture. |
+| `animate-creature`, `texel-bake`, `creature-strip` | Rig and clips for a Tripo creature; pixel-art texture; its texture taken out of a file a run loads. |
 | `creature-preview`, `foe-sheet` | Render a creature video; contact sheets of boss looks. |
 | `balance` | Bot fighting each foe (`docs/balance.md`) or whole floors (`-- runs`). |
 | `inspect` | `inspect-rooms.ts`: shoots rooms; flags errors, hidden mage, dark rooms. |

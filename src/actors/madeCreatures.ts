@@ -1,9 +1,9 @@
 /* Creatures made in Tripo and animated in code (docs/creatures.md): a model whose clips tools/animate-creature.ts baked
    (public/assets/creatures/<id>.glb, data/creatures.json), loaded once and copied, worn as pixel art made from its own
    texture (texturePixel.ts, baked by tools/texel-bake.ts). The townspeople wear them at the Vigil; the dev menu's
-   Galleries tab stands one ahead of the mage (dev/creatureGallery.ts); a boss that fights as one (the Hallowed Hart) and
-   the familiar Fen-Nex are loaded ahead at boot (`preloadCreature`), since their looks are built at once (madeBosses.ts,
-   fennexLook.ts). */
+   Galleries tab stands one ahead of the mage (dev/creatureGallery.ts); a boss that fights as one and the familiar Fen-Nex
+   are loaded ahead (`preloadCreature`), since their looks are built at once: a floor's boss as the floor is built
+   (madeBosses.ts), Fen-Nex once the title is up or the rune is bound (fennexLook.ts). The title waits for none of them. */
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -11,24 +11,8 @@ import data from '../../data/creatures.json';
 import { CFG } from '../config';
 import { blob } from '../render/materials';
 import { texelMaterial, wearTexel } from './texturePixel';
+import type { CreatureInfo } from './creatureData';
 
-interface ClipInfo {
-  duration: number;
-  loop: boolean;
-  speed?: number; // (how far a clip that carries it goes a second, in the model's units: a gallop)
-  at?: number; // (when its blow falls: a stamp's hooves down)
-  events: { t: number; sound: string; at?: string; loud?: boolean }[];
-}
-interface CreatureInfo {
-  file: string;
-  height: number;
-  fine?: boolean;
-  modelHeight: number;
-  modelLength: number;
-  walkSpeed: number;
-  clips: Record<string, ClipInfo>;
-  texel: { file: string; glow: string; side: number }; // (every model has its bake: tests/unit/texelBake.test.ts)
-}
 export const CREATURES = Object.fromEntries(
   Object.entries(data).filter(([k]) => k !== '_comment'),
 ) as unknown as Record<string, CreatureInfo>;
@@ -54,13 +38,19 @@ function loadFile(file: string) {
 
 /** Creatures loaded ahead, for a look built at once: the loaded model, its baked pixel-art texture and the material
     made of it (shared by every copy: its glow lit, for a look no hit lights). */
-const ready = new Map<string, { gltf: GLTF; map: THREE.Texture; mat: THREE.MeshToonMaterial }>();
-/** Load creature `id` ahead (a boss that fights as it: madeBosses.ts). Never rejects: a file that fails leaves the look
-    it would have replaced, with a warning. */
-export async function preloadCreature(id: string) {
-  const info = CREATURES[id];
-  if (!info || ready.has(id)) return;
-  const base = import.meta.env.BASE_URL;
+const ready = new Map<string, { gltf: GLTF; map: THREE.Texture; mat: THREE.MeshToonMaterial }>(),
+  loading = new Map<string, Promise<void>>();
+/** Load creature `id` ahead (a boss that fights as it: madeBosses.ts), once however often it is asked. Never rejects: a
+    file that fails leaves the look it would have replaced, with a warning. */
+export function preloadCreature(id: string): Promise<void> {
+  if (!CREATURES[id]) return Promise.resolve();
+  let p = loading.get(id);
+  if (!p) loading.set(id, (p = load(id)));
+  return p;
+}
+async function load(id: string) {
+  const info = CREATURES[id],
+    base = import.meta.env.BASE_URL;
   try {
     const [gltf, mat] = await Promise.all([
       loadFile(info.file),
@@ -73,6 +63,14 @@ export async function preloadCreature(id: string) {
 }
 /** Creature `id` loaded ahead, or undefined while it isn't. */
 export const readyCreature = (id: string) => ready.get(id);
+/** Once every creature asked for so far has loaded or failed (the dev hooks: a browser test waits on it rather than on
+    luck). */
+export const creaturesLoaded = async () => {
+  for (let n = -1; n !== loading.size;) {
+    n = loading.size;
+    await Promise.all(loading.values());
+  }
+};
 
 /** A clip played over the others (a flinch, a bite on the run): made additive from its first frame (its rest), once for
     every copy of creature `id`. */
@@ -109,7 +107,7 @@ export async function madeModel(id: string, still: () => boolean = () => true) {
   const group = new THREE.Group();
   group.add(model);
   group.add(blob(Math.max(info.modelLength, info.modelHeight * 0.45) * scale * CFG.creatures.shadow));
-  const mixer = new THREE.AnimationMixer(model),
+  const mixer = keepMixer(model),
     actions: Record<string, THREE.AnimationAction> = {};
   for (const clip of gltf.animations) {
     const a = mixer.clipAction(clip);
@@ -118,6 +116,17 @@ export async function madeModel(id: string, still: () => boolean = () => true) {
     actions[clip.name] = a;
   }
   return { info, group, model, mixer, actions, gltf };
+}
+/** A mixer for the copy `model`, which taking the copy away stops, letting its actions go (disposeTree, as heroAnim.ts
+    lets its own go). A function on the copy, not the mixer: a copy's userData is copied as JSON. */
+export function keepMixer(model: THREE.Object3D) {
+  const mixer = new THREE.AnimationMixer(model);
+  model.userData.stop = () => {
+    mixer.stopAllAction();
+    mixer.uncacheRoot(model);
+    delete model.userData.stop;
+  };
+  return mixer;
 }
 /** The loaded model of `id`, if it has loaded (for an icon drawn at once). */
 export const loadedScene = (id: string) => {

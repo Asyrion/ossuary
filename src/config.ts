@@ -28,8 +28,18 @@ export const CFG = {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
     dummy: { hp: 1000, r: 0.34, speed: 0 }, // the dev menu's training dummy: stands still, never falls
     // bosses (each floor's boss block in data/floors.json scales them)
-    warden: { hp: 120, r: 0.78, speed: 1.15, windUp: { windBurst: 0.75, windAim: 0.5 } }, // windUp: seconds of each wind-up
-    // dive: speed of her ripple; under: seconds below; wail: as her creature, the beat (s) of the wail she rises into
+    // windUp: seconds of each wind-up; hurt: its walk's pace below half health; bob: as a still model, its heavy step's
+    // [pace (radians a second), height]
+    warden: {
+      hp: 120,
+      r: 0.78,
+      speed: 1.15,
+      windUp: { windBurst: 0.75, windAim: 0.5 },
+      hurt: 1.25,
+      bob: [4, 0.05] as [number, number],
+    },
+    // dive: speed of her ripple; under: seconds below; wail: as her creature, the beat (s) of the wail she rises into;
+    // hover: how high she drifts over the floor [middle, pace (radians a second), swing]
     abbess: {
       hp: 120,
       r: 0.7,
@@ -37,10 +47,21 @@ export const CFG = {
       dive: 2.7,
       under: 1.8,
       wail: 0.25,
+      hover: [0.08, 2.2, 0.06] as [number, number, number],
       weak: 'storm' as const,
       resist: 'frost' as const,
     },
-    pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2, weak: 'frost' as const, resist: 'ember' as const },
+    // hurt: his stalk's pace below half health; bob: as a still model, his stride's [pace (radians a second), height]
+    pyre: {
+      hp: 135,
+      r: 0.72,
+      speed: 1.25,
+      charge: 8.2,
+      weak: 'frost' as const,
+      resist: 'ember' as const,
+      hurt: 1.25,
+      bob: [5, 0.05] as [number, number],
+    },
     // floors 4 and 5, built in code, with a weakness and a resistance like the foes: the hart's charge speed; the
     // angler's pull on the mage (units a second), how long it pulls, how close its bite reaches, and the share of its
     // health that, struck off while it pulls, makes it flinch
@@ -1012,14 +1033,47 @@ export const CFG = {
       reach: 4,
       leash: 9,
       bite: { every: 1.3, mul: [0.6, 0.85, 1.1] },
-      breath: { every: 3.2, range: 3.2, reach: 0.5, count: 5, spread: 0.6, speed: 7, mul: 0.45, burn: 2 },
+      // (its bolts set out `out` tiles from it, drawn at `size`; its mouth lit to `glow` as it breathes, fading at `fade` a
+      // second; with no foe near, it looks again in `retry` seconds)
+      breath: {
+        every: 3.2,
+        range: 3.2,
+        reach: 0.5,
+        count: 5,
+        spread: 0.6,
+        speed: 7,
+        mul: 0.45,
+        burn: 2,
+        out: 0.4,
+        size: 0.6,
+        glow: 0.9,
+        fade: 4,
+        retry: 0.3,
+      },
       // as its animated creature (fennexLook.ts, docs/creatures.md): the cross-fade between clips (s); the pace a clip may
       // play at to match its speed (slowest, fastest); below `still` tiles a second it stands, above `run` times its heel
       // speed it gallops (and always on a dart), its speed smoothed at `settle` a second (at the heel it catches up in
       // small steps), and a step under `moved` tiles counts as standing; its bite starts as far out as it runs in the time
       // its clip takes to snap shut; its clips advanced by at most `stepMost` seconds a frame; while it draws a breath it
-      // keeps facing a foe within the breath's range and `breath.reach` (its bolts' own reach past the range)
-      made: { blend: 0.15, pace: [0.5, 2.6], still: 0.6, run: 1.25, settle: 6, moved: 0.05, stepMost: 0.1 },
+      // keeps facing a foe within the breath's range and `breath.reach` (its bolts' own reach past the range); `over` the
+      // clips played over the rest (it bites on the run, breathes at the mage's heel); `shadow` its shadow's size as the
+      // Rune Fox and in its full shape; its glows' pulses, each [middle, swing, pace (radians a second), phase between
+      // them]: the mist at the Rune Fox's paws, its stars' twinkle (from `twinkle[0]`, by up to `twinkle[1]`), and the
+      // flame at its full shape's tail, two waves [middle, swing, pace, swing, pace]
+      made: {
+        blend: 0.15,
+        pace: [0.5, 2.6],
+        still: 0.6,
+        run: 1.25,
+        settle: 6,
+        moved: 0.05,
+        stepMost: 0.1,
+        over: ['bite', 'breathe'] as readonly string[],
+        shadow: [0.8, 1],
+        mist: [0.45, 0.15, 3, 1.7],
+        twinkle: [0.4, 0.9, 2.5, 1.7],
+        tip: [0.5, 0.12, 17, 0.06, 7.3],
+      },
     },
     // Candle Moth: seconds between stings, reach (and its halo's size: a larger one read as a white blot in a soft cloud)
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7, glow: 0.5 },

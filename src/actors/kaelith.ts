@@ -31,6 +31,7 @@ import { sealWard, wakeWard, wardHooks } from '../world/mechanisms';
 import { callFoe, type Role } from './foeData';
 import { makeEnemy } from './enemies';
 import { kaelithKneeling, kaelithLook, kaelithMade } from './kaelithLooks';
+import { AFTER, timed } from './bossLooks';
 import { phaseOf, sealWards, type KaelithPhase } from './kaelithData';
 import { mulberry } from '../util';
 import { SPELL_DEFS } from '../magic/spellData';
@@ -184,7 +185,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
       P.blade.rotation.x = 0;
       P.mantle.scale.x = 1;
       e.halo!.material.opacity = 0.35;
-      e.clip?.('idle', { after: true });
+      e.clip?.('idle', AFTER);
       if (e.st <= 0) {
         e.cycle = e.cycle! + 1;
         const order =
@@ -207,7 +208,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
     case 'windSweep': {
       // its blade raised, its mantle spread: the cue to get clear
       e.vx = e.vz = 0;
-      e.clip?.('sweep', { beat: e.st }); // (as its creature: its blade swept through as the fan goes out)
+      e.clip?.('sweep', timed(e.st)); // (as its creature: its blade swept through as the fan goes out)
       const k = 1 - Math.max(0, e.st) / C.sweep.tell;
       P.blade.rotation.x = -k * 1.1;
       P.mantle.scale.x = 1 + k * 0.35;

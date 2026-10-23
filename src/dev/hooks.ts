@@ -157,6 +157,7 @@ import { groundPace, layDevGround } from '../actors/foeGround';
 import { AudioDirector, type Forced } from '../audio/director';
 import { creaturesNow, roarNow, showCreature, takeCreatures } from './creatureGallery';
 import { bossClipNow, bossCreatures, setBossCreatures } from '../actors/madeBosses';
+import { creaturesLoaded } from '../actors/madeCreatures';
 import { freeSpotNear } from '../world/rooms';
 import { renderAudio, type RenderAsk } from '../audio/render';
 import { SOUND_FILES, preloadSamples } from '../audio/samples';
@@ -413,6 +414,9 @@ export function installHooks() {
       if (on !== undefined) setBossCreatures(on);
       return bossCreatures();
     },
+    /** Resolves once every animated creature asked for so far (a floor's boss's, Fen-Nex's, a ?boss=) has loaded or
+        failed: the title waits for none of them, so a test that reads a creature's clips waits on this. */
+    creaturesReady: () => creaturesLoaded(),
     get bossClip() {
       const b = G.room.enemies.find((e) => e.isBoss && !e.dead && e.clip); // (of a pair, the one that is a creature)
       return b ? bossClipNow(b) : null;

@@ -872,3 +872,51 @@ test("daylight: Kaelith's way out is a shaft of light; stepping into it, the mag
   expect(dev.day.on).toBe(true);
   expect(errors).toEqual([]);
 });
+
+test('the title waits for no animated creature: a boss built before its creature has come stands as its still model, and Fen-Nex built in code becomes its creature once it has', async ({
+  page,
+}) => {
+  // (the Hart's and the Rune Fox's files held back until the test lets them go: a slow network, without luck)
+  let release = () => {};
+  const held = new Promise<void>((r) => (release = r)),
+    asked: string[] = [];
+  await page.route(/assets\/creatures\/(hart|fennex)\.glb$/, async (route) => {
+    asked.push(route.request().url().replace(/.*\//, ''));
+    await held;
+    await route.continue();
+  });
+  const errors = await start(page, '?room=boss_open&boss=hart&floor=4&seed=SLOW1&give=fennex_rune', {
+    waitCreatures: false,
+  }); // (it reached the title and started with both files still held)
+  type G2 = GameHooks & {
+    bossClip: { clip: string } | null;
+    bossClips: ({ clip: string } | null)[];
+    fennex: { creature: string | null } | null;
+    spawn(kind: string, x?: number, z?: number): Foe;
+    clearRoom(): void;
+  };
+  const before = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2;
+    g.warp(1);
+    (g.player as { invuln?: number }).invuln = 999;
+    g.sim(2); // (it fights as the still: no clips)
+    const boss = g.enemies.find((e) => e.isBoss) as (Foe & { type: string; state: string }) | undefined;
+    return { boss: boss?.type, state: !!boss?.state, clip: g.bossClip, fennex: g.fennex?.creature ?? null };
+  });
+  expect(before).toEqual({ boss: 'hart', state: true, clip: null, fennex: null });
+  expect(asked.sort()).toEqual(['fennex.glb', 'hart.glb']);
+  release();
+  await page.evaluate(() => (window as unknown as W).__game.creaturesReady());
+  const after = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2;
+    g.sim(0.2);
+    const fennex = g.fennex?.creature ?? null; // (built again as its creature, where it stands)
+    g.clearRoom();
+    g.spawn('hart');
+    g.sim(0.5);
+    return { fennex, clip: g.bossClip?.clip ?? null };
+  });
+  expect(after.fennex).toBe('fennex');
+  expect(after.clip).not.toBeNull(); // (a Hart built now fights as its creature)
+  expect(errors).toEqual([]);
+});

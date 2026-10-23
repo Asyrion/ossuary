@@ -3,6 +3,7 @@
    the files are read anew. Run by hand: npx tsx tools/devboard/validate.ts */
 import floors from '../../data/floors.json';
 import sounds from '../../data/sounds.json';
+import creatures from '../../data/creatures.json';
 import { validateArtifacts } from '../../src/items/artifactData';
 import { validateFamilies } from '../../src/items/transformData';
 import { validateAlchemy } from '../../src/items/alchemyData';
@@ -23,6 +24,7 @@ import { MANIFEST } from '../../src/assets/assetData';
 import { validateMusic } from '../../src/audio/musicData';
 import { validateAmbience } from '../../src/audio/ambienceData';
 import { validateSounds } from '../../src/audio/soundData';
+import { validateCreatures } from '../../src/actors/creatureData';
 import { ARTIFACT_DEFS } from '../../src/items/artifactData';
 import { DEV_STR } from '../../src/dev/strings';
 import { DIALOGUE, validateDialogue } from '../../src/vigil/dialogueData';
@@ -76,6 +78,7 @@ const checks: [string, () => unknown][] = [
       ),
   ],
   ['sounds', () => validateSounds(sounds)],
+  ['creatures', () => validateCreatures(creatures)],
   [
     'dialogue',
     () =>
