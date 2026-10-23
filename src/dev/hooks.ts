@@ -387,8 +387,9 @@ export function installHooks() {
     },
     roarNow: () => roarNow(),
     takeCreatures: () => takeCreatures(G.room.current),
-    /** Whether a boss with an animated creature (the Hallowed Hart) fights as it, from the next boss built; and set it.
-        `bossClip`: the clip the boss in the room plays, and its time (null for a boss that is no creature). */
+    /** Whether a boss with an animated creature (the Hallowed Hart, the Hollow Warden) fights as it, from the next boss
+        built; and set it. `bossClip`: the clip the boss in the room plays, its time and pace and the clips over it (a
+        flinch), or null for a boss that is no creature. */
     bossCreatures: (on?: boolean) => {
       if (on !== undefined) setBossCreatures(on);
       return bossCreatures();

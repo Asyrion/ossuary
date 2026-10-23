@@ -20,6 +20,7 @@ import * as owlbear from './creatures/owlbear';
 import * as dragonling from './creatures/dragonling';
 import * as chameleon from './creatures/chameleon';
 import * as hart from './creatures/hart';
+import * as warden from './creatures/warden';
 import { TOWNSFOLK_RECIPES } from './creatures/townsfolk';
 import { BUDGETS } from '../src/assets/assetData';
 import { texelBake } from './texel-bake';
@@ -31,6 +32,7 @@ const RECIPES = {
   dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse)
   chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony)
   hart: { ...hart, height: 2.8, budget: 'boss' as const }, // (floor 4's boss, its antlers counted; it fights: madeBosses.ts)
+  warden: { ...warden, height: 2.2, budget: 'boss' as const }, // (floor 1's boss, its candles counted; it fights: madeBosses.ts)
   ...TOWNSFOLK_RECIPES, // (the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
 } as Record<
   string,

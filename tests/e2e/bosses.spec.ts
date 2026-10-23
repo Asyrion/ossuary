@@ -523,19 +523,30 @@ test("the Hollow Warden wears the Owlbear, its shots in Hallow's light, and can 
     const w = window as unknown as W,
       g = w.__game as G2;
     const foe = g.enemies.find((e) => e.isBoss) as Boss;
-    const states = new Set<string>();
+    const states = new Set<string>(),
+      clips = new Set<string>();
     let called = false,
       seconds = 0;
     for (; seconds < 240 && g.enemies.length; seconds += 0.25) {
       w.__fight(0.25);
       states.add(foe.state);
+      const clip = (g as unknown as { bossClip: { clip: string; over: string[] } | null }).bossClip; // (its animated creature)
+      if (clip) for (const c of [clip.clip, ...clip.over]) clips.add(c);
       called ||= !!foe.summoned;
     }
     g.sim(0.5);
-    return { states: [...states].sort(), called, left: g.enemies.length, cleared: g.current.cleared };
+    return {
+      states: [...states].sort(),
+      clips: [...clips],
+      called,
+      left: g.enemies.length,
+      cleared: g.current.cleared,
+    };
   });
   expect(fight).toMatchObject({ called: true, left: 0, cleared: true });
   expect(fight.states).toEqual(expect.arrayContaining(['walk', 'windAim', 'windBurst', 'volley']));
+  // it fights as its animated creature, its clips following its states, a flinch over them as the blows land
+  expect(fight.clips).toEqual(expect.arrayContaining(['walk', 'rear', 'idle', 'hit']));
   // the dev menu's gallery stands every boss built in code
   const ids = await page.evaluate(() => {
     const g = (window as unknown as W).__game as G2,

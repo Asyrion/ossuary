@@ -1152,9 +1152,10 @@ export const CFG = {
     tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
     twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
-    // (the Hart fights as its animated creature once loaded, data/creatures.json `hart`: the bone its eye's glow rides
-    // (`head`), its neck's bones bowed by `bow` times the fight's lowered head, its clips cross-faded over `blend` seconds
-    // and their pace (the walk to its speed, the stamp to its blow) held within `pace`; else the still model)
+    // (a boss with a `creature` fights as that animated creature once loaded, data/creatures.json `<id>`: the bone its eye's
+    // glow rides (`head`), its neck's bones bowed by `bow` times the fight's lowered head, its clips cross-faded over
+    // `blend` seconds and their pace (the walk to its speed, a blow to the fight's) held within `pace`, a clip played over
+    // the others when it is struck (`over`: the seconds it rests before it plays again); else the still model)
     hart: {
       size: 1,
       keep: ['ring', 'halo', 'floor'],
@@ -1162,7 +1163,15 @@ export const CFG = {
       creature: { id: 'hart', head: 'bone_5', bow: { bone_3: 0.55, bone_5: 0.45 }, blend: 0.18, pace: [0.4, 2.5] },
     },
     // (its lamp kept as built, as the fight swells it; `hover`, how high it swims, as its look in code)
-    warden: { size: 1, keep: ['ring', 'halo'], eye: 0.8, hot: 1.2, tint: 0.6 }, // (its brown fur held off floor 1's brown; its candle crown glows of itself)
+    // (its brown fur held off floor 1's brown; its candle crown glows of itself)
+    warden: {
+      size: 1,
+      keep: ['ring', 'halo'],
+      eye: 0.8,
+      hot: 1.2,
+      tint: 0.6,
+      creature: { id: 'warden', head: 'bone_5', blend: 0.2, pace: [0.4, 2.2], over: { hit: 1.4 } },
+    },
     angler: { size: 1, keep: ['ring', 'halo', 'lure'], eye: 0.6, hover: 0.4, tint: 1.3, lift: '#1c1630' }, // (its black body lifted off the shore)
     // (the Pillar Dragon's and the jelly serpent's heads alone, their bodies chains built in code: `centre`d on the head in
     // code, where the chain meets it, rather than stood on the floor; `at`, points of the model's box (0 to 1 across, up and

@@ -18,16 +18,17 @@ export const DEV_STR = {
   creatureHere: (name: string) => `${name}: stand it here`,
   roarNow: 'Roar now',
   bossCreature: {
-    on: 'The Hallowed Hart fights as: its animated creature (from the next boss built)',
-    off: 'The Hallowed Hart fights as: its still model (from the next boss built)',
+    on: (names: string) => `${names} fight as: their animated creatures (from the next boss built)`,
+    off: (names: string) => `${names} fight as: their still models (from the next boss built)`,
   },
   creaturesNote:
-    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the Hallowed Hart its charge, stamp and hit) and rests, its sounds on its paws and its roar. The Hart also fights as its creature (floor 4); the rest are looks only.',
+    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the Hallowed Hart its charge, stamp and hit, the Hollow Warden its rear and hit) and rests, its sounds on its paws and its roar. The Hart (floor 4) and the Warden (floor 1) also fight as their creatures; the rest are looks only.',
   creatureNames: {
     owlbear: 'Owlbear',
     dragonling: 'Dragonling',
     chameleon: 'Chameleon Wyvern',
     hart: 'Hallowed Hart',
+    warden: 'Hollow Warden',
     stormcaller: 'The storm caller',
     wizard: 'The cloud-forest wizard',
     forager: 'The forager',
