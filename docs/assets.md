@@ -423,10 +423,25 @@ export and preview without opening it; the owner draws and edits in it by hand.
    The first drawn icon or face gives `prepare-texture` a path for drawn art (its pixels kept as drawn, checked against
    the export); until then, export at a whole multiple of the final size and compare the result pixel for pixel.
 
-The trace tooling waits until the first asset that needs it. Tamer's `tools/aseprite/redraw.py` (`trace`, `export`,
-`install`, the palette in a JSON beside the source) is the model, and the owner's EdaBuilder already has it ported (neither is in this repo) to a
-Node script for one image a sprite (`scripts/aseprite.ts` and its `build_sprite.lua`, 2026-10-09): the nearest start for
-a script in `tools/` here.
+**The tool** (2026-10-23, made for the first ten artifact icons, after Tamer's `tools/aseprite/redraw.py`):
+`tools/aseprite/redraw.py` (Python with Pillow and numpy, the colour maths from `tools/art/oklab.py`) drives
+`tools/aseprite/sprite.lua` in `Aseprite -b`. The sources live in `inspiration/icons/` (tracked by git like the rest of
+`inspiration/`): `<id>.aseprite` and its hand palette `<id>.palette.json` (`colors` are indices 2 and up after 0 clear
+and 1 the ink `#0b0910`; `keep` names indices the cleaning leaves alone, a highlight or a spark).
+- `redraw.py ramp --color <hex> [--floor 1]`: a five-colour ramp round the item's colour, its shadows toward the floor's
+  shadow and its lights toward its highlight (art bible 4.2), to start a palette from.
+- `redraw.py trace <picture> --id <id> [--force]`: steps 1 and 2 above. The background is flooded in from the border
+  (and from holes it closes round, a loop of beads), a concept's own dark outline is cut off, each of the 22 inner
+  pixels the majority palette colour of its block, specks and pinholes and colour islands (`--islands`) cleaned, the
+  outline forced to ink. It refuses to overwrite a source without `--force`.
+- `redraw.py dump --id <id>` prints the sprite as a text grid (a character a pixel: `.` clear, `#` ink, then `2`..`9`,
+  `a`..); `redraw.py paint --id <id> <grid.txt> [--outline] [--repalette]` writes an edited grid back (step 3 by
+  script), `--outline` closing the outline again, `--repalette` taking the palette from its JSON again.
+- `redraw.py export --id <id>`: step 4, `asset-previews/icons/out/<id>.png` and `<id>@8x.png`.
+
+The first ten's concepts were made in Route 2 from `docs/art/icons/icons-prompts.json` (pictures in
+`asset-previews/icons/<id>/`); the trace gave each a start, and each was then redrawn by hand as a grid, so the
+picture's mush and its painted shading did not survive.
 
 ## Sound
 
