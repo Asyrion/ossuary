@@ -239,8 +239,8 @@ function splashEdge(x: number, z: number, to: number) {
     scene.add(m);
     e = { m, t: 0, to };
   }
-  e.m.material.color.set(itemTones().splashEdge ?? (g.amount > 0 ? g.shadow : '#101018')); // (a floor's own: floor 3's shadow sank into its dark red)
-  e.m.position.set(x, 0.07, z);
+  e.m.material.color.set(itemTones().splashEdge ?? (g.amount > 0 ? g.shadow : A.splashLook.noShadow)); // (a floor's own: floor 3's shadow sank into its dark red)
+  e.m.position.set(x, A.splashLook.lift, z);
   e.m.visible = true;
   e.t = 0;
   e.to = to;
@@ -299,7 +299,8 @@ function tones(img: HTMLImageElement) {
   const px = g.getImageData(0, 0, c.width, c.height).data,
     n = A.splashLook.tones - 1;
   t = new Uint8Array(c.width * c.height);
-  for (let i = 0; i < t.length; i++) t[i] = px[i * 4 + 3] < 128 ? 255 : Math.round((px[i * 4] * n) / 255);
+  for (let i = 0; i < t.length; i++)
+    t[i] = px[i * 4 + 3] < A.splashLook.clear ? 255 : Math.round((px[i * 4] * n) / 255);
   tonesOf.set(img, t);
   return t;
 }
@@ -308,7 +309,7 @@ function tones(img: HTMLImageElement) {
 function splashPaint(img: HTMLImageElement, def: PotionDef) {
   const L = A.splashLook,
     g = gradeNow(),
-    edge = new THREE.Color(itemTones().splashEdge ?? (g.amount > 0 ? g.shadow : '#101018')),
+    edge = new THREE.Color(itemTones().splashEdge ?? (g.amount > 0 ? g.shadow : A.splashLook.noShadow)),
     liquid = new THREE.Color(ringCol(def)),
     glass = glassCol(),
     key = `${img.src}|${liquid.getHex()}|${edge.getHex()}|${glass.getHex()}`;
@@ -342,7 +343,7 @@ function splashPaint(img: HTMLImageElement, def: PotionDef) {
 }
 /** The made splash where a bottle lands (`r` its reach), or false when none is loaded (the edge drawn in code stays). */
 function splashDecal(x: number, z: number, r: number, def: PotionDef) {
-  const wide = r > A.splash * 1.01,
+  const wide = r > A.splash * A.splashLook.wide,
     img = (wide ? decalImage('splash_wide') : null) ?? decalImage('splash');
   if (!img) return false;
   const [tx, tz] = CFG.roomKit.texel;
@@ -361,7 +362,7 @@ function splashDecal(x: number, z: number, r: number, def: PotionDef) {
   }
   if (!e.m.material.map) e.m.material.needsUpdate = true; // (a map where there was none: the shader changes, once)
   e.m.material.map = splashPaint(img, def);
-  e.m.position.set(x, 0.07, z);
+  e.m.position.set(x, A.splashLook.lift, z);
   e.m.visible = true;
   e.t = 0;
   // (a picture made for the plain splash grown for the Retort's; one made wide lies as it is)

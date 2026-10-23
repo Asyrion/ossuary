@@ -618,6 +618,7 @@ export function dressTheme(room: Room) {
       (STILL.has(kind) ? still : room.group).add(o);
       if (kind === 'relics') standRelic(room, o, pick);
       (room.strewn ??= {})[kind] = (room.strewn[kind] ?? 0) + 1;
+      (room.strewnAt ??= []).push({ kind, c: pick.c, r: pick.r });
     }
   }
   // the pieces that never move drawn together: a room strewn with bones and pebbles costs a call or two, not dozens
@@ -685,6 +686,10 @@ const STILL = new Set<ScatterKind>([
 /** What a room's scatter put down, by kind (the dev menu's readout, tests). */
 export function scatterOf(room: Room) {
   return { ...room.strewn };
+}
+/** Where a room's scatter put each piece, by its tile (tests: a lamp's keeps its tiles to itself, daylight off the pools). */
+export function scatterPlaces(room: Room) {
+  return (room.strewnAt ?? []).map((p) => ({ ...p }));
 }
 
 /* ---------- twists ---------- */

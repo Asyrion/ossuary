@@ -184,14 +184,14 @@ export function updateFennex(dt: number, acting: boolean) {
   if (f.look.clip) {
     // its gait by how fast it goes: standing, trotting at the mage's heel, galloping on a dart (or to catch up)
     const M = F.made;
-    f.pace += ((d > 0.05 ? step / dt : 0) - f.pace) * (1 - Math.exp(-M.settle * dt));
+    f.pace += ((d > M.moved ? step / dt : 0) - f.pace) * (1 - Math.exp(-M.settle * dt));
     const v = f.pace;
     f.look.clip(v < M.still ? 'idle' : f.prey || v > speedOf(F.speed) * M.run ? 'run' : 'trot', { speed: v });
   }
   // full-grown, it breathes Ember at a foe near it (as a creature, its bolts go out as its clip throws its head forward)
   if (stage === 3 && f.windup > 0) {
     f.windup -= dt;
-    const e = nearest(f.x, f.z, F.breath.range + 0.5);
+    const e = nearest(f.x, f.z, F.breath.range + F.breath.reach);
     if (e) f.face = Math.atan2(e.x - f.x, e.z - f.z);
     if (f.windup <= 0 && e) breathe(f, e);
   } else if (stage === 3 && f.breath <= 0) {
@@ -219,7 +219,7 @@ function breathe(f: NonNullable<typeof fen>, e: Enemy) {
     const b = a + (i / (B.count - 1) - 0.5) * B.spread;
     fireSpellBolt(f.x + Math.cos(b) * 0.4, f.z + Math.sin(b) * 0.4, Math.cos(b), Math.sin(b), {
       damage: player.stats.damage * B.mul,
-      range: B.range + 0.5,
+      range: B.range + B.reach,
       speed: B.speed,
       color: SCHOOL_LIGHT.ember,
       scale: 0.6,

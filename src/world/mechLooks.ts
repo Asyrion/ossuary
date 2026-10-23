@@ -586,7 +586,7 @@ const faceAt = (y: number) => {
 export const WAYSTONE_RUNES = { cold: 0x2a1d16, lit: 0xffbe3a };
 const CAIRN = {
   stone: shared(new THREE.CylinderGeometry(1, 1.1, 1, 7)), // (a flat stone: scaled to each one's width and height)
-  rune: shared(runeStrokes(0.15).rotateX(-Math.PI / 2)), // (lying on the capstone's top, which the camera sees)
+  rune: shared(runeStrokes(CFG.waystone.cairn.runeSize).rotateX(-Math.PI / 2)), // (lying on the capstone's top, which the camera sees)
 };
 /** A Wardens' cairn, the waystone room's rubble (world/props.ts): flat stones of the waystone's own grey stacked smaller to the top, each
     turned a little, a rune faintly lit on the capstone (`CFG.waystone.cairn`), so they read as set up by hand while the
@@ -599,17 +599,17 @@ export function cairnLook(R: () => number) {
     const m = mesh(
       g,
       CAIRN.stone,
-      tone(shade(WAYSTONE_STONE, i % 2 ? C.shade[1] : C.shade[0]), 0.14),
+      tone(shade(WAYSTONE_STONE, i % 2 ? C.shade[1] : C.shade[0]), C.mottle),
       (R() - 0.5) * C.offset,
       y + h / 2,
       (R() - 0.5) * C.offset,
     );
-    m.scale.set(r, h, r * 0.9);
+    m.scale.set(r, h, r * C.deep);
     m.rotation.y = R() * Math.PI;
     y += h;
   });
   mesh(g, CAIRN.rune, glowTone(C.rune), 0, y + 0.004, 0);
-  g.add(blob(1.1));
+  g.add(blob(C.shadow));
   return g;
 }
 export function waystoneLook() {

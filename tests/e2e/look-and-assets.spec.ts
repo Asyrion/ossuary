@@ -608,3 +608,116 @@ test("floor 2's made bosses and rooms: the Abbess wears her Tripo model over an 
     expect(errs).toEqual([]);
   }
 });
+
+type Placed = { id: number; theme: string | null; tiles: string[][]; at: { kind: string; c: number; r: number }[] };
+type ScatterRules = { lampNorth: number; daylightClear: number; daylightDry: number };
+type GScatter = { scatterPlaces(): Placed[]; scatterRules: ScatterRules };
+
+test("the pale floor's and the dark shore's foe magic: drawn as a pale floor's on floor 4 only, as the shore's on floor 5 only (floors 1 to 3 and the Seal keep their own)", async ({
+  page,
+}) => {
+  const errors = await start(page, '?seed=PALEFX1');
+  const fx = await page.evaluate(() => {
+    const g = (
+      window as unknown as {
+        __game: { floor: number; floorFx: { pale: boolean; shore: boolean }; descend(): void; sim(t: number): void };
+      }
+    ).__game;
+    const out: { floor: number; pale: boolean; shore: boolean }[] = [];
+    for (let i = 0; i < 6; i++) {
+      if (i) g.descend();
+      g.sim(0.1);
+      out.push({ floor: g.floor, ...g.floorFx });
+    }
+    return out;
+  });
+  expect(fx.map((f) => f.floor)).toEqual([0, 1, 2, 3, 4, 5]); // (floors 1 to 5, then the Seal)
+  expect(fx.map((f) => f.pale)).toEqual([false, false, false, true, false, false]);
+  expect(fx.map((f) => f.shore)).toEqual([false, false, false, false, true, false]);
+  expect(errors).toEqual([]);
+});
+
+test("floor 5's lamps: each stands on a tile of its own, never a rock's or a relic's, with its eight neighbours and the tiles north of it (CFG.themes.lampNorth) free floor kept to itself", async ({
+  page,
+}) => {
+  let lamps = 0;
+  for (const query of ['?seed=LAMPS1&floor=5', '?seed=LAMPS2&floor=5', '?seed=LAMPS3&floor=5&theme=landing']) {
+    const errors = await start(page, query);
+    const { rooms, rules } = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GScatter }).__game;
+      return { rooms: g.scatterPlaces(), rules: g.scatterRules };
+    });
+    for (const room of rooms) {
+      const taken = room.at.filter((p) => p.kind === 'relics' || p.kind === 'lamps');
+      for (const lamp of room.at.filter((p) => p.kind === 'lamps')) {
+        lamps++;
+        const kept: { c: number; r: number }[] = [];
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) if (dr || dc) kept.push({ c: lamp.c + dc, r: lamp.r + dr });
+        for (let n = 2; n <= rules.lampNorth; n++) kept.push({ c: lamp.c, r: lamp.r - n });
+        const where = `${query} room ${room.id} lamp at ${lamp.c},${lamp.r}`;
+        expect(room.tiles[lamp.r][lamp.c], where).toBe('floor');
+        for (const q of kept) expect(room.tiles[q.r]?.[q.c], `${where}: ${q.c},${q.r}`).toBe('floor');
+        // no other relic or lamp on its tile or the ones it keeps
+        for (const o of taken)
+          if (o !== lamp)
+            expect(
+              [lamp, ...kept].some((q) => q.c === o.c && q.r === o.r),
+              `${where}: ${o.kind} at ${o.c},${o.r}`,
+            ).toBe(false);
+      }
+    }
+    expect(errors).toEqual([]);
+  }
+  expect(lamps).toBeGreaterThan(3); // (the test saw lamps to check)
+});
+
+test("a garden's daylight keeps CFG.themes.daylightDry tiles from any water or oil, wherever the room has floor that far from the walls and the pools", async ({
+  page,
+}) => {
+  let checked = 0;
+  for (const query of [
+    '?seed=DRY1&floor=2&theme=garden',
+    '?seed=DRY2&floor=2&theme=garden',
+    '?seed=DRY3&theme=garden',
+  ]) {
+    const errors = await start(page, query);
+    const { rooms, rules } = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GScatter }).__game;
+      return { rooms: g.scatterPlaces(), rules: g.scatterRules };
+    });
+    for (const room of rooms) {
+      const t = room.tiles,
+        pools: { c: number; r: number }[] = [],
+        voids: { c: number; r: number }[] = [];
+      t.forEach((row, r) =>
+        row.forEach((k, c) => {
+          if (k === 'water' || k === 'oil') pools.push({ c, r });
+          if (k === 'void') voids.push({ c, r });
+        }),
+      );
+      const day = room.at.filter((p) => p.kind === 'daylight');
+      if (!pools.length || !day.length) continue;
+      const far = (q: { c: number; r: number }, from: { c: number; r: number }[]) =>
+        Math.min(Infinity, ...from.map((p) => Math.max(Math.abs(p.c - q.c), Math.abs(p.r - q.r))));
+      // a tile daylight could take, clear of the walls and dry (if the room has none, it may stand by a pool)
+      const anyDry = t.some((row, r) =>
+        row.some(
+          (k, c) =>
+            k === 'floor' &&
+            Math.min(c + 1, r + 1, row.length - c, t.length - r, far({ c, r }, voids)) >= rules.daylightClear &&
+            far({ c, r }, pools) >= rules.daylightDry,
+        ),
+      );
+      if (!anyDry) continue;
+      for (const d of day) {
+        checked++;
+        expect(far(d, pools), `${query} room ${room.id}: daylight at ${d.c},${d.r}`).toBeGreaterThanOrEqual(
+          rules.daylightDry,
+        );
+      }
+    }
+    expect(errors).toEqual([]);
+  }
+  expect(checked).toBeGreaterThan(0); // (the test saw a garden's daylight beside a pool)
+});

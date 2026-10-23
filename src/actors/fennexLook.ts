@@ -521,7 +521,7 @@ function madeFennex(stage: number): Built | null {
       over: OVER.filter((k) => actions[k]?.isRunning()),
     }),
     idle(t) {
-      mixer.update(THREE.MathUtils.clamp(t - last, 0, 0.1));
+      mixer.update(THREE.MathUtils.clamp(t - last, 0, CFG.artifacts.fennex.made.stepMost));
       last = t;
       lights.idle(t);
     },

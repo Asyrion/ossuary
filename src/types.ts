@@ -318,6 +318,8 @@ export interface Room {
   mask: boolean[][];
   /** What its scatter put down, by kind (world/themes.ts `dressTheme`). */
   strewn?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
+  /** And where, each piece's tile in its template (the dev hooks' readout). */
+  strewnAt?: { kind: import('./world/themeData').ScatterKind; c: number; r: number }[];
   group: THREE.Group;
   doors: Door[];
   walls: Box[];
