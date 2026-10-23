@@ -1,10 +1,13 @@
 /* Prepare a painted texture or icon for the game (docs/assets.md: Pipeline, floor and wall textures, icons): make it
    square at its kind's size, compress it, write it where the game looks, check it, and make previews to judge it by.
 
-   Usage: npm run prepare-texture -- <image> --kind floor|wall|icon|coin --id <id> [--out <dir>] [--previews <dir>]
+   Usage: npm run prepare-texture -- <image> --kind floor|wall|icon|coin --id <id> [--drawn] [--out <dir>] [--previews <dir>]
      --kind      floor or wall: a seamless 1,024 px tile for a floor look (JPEG); icon: an artifact's icon (PNG); coin: a
                  coin's face, on a plain ground or cut out (two PNGs: the face at the fine layer's pixel, and its icon)
      --id        a floor look's name (crypt, drowned, burning), an artifact's id (ember_sigil) or a coin's name (pale_obol)
+     --drawn     (icon) pixel art drawn at its final size (Aseprite, tools/aseprite/redraw.py export): its pixels kept as
+                 drawn, never resampled; it must be `images.icon.drawn` across with hard edges, and the file written is
+                 compared with it pixel for pixel. It carries its own ink outline (the game adds none)
      --out       the assets folder to write into (default public/assets)
      --previews  where the previews go (default asset-previews/, which git ignores)
    Tiles get a 2 × 2 repeat to spot seams, and checks for seams and baked-in light; icons get a sheet at the HUD's
@@ -16,17 +19,22 @@ import { basename, join, relative, resolve } from 'node:path';
 import { IMAGES, IMAGE_KINDS, type ImageKind } from '../src/assets/assetData';
 import { coinCircle, lightSpread, seamScore, transparentBorder } from './imageChecks';
 
+/** The ink every drawn outline is (render/pixelIcons.ts, tools/aseprite/redraw.py). */
+const INK = [11, 9, 16];
+
 const args = process.argv.slice(2),
   opt = (k: string) => {
     const i = args.indexOf(`--${k}`);
     return i >= 0 ? args[i + 1] : undefined;
   };
-const input = args.find((a, i) => !a.startsWith('--') && !args[i - 1]?.startsWith('--'));
+const FLAGS = ['--drawn'], // (options without a value)
+  input = args.find((a, i) => !a.startsWith('--') && (!args[i - 1]?.startsWith('--') || FLAGS.includes(args[i - 1])));
 const kind = opt('kind') as ImageKind,
-  id = opt('id');
-if (!input || !IMAGE_KINDS.includes(kind) || !id || !/^[a-z0-9_]+$/.test(id)) {
+  id = opt('id'),
+  drawn = args.includes('--drawn');
+if (!input || !IMAGE_KINDS.includes(kind) || !id || !/^[a-z0-9_]+$/.test(id) || (drawn && kind !== 'icon')) {
   console.error(
-    'Usage: npm run prepare-texture -- <image> --kind floor|wall|icon|coin --id <look, artifact or coin id, lower case> [--out <dir>] [--previews <dir>]',
+    'Usage: npm run prepare-texture -- <image> --kind floor|wall|icon|coin --id <look, artifact or coin id, lower case> [--drawn (icon)] [--out <dir>] [--previews <dir>]',
   );
   process.exit(1);
 }
@@ -161,6 +169,52 @@ if (kind === 'coin') {
   lines.push(
     `preview: ${relative(process.cwd(), sheet)} (the face as the room draws it, 4× larger; the icon at 28 px and 44 px, 4× larger)`,
   );
+} else if (kind === 'icon' && drawn) {
+  // drawn pixel art: its pixels as drawn, at the size the game shows icons pixel for pixel (no resample, no outline added)
+  const N = S.drawn ?? 24,
+    raw = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+    px = raw.data;
+  const fail = (name: string, text: string) => {
+    row('FAIL', name, text);
+    console.log(`\n${basename(input)} as a drawn icon\n\n${lines.join('\n')}\n\nnothing written`);
+    process.exit(1);
+  };
+  if (w0 !== N || h0 !== N)
+    fail('Size', `${w0} × ${h0}: a drawn icon is drawn at ${N} × ${N} (export it at its size, not the 8× preview)`);
+  row('ok  ', 'Size', `${N} px square, kept as drawn`);
+  let soft = 0;
+  for (let i = 3; i < px.length; i += 4) if (px[i] !== 0 && px[i] !== 255) soft++;
+  if (soft) fail('Edge', `${soft} pixels half clear: a drawn icon's pixels are drawn or clear`);
+  row('ok  ', 'Edge', 'every pixel drawn or clear');
+  const solid = (x: number, y: number) => x >= 0 && y >= 0 && x < N && y < N && px[(y * N + x) * 4 + 3] === 255;
+  let edge = 0,
+    off = 0;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      if (!solid(x, y) || (solid(x - 1, y) && solid(x + 1, y) && solid(x, y - 1) && solid(x, y + 1))) continue;
+      edge++;
+      const i = (y * N + x) * 4;
+      if (Math.abs(px[i] - INK[0]) + Math.abs(px[i + 1] - INK[1]) + Math.abs(px[i + 2] - INK[2]) > 6) off++;
+    }
+  row(
+    edge && !off ? 'ok  ' : 'warn',
+    'Outline',
+    edge && !off
+      ? 'closed in ink (#0b0910): the game adds none'
+      : `${off} of ${edge} edge pixels not ink: close it (redraw.py paint --outline), the game adds no outline to a drawn icon`,
+  );
+  await sharp(px, { raw: { width: N, height: N, channels: 4 } })
+    .png({ compressionLevel: 9, palette: false })
+    .toFile(output);
+  // the file written, read back: the same pixels (a clear pixel's colour aside)
+  const back = (await sharp(output).ensureAlpha().raw().toBuffer({ resolveWithObject: true })).data;
+  let diff = 0;
+  for (let i = 0; i < px.length; i += 4)
+    if (back[i + 3] !== px[i + 3] || (px[i + 3] && [0, 1, 2].some((c) => back[i + c] !== px[i + c]))) diff++;
+  if (diff) fail('Pixels', `${diff} pixels differ from the drawing in the file written`);
+  row('ok  ', 'Pixels', `the file written matches the drawing pixel for pixel`);
+  // the sheet: as the HUD (1×) and the lore card and inventory (2×) show it, plain, cursed and cleansed, shown 4× larger
+  await iconSheet(await sharp(output).png().toBuffer(), [N, N * 2], 'nearest');
 } else if (kind === 'icon') {
   // an icon: square with room round the object, transparent background, shipped small
   const raw = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -188,63 +242,7 @@ if (kind === 'coin') {
     .toBuffer();
   await sharp(square).resize(S.size, S.size).png({ compressionLevel: 9, palette: false }).toFile(output);
   // the sheet: 28 px (HUD) and 44 px (lore card), plain, cursed and cleansed, on the game's dark background, shown 4× larger
-  const GLOW = {
-    plain: 'rgba(255,170,60,.6)',
-    cursed: 'rgba(200,30,20,.9)',
-    cleansed: 'rgba(240,230,200,.75)',
-  } as const;
-  const cell = async (px: number, glow: string) => {
-    const pad = Math.round(px * 0.35),
-      full = px + pad * 2,
-      icon = await sharp(square).resize(px, px).png().toBuffer();
-    const halo = await sharp({ create: { width: px, height: px, channels: 4, background: glow } })
-      .composite([{ input: icon, blend: 'dest-in' }])
-      .png()
-      .toBuffer();
-    // (sharp composites after its other steps, so the halo is placed in one pass and blurred in the next)
-    const placed = await sharp({
-      create: { width: full, height: full, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
-    })
-      .composite([{ input: halo, left: pad, top: pad }])
-      .png()
-      .toBuffer();
-    const blurred = await sharp(placed)
-      .blur(Math.max(0.5, px / 8))
-      .png()
-      .toBuffer();
-    const one = await sharp({ create: { width: full, height: full, channels: 4, background: '#0c0a08' } })
-      .composite([{ input: blurred }, { input: icon, left: pad, top: pad }])
-      .png()
-      .toBuffer();
-    return sharp(one)
-      .resize(full * 4, full * 4, { kernel: 'nearest' })
-      .png()
-      .toBuffer();
-  };
-  const cells: { input: Buffer; left: number; top: number }[] = [];
-  let y = 0,
-    width = 0;
-  for (const px of [28, 44]) {
-    let x = 0,
-      tall = 0;
-    for (const g of Object.values(GLOW)) {
-      const b = await cell(px, g),
-        m = await sharp(b).metadata();
-      cells.push({ input: b, left: x, top: y });
-      x += m.width + 8;
-      tall = m.height!;
-    }
-    y += tall + 8;
-    width = Math.max(width, x);
-  }
-  const sheet = join(previews, `${id}_icon_sheet.png`);
-  await sharp({ create: { width, height: y, channels: 4, background: '#1a1410' } })
-    .composite(cells)
-    .png()
-    .toFile(sheet);
-  lines.push(
-    `\npreview: ${relative(process.cwd(), sheet)} (28 px, then 44 px: plain, cursed, cleansed; shown 4× larger)`,
-  );
+  await iconSheet(square, [28, 44]);
 } else {
   // a floor or wall tile: square, seamless, evenly lit
   row(
@@ -284,11 +282,72 @@ if (kind === 'coin') {
   lines.push(`\npreview: ${relative(process.cwd(), repeat)} (four tiles side by side: look for seams and repeats)`);
 }
 
+/** The preview sheet of an icon (`square`, any size): at each of `sizes`, plain, cursed and cleansed, on the game's dark
+    background, shown 4× larger; `kernel` nearest for drawn pixel art (shown at whole multiples only). */
+async function iconSheet(square: Buffer, sizes: number[], kernel: 'nearest' | 'lanczos3' = 'lanczos3') {
+  const GLOW = {
+    plain: 'rgba(255,170,60,.6)',
+    cursed: 'rgba(200,30,20,.9)',
+    cleansed: 'rgba(240,230,200,.75)',
+  } as const;
+  const cell = async (px: number, glow: string) => {
+    const pad = Math.round(px * 0.35),
+      full = px + pad * 2,
+      icon = await sharp(square).resize(px, px, { kernel }).png().toBuffer();
+    const halo = await sharp({ create: { width: px, height: px, channels: 4, background: glow } })
+      .composite([{ input: icon, blend: 'dest-in' }])
+      .png()
+      .toBuffer();
+    // (sharp composites after its other steps, so the halo is placed in one pass and blurred in the next)
+    const placed = await sharp({
+      create: { width: full, height: full, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+    })
+      .composite([{ input: halo, left: pad, top: pad }])
+      .png()
+      .toBuffer();
+    const blurred = await sharp(placed)
+      .blur(Math.max(0.5, px / 8))
+      .png()
+      .toBuffer();
+    const one = await sharp({ create: { width: full, height: full, channels: 4, background: '#0c0a08' } })
+      .composite([{ input: blurred }, { input: icon, left: pad, top: pad }])
+      .png()
+      .toBuffer();
+    return sharp(one)
+      .resize(full * 4, full * 4, { kernel: 'nearest' })
+      .png()
+      .toBuffer();
+  };
+  const cells: { input: Buffer; left: number; top: number }[] = [];
+  let y = 0,
+    width = 0;
+  for (const px of sizes) {
+    let x = 0,
+      tall = 0;
+    for (const g of Object.values(GLOW)) {
+      const b = await cell(px, g),
+        m = await sharp(b).metadata();
+      cells.push({ input: b, left: x, top: y });
+      x += m.width + 8;
+      tall = m.height!;
+    }
+    y += tall + 8;
+    width = Math.max(width, x);
+  }
+  const sheet = join(previews, `${id}_icon_sheet.png`);
+  await sharp({ create: { width, height: y, channels: 4, background: '#1a1410' } })
+    .composite(cells)
+    .png()
+    .toFile(sheet);
+  lines.push(
+    `\npreview: ${relative(process.cwd(), sheet)} (${sizes.join(' px, then ')} px: plain, cursed, cleansed; shown 4× larger)`,
+  );
+}
 function kb(f: string) {
   return `${Math.max(1, Math.round(statSync(f).size / 1024)).toLocaleString('en')} KB`;
 }
 console.log(
-  `\n${basename(input)} (${w0} × ${h0}, ${kb(input)}) as ${kind === 'icon' ? 'an icon' : kind === 'coin' ? "a coin's face" : `a ${kind} tile`}\n`,
+  `\n${basename(input)} (${w0} × ${h0}, ${kb(input)}) as ${kind === 'icon' ? (drawn ? 'a drawn icon' : 'an icon') : kind === 'coin' ? "a coin's face" : `a ${kind} tile`}\n`,
 );
 console.log(lines.join('\n'));
 const file = relative(outDir, output).split('\\').join('/');

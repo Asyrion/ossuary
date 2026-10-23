@@ -1,7 +1,9 @@
 /* The artifacts' HUD icons in the room kit's style: each rendered from its model (artifactLooks.ts), so the
    icon is the thing the mage picked up. The model is lit from above and in front, with a rim of its own colour behind
    it, turned three-quarters to the camera; drawn at `SIZE`, and made pixel art of `OUT` pixels (about the artifact's own
-   size in the room at the pixel look's texel), outlined in dark, as the pixel look outlines the scene. Rendered the first time it is asked for and kept (a data URL), so the HUD pays once. */
+   size in the room at the pixel look's texel), outlined in dark, as the pixel look outlines the scene. Rendered the first time it is asked for and kept (a data URL), so the HUD pays once.
+   An artifact with an icon drawn in Aseprite (data/assets.json `icons`, assets/models.ts `iconUrl`) shows that one
+   instead, and never asks for this; the render stays for the artifacts not drawn yet. */
 import * as THREE from 'three';
 import { renderer } from '../render/renderer';
 import { CFG } from '../config';

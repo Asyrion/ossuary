@@ -373,8 +373,8 @@ test("the room kit's artifacts: every one built in code, and the HUD's icons ren
   expect(n).toBe(61); // (every artifact, as the room kit builds it)
   await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
   const kit = await icons();
-  expect(kit.images).toBe(6); // (the twin staff, the focus, and five more, each rendered from its model)
-  // pixel art at about the artifact's own size in the room: every pixel drawn or clear, none soft
+  expect(kit.images).toBe(6); // (the twin staff, the focus, and five more: rendered from its model, or drawn for the staff and the sigil)
+  // pixel art at about the artifact's own size in the room (a drawn icon the same size): every pixel drawn or clear, none soft
   for (const [w, solid, soft] of kit.sizes) {
     expect(w).toBe(24);
     expect(solid).toBeGreaterThan(15);

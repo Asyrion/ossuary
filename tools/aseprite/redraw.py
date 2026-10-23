@@ -7,6 +7,9 @@
     python tools/aseprite/redraw.py paint --id <id> <grid.txt> [--outline] [--repalette]
                                                      a text grid (a hand edit) into the sprite
     python tools/aseprite/redraw.py export --id <id> [--out <dir>] [--scale 8] <id>.png and <id>@8x.png (nearest)
+    python tools/aseprite/redraw.py export --id <id> --game   into the game, once the owner accepted it: exported fresh
+                                                     and handed to `prepare-texture --kind icon --drawn`, which keeps
+                                                     its pixels, checks them and writes public/assets/icons/<id>.png
 
 The palette is a JSON beside the source, `<dir>/<id>.palette.json`: {"colors": ["#rrggbb", ...], "keep": [indices]}.
 Index 0 is transparent and index 1 the outline ink (#0b0910, render/pixelIcons.ts) in every sprite; `colors` are
@@ -301,6 +304,7 @@ def main():
     ap.add_argument("--repalette", action="store_true", help="paint: take the palette from its JSON again")
     ap.add_argument("--out", default=str(ROOT / "asset-previews" / "icons" / "out"))
     ap.add_argument("--scale", type=int, default=8)
+    ap.add_argument("--game", action="store_true", help="export: into the game (prepare-texture --drawn)")
     ap.add_argument("--color")
     ap.add_argument("--floor", default="1")
     ap.add_argument("--n", type=int, default=5)
@@ -335,6 +339,15 @@ def main():
             idx = outline(idx)
         build(src, idx, pal)
         print(f"{src}: {int((idx != idx0).sum())} pixels changed")
+    elif a.cmd == "export" and a.game:
+        # (exported fresh from the source, never a review export lying about: the game gets what the .aseprite holds)
+        with tempfile.TemporaryDirectory() as tmp:
+            png = pathlib.Path(tmp) / f"{a.id}.png"
+            aseprite(mode="export", src=src, png=png)
+            npx = "npx.cmd" if os.name == "nt" else "npx"
+            cmd = [npx, "tsx", "tools/prepare-texture.ts", str(png), "--kind", "icon", "--id", a.id, "--drawn"]
+            cmd += ["--previews", str(ROOT / "asset-previews" / "icons" / "game")]
+            sys.exit(subprocess.run(cmd, cwd=ROOT).returncode)
     elif a.cmd == "export":
         out = pathlib.Path(a.out)
         out.mkdir(parents=True, exist_ok=True)

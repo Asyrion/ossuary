@@ -1,6 +1,9 @@
 import { defineConfig } from '@playwright/test';
 
 const PORT = 5174;
+// a dev server already running elsewhere (OSSUARY_URL, as the tools take it): the tests use it and start none of their own,
+// so two Vite servers never run on one node_modules
+const BASE = process.env.OSSUARY_URL || `http://localhost:${PORT}/`;
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -11,7 +14,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['list'], ['github']] : 'list', // (list: each test's time in the CI log)
   use: {
-    baseURL: `http://localhost:${PORT}/`,
+    baseURL: BASE,
     viewport: { width: 1280, height: 720 },
     browserName: 'chromium',
     // software WebGL so the test runs on machines and CI runners without a GPU; PW_CHROMIUM points at a Chromium
@@ -21,10 +24,12 @@ export default defineConfig({
       executablePath: process.env.PW_CHROMIUM || undefined,
     },
   },
-  webServer: {
-    command: `npm run dev -- --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}/`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: process.env.OSSUARY_URL
+    ? undefined
+    : {
+        command: `npm run dev -- --port ${PORT} --strictPort`,
+        url: `http://localhost:${PORT}/`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 60_000,
+      },
 });

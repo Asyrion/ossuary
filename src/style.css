@@ -1418,6 +1418,25 @@ body.vigil #btnRestart {
   flex: none;
   margin: -3px 0;
 }
+#dev .dv-b img.px.art {
+  width: 24px;
+  height: 24px;
+  margin: -5px 0;
+} /* (an artifact's 24 px of pixel art, 1×) */
+#dev .dv-icons {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#dev .dv-icons img {
+  width: 48px;
+  height: 48px;
+  background: #17110c;
+} /* (2×) */
+#dev .dv-icons img.drawn {
+  outline: 1px solid var(--amber);
+}
 #dev .dv-b small {
   color: var(--ink-dim);
   font-size: 11px;
@@ -1804,6 +1823,12 @@ body.vigil #btnRestart {
   width: 38px;
   height: 38px;
   padding: 4px;
+}
+/* an artifact's 24 px of pixel art in whole steps (2×, as on the lore card and in the inventory), not the 30 px a spell's
+   drawn icon fills */
+.pagePanel .big svg.art {
+  width: 56px;
+  height: 56px;
 }
 .pagePanel h3 {
   font-size: 18px;
