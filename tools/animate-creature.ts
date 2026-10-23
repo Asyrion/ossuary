@@ -21,6 +21,10 @@ import * as dragonling from './creatures/dragonling';
 import * as chameleon from './creatures/chameleon';
 import * as hart from './creatures/hart';
 import * as warden from './creatures/warden';
+import * as tiger from './creatures/tiger';
+import * as abbess from './creatures/abbess';
+import * as pyre from './creatures/pyre';
+import * as twins from './creatures/twins';
 import { TOWNSFOLK_RECIPES } from './creatures/townsfolk';
 import { BUDGETS } from '../src/assets/assetData';
 import { texelBake } from './texel-bake';
@@ -33,6 +37,10 @@ const RECIPES = {
   chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony)
   hart: { ...hart, height: 2.8, budget: 'boss' as const }, // (floor 4's boss, its antlers counted; it fights: madeBosses.ts)
   warden: { ...warden, height: 2.2, budget: 'boss' as const }, // (floor 1's boss, its candles counted; it fights: madeBosses.ts)
+  tiger: { ...tiger, height: 1.8, budget: 'boss' as const }, // (floor 3's boss, its mane counted; it fights: madeBosses.ts)
+  abbess: { ...abbess, height: 1.5, budget: 'boss' as const }, // (floor 2's boss, its gills counted; it fights: madeBosses.ts)
+  pyre: { ...pyre, height: 3.2, budget: 'boss' as const }, // (floor 2's knight, his helm counted; he fights: madeBosses.ts)
+  twins: { ...twins, height: 2.45, budget: 'boss' as const }, // (floor 3's first guardian, crouched; it fights: madeBosses.ts)
   ...TOWNSFOLK_RECIPES, // (the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
 } as Record<
   string,
@@ -50,6 +58,8 @@ const RECIPES = {
     budget: 'boss' | 'enemy';
     rebind?: SkinBone[];
     triangles?: number;
+    /** Read what its clips are cut from (Tripo's preset clips of a biped boss) before they are baked. */
+    prepare?: () => Promise<{ CLIPS: Record<string, import('./creatureRig').ClipDef>; WALK_SPEED: number }>;
   }
 >;
 
@@ -149,6 +159,7 @@ async function main() {
     console.error(`usage: npm run animate-creature -- <${Object.keys(RECIPES).join('|')}> <in.glb>`);
     process.exit(1);
   }
+  if (R.prepare) Object.assign(R, await R.prepare());
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ sharp: sharp });
   const doc = await io.read(input);
   for (const e of doc.getRoot().listExtensionsUsed()) if (e.extensionName === 'KHR_materials_volume') e.dispose(); // (a converter's glass, which the game doesn't draw)

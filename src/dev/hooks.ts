@@ -395,8 +395,8 @@ export function installHooks() {
       return bossCreatures();
     },
     get bossClip() {
-      const b = G.room.enemies.find((e) => e.isBoss && !e.dead);
-      return b?.clip ? bossClipNow(b) : null;
+      const b = G.room.enemies.find((e) => e.isBoss && !e.dead && e.clip); // (of a pair, the one that is a creature)
+      return b ? bossClipNow(b) : null;
     },
     // the sounds played from files (data/sounds.json), each loaded and decoded: its seconds, or null where it failed
     soundFiles: async () => {

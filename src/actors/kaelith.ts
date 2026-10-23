@@ -65,7 +65,7 @@ export function buildKaelith(e: Enemy) {
   const made = !!kaelithMade(),
     L = kaelithLook(),
     P = L.parts;
-  e.mats = mergeRig(L.group, L.idle, 'boss:kaelith' + (made ? ':made' : ''), [
+  e.mats = mergeRig(L.group, L.idle, 'boss:kaelith' + (L.clip ? ':creature' : made ? ':made' : ''), [
     P.eye,
     P.ring,
     P.body,
@@ -77,6 +77,7 @@ export function buildKaelith(e: Enemy) {
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group;
   e.idle = L.idle;
+  e.clip = L.clip; // (as its rigged creature: its clips played by its states, updateKaelith)
   e.shadow = L.shadow;
   e.bossSchool = L.school;
   e.body.add(L.group);
@@ -183,6 +184,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
       P.blade.rotation.x = 0;
       P.mantle.scale.x = 1;
       e.halo!.material.opacity = 0.35;
+      e.clip?.('idle', { after: true });
       if (e.st <= 0) {
         e.cycle = e.cycle! + 1;
         const order =
@@ -205,6 +207,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
     case 'windSweep': {
       // its blade raised, its mantle spread: the cue to get clear
       e.vx = e.vz = 0;
+      e.clip?.('sweep', { beat: e.st }); // (as its creature: its blade swept through as the fan goes out)
       const k = 1 - Math.max(0, e.st) / C.sweep.tell;
       P.blade.rotation.x = -k * 1.1;
       P.mantle.scale.x = 1 + k * 0.35;
@@ -220,6 +223,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
     }
     case 'windVolley':
       e.vx = e.vz = 0;
+      e.clip?.('talk'); // (its free hand casting the volleys)
       if (e.st <= 0) {
         e.state = 'volley';
         e.volleys = B?.volleys ?? 3;
@@ -308,7 +312,8 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
     case 'hold': // one hand on the seal: guarded; volleys while it holds
       e.vx = e.vz = 0;
       P.hand.rotation.x = -0.9;
-      P.body.position.y = -0.25;
+      e.clip?.('kneel'); // (as its creature it kneels to the seal, which lowers it; else bowed lower)
+      P.body.position.y = e.clip ? 0 : -0.25;
       e.guard = C.guard;
       if (e.st <= 0) {
         e.state = 'windVolley';
@@ -328,6 +333,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
       break;
     case 'windPull':
       e.vx = e.vz = 0;
+      e.clip?.('talk');
       e.halo!.material.opacity = 0.9;
       if (e.st <= 0) {
         e.state = 'pull';

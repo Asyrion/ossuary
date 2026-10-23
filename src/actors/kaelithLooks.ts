@@ -162,6 +162,11 @@ export function kaelithKneeling(): BossBuilt {
     P.blade.rotation.x = 0.9;
     P.hand.rotation.x = -0.6;
   }
+  if (L.clip) {
+    // (as its rigged creature: its kneel played through to the end, where it stays)
+    L.clip('kneel');
+    for (let t = 0.1; t < 3; t += 0.1) L.idle(t);
+  }
   P.eye.scale.setScalar(0.35);
   P.ring.visible = false;
   P.halo.material.opacity = 0.12;

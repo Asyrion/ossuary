@@ -41,9 +41,14 @@ interface Creature {
   id: string;
   head: string;
   bow?: Readonly<Record<string, number>>;
+  look?: Readonly<Record<string, number>>; // (its neck's bones turned by these shares of the fight's head turning)
   blend: number;
   pace: readonly number[]; // (its slowest and fastest)
   over?: Readonly<Record<string, number>>; // (a clip played over the others, and the seconds it rests before it plays again)
+  moves?: string; // (the part whose place the fight moves: a leap lifts the creature, a shake shakes it; a crouch is the clip's)
+  under?: boolean; // (and it may take it below the floor: Kaelith sinking into shadow)
+  fire?: string; // (the bone its fire rides: the Pyre Knight's helm)
+  tint?: number; // (its own texture's tint, where it isn't the still's: the still's texture was darker or lighter)
 }
 /** How the fight asks for a clip (bossLooks.ts `BossBuilt.clip`). */
 type ClipAsk = { speed?: number; beat?: number; after?: boolean };
@@ -243,7 +248,9 @@ function build(id: string, made: BossBuilt, how: MadeBoss, worn: Worn): BossBuil
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
     const map = worn.creature ? readyCreature(worn.creature.id)!.map : (m.material as THREE.MeshToonMaterial).map;
-    m.material = madeSurface(map, how); // (`tint` darkens a pale one off a pale floor; a creature's own baked texture)
+    // (`tint` darkens a pale one off a pale floor; a creature's own baked texture, with a tint of its own if it has one)
+    const tint = worn.creature?.tint;
+    m.material = madeSurface(map, tint === undefined ? how : { ...how, tint });
   });
   body.add(model);
   g.add(body);
@@ -348,22 +355,39 @@ function fights(
     info = CREATURES[c.id];
   model.updateMatrixWorld(true);
   const head = model.getObjectByName(c.head);
-  if (head && parts.eye) {
-    // (the eye's place rides the head, so its glow goes where the antlers go; a holder keeps the model's scale off it)
-    const eye = parts.eye,
-      holder = new THREE.Object3D();
-    holder.position.copy(eye.position);
+  /** `o` (on the body) made to ride bone `b` where it stands; a holder keeps the model's scale off it. */
+  const ride = (o: THREE.Object3D, b: THREE.Object3D) => {
+    const holder = new THREE.Object3D();
+    holder.position.copy(o.position);
     body.add(holder);
     body.updateMatrixWorld(true);
-    head.attach(holder);
-    eye.removeFromParent();
-    eye.position.set(0, 0, 0);
-    holder.add(eye);
-  }
-  const bows = Object.entries(c.bow ?? {}).flatMap(([name, k]) => {
-    const b = model.getObjectByName(name);
-    return b ? [{ b, k, rest: b.quaternion.clone() }] : [];
-  });
+    b.attach(holder);
+    o.removeFromParent();
+    o.position.set(0, 0, 0);
+    holder.add(o);
+  };
+  // (the eye's place rides the head, so its glow goes where the antlers go)
+  if (head && parts.eye) ride(parts.eye, head);
+  // (its fire rides its bone, as it rode its part of the look in code: the Pyre Knight's helm)
+  const fireBone = c.fire ? model.getObjectByName(c.fire) : undefined;
+  if (fireBone) for (const f of body.children.filter((o) => o.userData.fire)) ride(f, fireBone);
+  const mover = c.moves ? parts[c.moves] : undefined;
+  const bonesOf = (by: Readonly<Record<string, number>> = {}) =>
+    Object.entries(by).flatMap(([name, k]) => {
+      const b = model.getObjectByName(name);
+      return b ? [{ b, k, rest: b.quaternion.clone() }] : [];
+    });
+  const bows = bonesOf(c.bow),
+    looks = bonesOf(c.look);
+  /** Bones `ws` turned by `angle` times each one's share about the creature's own axis `x, y, z`. */
+  const bend = (ws: typeof bows, angle: number, x: number, y: number, z: number) => {
+    for (const w of ws) {
+      upQ.identity();
+      for (let p = w.b.parent; p && p !== model; p = p.parent) upQ.premultiply(p.quaternion);
+      bowAxis.set(x, y, z).applyQuaternion(upQ.invert());
+      w.b.quaternion.premultiply(bowQ.setFromAxisAngle(bowAxis, angle * w.k));
+    }
+  };
   const scale = model.scale.x; // (the model's units to the room's)
   let clip = '',
     last = 0;
@@ -386,7 +410,8 @@ function fights(
     const per = name === 'walk' ? info.walkSpeed : ci.speed;
     let rate = 1;
     if (o.speed !== undefined && per) rate = o.speed / (per * scale);
-    else if (o.beat !== undefined && ci.at) rate = ci.at / Math.max(o.beat, 1e-3);
+    else if (o.beat !== undefined && (ci.at ?? ci.events[0]?.t))
+      rate = (ci.at ?? ci.events[0].t) / Math.max(o.beat, 1e-3); // (a clip with no `at` falls on its first sound: Kaelith's sweep)
     a.timeScale = THREE.MathUtils.clamp(rate, c.pace[0], c.pace[1]);
     if (name === clip) return;
     const was = actions[clip];
@@ -411,17 +436,20 @@ function fights(
     idle(t) {
       const dt = THREE.MathUtils.clamp(t - last, 0, 0.1);
       last = t;
-      for (const w of bows) w.b.quaternion.copy(w.rest); // (a bone no clip turns would keep the last bow)
+      for (const w of [...bows, ...looks]) w.b.quaternion.copy(w.rest); // (a bone no clip turns would keep the last bow)
       mixer.update(dt);
+      if (mover) {
+        // (what the fight did to its moving part: a leap's arc lifts it, a shake shakes it; it never sinks through the floor)
+        const rest = mover.userData.rest as THREE.Vector3;
+        const y = mover.position.y - rest.y;
+        body.position.set(mover.position.x - rest.x, c.under ? y : Math.max(0, y), mover.position.z - rest.z);
+      }
       // the fight's head (lowered as it aims, shaken when stunned): the neck bowed about the creature's own left-right axis
       const lower = parts.head?.rotation.x ?? 0;
-      if (lower)
-        for (const w of bows) {
-          upQ.identity();
-          for (let p = w.b.parent; p && p !== model; p = p.parent) upQ.premultiply(p.quaternion);
-          bowAxis.set(1, 0, 0).applyQuaternion(upQ.invert());
-          w.b.quaternion.premultiply(bowQ.setFromAxisAngle(bowAxis, lower * w.k));
-        }
+      if (lower) bend(bows, lower, 1, 0, 0);
+      // and its gaze, as the fight turns its head after the mage (the Twin Guardians, even as stone): about its own up
+      const gaze = parts.head?.rotation.y ?? 0;
+      if (gaze) bend(looks, gaze, 0, 1, 0);
     },
   };
 }
