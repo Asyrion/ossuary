@@ -389,7 +389,7 @@ export function installHooks() {
     takeCreatures: () => takeCreatures(G.room.current),
     /** Whether a boss with an animated creature (the Hallowed Hart, the Hollow Warden) fights as it, from the next boss
         built; and set it. `bossClip`: the clip the boss in the room plays, its time and pace and the clips over it (a
-        flinch), or null for a boss that is no creature. */
+        flinch), or null for a boss that is no creature; `bossClips`, the same for every boss in the room (both twins). */
     bossCreatures: (on?: boolean) => {
       if (on !== undefined) setBossCreatures(on);
       return bossCreatures();
@@ -397,6 +397,9 @@ export function installHooks() {
     get bossClip() {
       const b = G.room.enemies.find((e) => e.isBoss && !e.dead && e.clip); // (of a pair, the one that is a creature)
       return b ? bossClipNow(b) : null;
+    },
+    get bossClips() {
+      return G.room.enemies.filter((e) => e.isBoss && !e.dead).map((e) => (e.clip ? bossClipNow(e) : null));
     },
     // the sounds played from files (data/sounds.json), each loaded and decoded: its seconds, or null where it failed
     soundFiles: async () => {

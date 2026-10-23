@@ -5,8 +5,8 @@
    and brought down on the floor, its blow at `at`). In code on top of them: `statue` (the idle's first moment, held: no
    muscle moving), `guard` (its left paw raised before it as a shield, held), `rear` (rearing up, chest out, to fix the
    mage with its gaze, held) and `hit` (a flinch of the head and shoulders, played over the others). Tripo's `hurt` has
-   it curled on the floor, which the fight never asks for. (The second guardian's rig came out wrong: its head bone sits
-   in its chest and its thighs at two heights, so its presets fold it onto the floor; it fights as its still model.) */
+   it curled on the floor, which the fight never asks for. The second guardian plays these same clips on this skeleton,
+   fitted to its body in Blender (tools/creatures/twins2.ts). */
 import type { ClipDef, Rig } from '../creatureRig';
 import { keys, pitchUp, roll, yaw } from './moves';
 import { HEAD, HIPS, NECK, SPINE1, SPINE2, play, plant, presets, square } from './biped';

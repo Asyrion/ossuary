@@ -22,7 +22,7 @@ export const DEV_STR = {
     off: (names: string) => `${names} fight as: their still models (from the next boss built)`,
   },
   creaturesNote:
-    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the bosses their blows, leaps and flinches) and rests, its sounds on its paws and its roar. The Hart, the Warden, the War-Tiger, the Abbess, the Pyre Knight, the first Twin Guardian and Kaelith also fight as their creatures; the rest are looks only.',
+    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the bosses their blows, leaps and flinches) and rests, its sounds on its paws and its roar. The Hart, the Warden, the War-Tiger, the Abbess, the Pyre Knight, both Twin Guardians and Kaelith also fight as their creatures; the rest are looks only.',
   creatureNames: {
     owlbear: 'Owlbear',
     dragonling: 'Dragonling',
@@ -33,6 +33,7 @@ export const DEV_STR = {
     abbess: 'Drowned Abbess',
     pyre: 'Pyre Knight',
     twins: 'Twin Guardian',
+    twins2: 'second Twin Guardian',
     stormcaller: 'The storm caller',
     wizard: 'The cloud-forest wizard',
     forager: 'The forager',
