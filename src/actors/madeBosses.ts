@@ -7,18 +7,18 @@
    look is a head alone (the Pillar Dragon's, the jelly serpent's: their bodies are chains built in code) is `centre`d on
    its look in code rather than stood on the floor, and its glows set `at` points of the model (its eyes, its maw).
    A boss with a `creature` (the Hallowed Hart, the Hollow Warden: docs/creatures.md) fights as that animated creature
-   once it has loaded (`preloadBossCreatures`, at boot): the same fit and kept parts, its body a skinned mesh whose clips
-   the fight plays by its states (`clip`, cross-faded), a flinch played over them (`over`), the head the fight lowers
+   once it has loaded (`preloadBossCreatures`, as its floor is built; the title waits for none): the same fit and kept
+   parts, its body a skinned mesh whose clips the fight plays by its states (`clip`, cross-faded), a flinch played over them (`over`), the head the fight lowers
    bowing its neck's bones on top of the clip, the eye's glow riding its head bone. Without it the still model stands, and
    without that the look in code. */
 import * as THREE from 'three';
-import type { BossBuilt } from './bossLooks';
+import type { BossBuilt, ClipAsk } from './bossLooks';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { assetsOn, modelFor } from '../assets/models';
 import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
 import { madeSurface, type MadeSurface } from './madeFoes';
-import { CREATURES, overClip, preloadCreature, readyCreature } from './madeCreatures';
+import { CREATURES, keepMixer, overClip, preloadCreature, readyCreature } from './madeCreatures';
 
 const box = new THREE.Box3(),
   size = new THREE.Vector3(),
@@ -50,8 +50,6 @@ interface Creature {
   fire?: string; // (the bone its fire rides: the Pyre Knight's helm)
   tint?: number; // (its own texture's tint, where it isn't the still's: the still's texture was darker or lighter)
 }
-/** How the fight asks for a clip (bossLooks.ts `BossBuilt.clip`). */
-type ClipAsk = { speed?: number; beat?: number; after?: boolean };
 
 const BOSS_CREATURES_KEY = 'ossuary.bossCreatures';
 let creaturesOn = (() => {
@@ -77,11 +75,15 @@ export function setBossCreatures(on: boolean) {
     /* kept for this session */
   }
 }
-/** Load the creatures bosses fight as (at boot, after the assets: none while they are off). Never rejects. */
-export async function preloadBossCreatures() {
+/** Start loading the creatures boss `boss` fights as (as its floor is built, flow.ts; none while the assets are off): its
+    own, and those of the looks named after it (the second Twin Guardian's `twins2`, Kaelith kneeling's
+    `kaelith_kneel`). Never rejects. */
+export async function preloadBossCreatures(boss: string) {
   if (!assetsOn()) return;
-  const all = Object.values(CFG.madeBosses as Record<string, MadeBoss>);
-  await Promise.all(all.flatMap((h) => (h.creature ? [preloadCreature(h.creature.id)] : [])));
+  const all = Object.entries(CFG.madeBosses as Record<string, MadeBoss>);
+  await Promise.all(
+    all.flatMap(([k, h]) => (h.creature && k.startsWith(boss) ? [preloadCreature(h.creature.id)] : [])),
+  );
 }
 
 const P = CFG.bossPose;
@@ -204,7 +206,7 @@ function animated(c: Creature): Worn {
       m.frustumCulled = false; // (its bones carry it beyond the box of its rest)
     }
   });
-  const mixer = new THREE.AnimationMixer(model),
+  const mixer = keepMixer(model),
     actions: Record<string, THREE.AnimationAction> = {};
   for (const clip of gltf.animations) {
     const over = c.over?.[clip.name] !== undefined,
@@ -383,7 +385,8 @@ function fights(
       return b ? [{ b, k, rest: b.quaternion.clone() }] : [];
     });
   const bows = bonesOf(c.bow),
-    looks = bonesOf(c.look);
+    looks = bonesOf(c.look),
+    turned = [...bows, ...looks];
   /** Bones `ws` turned by `angle` times each one's share about the creature's own axis `x, y, z`. */
   const bend = (ws: typeof bows, angle: number, x: number, y: number, z: number) => {
     for (const w of ws) {
@@ -397,10 +400,12 @@ function fights(
   let clip = '',
     last = 0;
   const overAt: Record<string, number> = {};
-  const play = (name: string, o: ClipAsk = {}) => {
+  const play = (name: string, o?: Readonly<ClipAsk>) => {
     const a = actions[name],
-      ci = info.clips[name];
-    if (!a || !ci || (name === clip && o.beat !== undefined)) return; // (a blow's timing is set once, as it starts)
+      ci = info.clips[name],
+      speed = o?.speed,
+      beat = o?.beat;
+    if (!a || !ci || (name === clip && beat !== undefined)) return; // (a blow's timing is set once, as it starts)
     const rest = c.over?.[name];
     if (rest !== undefined) {
       // (a flinch, over whatever plays: once it has played and rested)
@@ -410,13 +415,12 @@ function fights(
       return;
     }
     // (asked to follow a blow: once that has played out)
-    if (o.after && name !== clip && info.clips[clip]?.loop === false && actions[clip]?.isRunning()) return;
+    if (o?.after && name !== clip && info.clips[clip]?.loop === false && actions[clip]?.isRunning()) return;
     // its pace: a walk or gallop at the speed it covers, a stamp timed so its hooves fall as the fight's blow does
     const per = name === 'walk' ? info.walkSpeed : ci.speed;
     let rate = 1;
-    if (o.speed !== undefined && per) rate = o.speed / (per * scale);
-    else if (o.beat !== undefined && (ci.at ?? ci.events[0]?.t))
-      rate = (ci.at ?? ci.events[0].t) / Math.max(o.beat, 1e-3); // (a clip with no `at` falls on its first sound: Kaelith's sweep)
+    if (speed !== undefined && per) rate = speed / (per * scale);
+    else if (beat !== undefined && (ci.at ?? ci.events[0]?.t)) rate = (ci.at ?? ci.events[0].t) / Math.max(beat, 1e-3); // (a clip with no `at` falls on its first sound: Kaelith's sweep)
     a.timeScale = THREE.MathUtils.clamp(rate, c.pace[0], c.pace[1]);
     if (name === clip) return;
     const was = actions[clip];
@@ -441,7 +445,7 @@ function fights(
     idle(t) {
       const dt = THREE.MathUtils.clamp(t - last, 0, P.stepMost);
       last = t;
-      for (const w of [...bows, ...looks]) w.b.quaternion.copy(w.rest); // (a bone no clip turns would keep the last bow)
+      for (const w of turned) w.b.quaternion.copy(w.rest); // (a bone no clip turns would keep the last bow)
       mixer.update(dt);
       if (mover) {
         // (what the fight did to its moving part: a leap's arc lifts it, a shake shakes it; it never sinks through the floor)

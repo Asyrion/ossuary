@@ -128,7 +128,7 @@ import { MOODS, PIECES, type Mood } from '../audio/musicData';
 import { renderAudio } from '../audio/render';
 import { CREATURES } from '../actors/madeCreatures';
 import { roarNow, showCreature, takeCreatures } from './creatureGallery';
-import { bossCreatureIds, bossCreatures, setBossCreatures } from '../actors/madeBosses';
+import { bossCreatureIds, bossCreatures, preloadBossCreatures, setBossCreatures } from '../actors/madeBosses';
 import { THEMES } from '../world/themeData';
 
 const S = DEV_STR;
@@ -1401,7 +1401,12 @@ function build() {
   const bosses = section(pages.rooms, S.bosses);
   for (const b of BOSS_TYPES)
     bosses.append(
-      btn(STR.bosses[b].name, () => start({ testTemplate: b === 'kaelith' ? 'seal_kaelith' : bossRoom(), boss: b })),
+      btn(STR.bosses[b].name, () => {
+        // (its creature loaded first, as its floor would have: its room is the first)
+        void preloadBossCreatures(b).then(() =>
+          start({ testTemplate: b === 'kaelith' ? 'seal_kaelith' : bossRoom(), boss: b }),
+        );
+      }),
     ); // (Kaelith in its own hall, its ward pillars round it)
   // Kaelith's fight: its phase, its wards; to a phase, the wards shut
   const kae = section(pages.rooms, S.kaelith);

@@ -93,7 +93,10 @@ export async function texelBake(id: string) {
     info = data[id];
   if (!info) throw new Error(`no creature "${id}" in data/creatures.json`);
   const b = await bakeModelFile(resolve(DIR, `${id}.glb`), info.height * (info.fine ? CFG.pixelLook.fineLayer : 1));
-  if (!b) throw new Error(`${id}: no base colour texture`);
+  if (!b)
+    throw new Error(
+      `${id}: no base colour texture (taken out of its file once baked: bake it again with animate-creature)`,
+    );
   const rel = (f: string) => `assets/creatures/${basename(f)}`;
   info.texel = { file: rel(b.file), glow: rel(b.glow), side: b.side, colours: b.colours, glowing: b.glowing };
   writeFileSync(DATA, JSON.stringify(data, null, 2) + '\n');

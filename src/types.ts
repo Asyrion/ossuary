@@ -568,7 +568,7 @@ export interface Enemy extends Circle {
   model?: THREE.Object3D;
   idle?: (t: number) => void;
   /** A boss made as an animated creature: plays its clips (bossLooks.ts `BossBuilt.clip`). */
-  clip?: (name: string, o?: { speed?: number; beat?: number; after?: boolean }) => void;
+  clip?: (name: string, o?: Readonly<{ speed?: number; beat?: number; after?: boolean }>) => void;
   at?: number;
   animRate?: number;
   tele?: number;

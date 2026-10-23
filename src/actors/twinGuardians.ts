@@ -22,7 +22,7 @@ import { hurtPlayer } from '../combat/damage';
 import { burst } from '../combat/fx';
 import { banner } from '../notify';
 import { freeSpotNear } from '../world/rooms';
-import { twinLook } from './bossLooks';
+import { AFTER, paced, timed, twinLook } from './bossLooks';
 import { unwardFoe, wardFoe } from './wardShield';
 import { makeEnemy } from './enemies';
 import { lerp } from '../util';
@@ -178,7 +178,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
     const sp = C.speed * speedMul * (e.rage ? C.rage.speed : 1) * (d > C.keep ? 1 : 0);
     e.vx = ux * sp;
     e.vz = uz * sp; // (it stops at arm's length)
-    e.clip?.(sp ? 'walk' : 'idle', { speed: sp });
+    e.clip?.(sp ? 'walk' : 'idle', paced(sp));
     halo.material.opacity = 0.3;
     P.armR.rotation.x = lerp(P.armR.rotation.x, 0, 0.15);
     P.body.position.y = Math.abs(Math.sin(e.t * 4)) * 0.04;
@@ -192,7 +192,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
   } else if (e.state === 'windSlam') {
     // it rears, its right paw high
     e.vx = e.vz = 0;
-    e.clip?.('slam', { beat: e.st }); // (its fists raised high and brought down on the floor as the ring goes out)
+    e.clip?.('slam', timed(e.st)); // (its fists raised high and brought down on the floor as the ring goes out)
     const k = 1 - Math.max(0, e.st) / (C.slam.tell * fast);
     P.body.rotation.x = -0.2 * k;
     P.armR.rotation.x = -2.2 * k;
@@ -252,7 +252,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
     }
   } else if (e.state === 'recover') {
     e.vx = e.vz = 0;
-    e.clip?.('idle', { after: true });
+    e.clip?.('idle', AFTER);
     P.armR.rotation.x = lerp(P.armR.rotation.x, 0, 0.2);
     if (e.st <= 0) {
       e.state = 'stalk';

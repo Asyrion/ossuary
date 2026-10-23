@@ -42,7 +42,18 @@ import { burst } from '../combat/fx';
 import { banner } from '../notify';
 import { floatText } from '../magic/statusFx';
 import { makeEnemy } from './enemies';
-import { abbessLook, anglerLook, hartLook, pyreKnightLook, tigerLook, wardenLook, type BossBuilt } from './bossLooks';
+import {
+  abbessLook,
+  AFTER,
+  anglerLook,
+  hartLook,
+  paced,
+  pyreKnightLook,
+  tigerLook,
+  timed,
+  wardenLook,
+  type BossBuilt,
+} from './bossLooks';
 import { madeBossLook } from './madeBosses';
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
@@ -450,12 +461,12 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
   }
   if (e.flash > 0) e.clip?.('hit'); // (as its animated creature: it flinches as a blow lands, now and then)
   if (e.state === 'walk') {
-    const pace = speed * (hpFrac < 0.5 ? 1.25 : 1);
+    const pace = speed * (hpFrac < 0.5 ? C.hurt : 1);
     e.vx = ux * pace;
     e.vz = uz * pace;
     // (its heavy walk: as a creature its clip's steps, paced to it; as a still, a bob)
-    if (e.clip) e.clip('walk', { speed: pace });
-    else e.body.position.y = Math.abs(Math.sin(e.t * 4)) * 0.05;
+    if (e.clip) e.clip('walk', paced(pace));
+    else e.body.position.y = Math.abs(Math.sin(e.t * C.bob[0])) * C.bob[1];
     eye.scale.set(1, 1, 1);
     halo.material.opacity = 0.35;
     if (e.st <= 0) {
@@ -468,7 +479,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     const k = 1 - e.st / 0.75;
     halo.material.opacity = 0.35 + k * 0.2;
     eye.scale.setScalar(1 + k * 0.6); // (its great eyes widen)
-    e.clip?.('rear', { beat: e.st }); // (it rears and roars, its forepaws slammed down as its shots go out)
+    e.clip?.('rear', timed(e.st)); // (it rears and roars, its forepaws slammed down as its shots go out)
     e.body.position.y = 0;
     e.body.position.x = Math.sin(e.t * 50) * 0.02;
     if (e.st <= 0) {
@@ -489,7 +500,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
     }
   } else if (e.state === 'volley') {
     e.vx = e.vz = 0;
-    e.clip?.('idle', { after: true }); // (standing to throw its volleys, once its rear has settled)
+    e.clip?.('idle', AFTER); // (standing to throw its volleys, once its rear has settled)
     if (e.st <= 0) {
       fan(e, 3, 0.56, 4.4 * shotMul, 0);
       Sfx.at(e.x, e.z).enemyShot();
@@ -527,8 +538,8 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   if (e.state === 'drift') {
     e.vx = ux * C.speed * speedMul;
     e.vz = uz * C.speed * speedMul;
-    e.clip?.('walk', { speed: C.speed * speedMul }); // (swimming over the floor, its body and tail weaving)
-    e.body.position.y = 0.08 + Math.sin(e.t * 2.2) * 0.06;
+    e.clip?.('walk', paced(C.speed * speedMul)); // (swimming over the floor, its body and tail weaving)
+    e.body.position.y = C.hover[0] + Math.sin(e.t * C.hover[1]) * C.hover[2];
     pose(0, 0, 1);
     if (e.st <= 0) {
       e.cycle = e.cycle! + 1;
@@ -545,7 +556,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   } else if (e.state === 'wail') {
     // telegraph: its jaw opens, its gills spread, its eyes flare and it trembles
     e.vx = e.vz = 0;
-    e.clip?.('wail', { beat: e.st }); // (it rears with its gills flung wide, risen as the volleys begin, held through them)
+    e.clip?.('wail', timed(e.st)); // (it rears with its gills flung wide, risen as the volleys begin, held through them)
     const k = 1 - e.st / 0.6;
     pose(0.5 * k, 0.6 * k, 1 + k * 1.4);
     e.halo!.material.opacity = 0.35 + k * 0.6;
@@ -636,7 +647,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   } else if (e.state === 'recover') {
     // a moment to strike back
     e.vx = e.vz = 0;
-    e.clip?.('wail', { beat: C.wail }); // (it bursts up, rearing, its gills flung out)
+    e.clip?.('wail', timed(C.wail)); // (it bursts up, rearing, its gills flung out)
     e.body.position.y = 0.08;
     pose(0, 0, 1);
     if (e.st <= 0) {
@@ -669,12 +680,12 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
     P.legR.rotation.x = -a + tuck * 0.6;
   };
   if (e.state === 'stalk') {
-    const sp = C.speed * speedMul * (hurt ? 1.25 : 1);
+    const sp = C.speed * speedMul * (hurt ? C.hurt : 1);
     e.vx = ux * sp;
     e.vz = uz * sp;
     // (his stride: as a creature its clip's steps, paced to it; as a still, a bob)
-    if (e.clip) e.clip('walk', { speed: sp });
-    else e.body.position.y = Math.abs(Math.sin(e.t * 5)) * 0.05;
+    if (e.clip) e.clip('walk', paced(sp));
+    else e.body.position.y = Math.abs(Math.sin(e.t * C.bob[0])) * C.bob[1];
     e.body.scale.y = 1;
     e.eye!.scale.setScalar(1);
     settle(0, 6);
@@ -700,7 +711,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
     }
   } else if (e.state === 'crouch') {
     e.vx = e.vz = 0;
-    e.clip?.('crouch', { beat: e.st }); // (sunk on bent knees, held through the leap)
+    e.clip?.('crouch', timed(e.st)); // (sunk on bent knees, held through the leap)
     const k = 1 - Math.max(0, e.st) / 0.55;
     e.body.scale.y = 1 - 0.22 * k;
     mat.opacity = 0.3 + k * 0.5;
@@ -770,7 +781,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
     const d = e.dir!;
     e.vx = d.x * C.charge * speedMul;
     e.vz = d.z * C.charge * speedMul;
-    e.clip?.('charge', { speed: C.charge * speedMul });
+    e.clip?.('charge', paced(C.charge * speedMul));
     e.body.rotation.x = 0.2;
     settle(-0.4);
     stride(0.7);
@@ -796,7 +807,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
     return e.face;
   } else if (e.state === 'windSpray') {
     e.vx = e.vz = 0;
-    e.clip?.('slash', { beat: e.st }); // (the blade raised and driven down as the first embers go; it plays on through the spray)
+    e.clip?.('slash', timed(e.st)); // (the blade raised and driven down as the first embers go; it plays on through the spray)
     const k = 1 - Math.max(0, e.st) / 0.45;
     e.eye!.scale.set(1 + k, 1 + k, 1);
     e.halo!.material.opacity = 0.35 + k * 0.6;
@@ -823,7 +834,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
     }
   } else if (e.state === 'recover') {
     e.vx = e.vz = 0;
-    e.clip?.('idle', { after: true });
+    e.clip?.('idle', AFTER);
     e.body.scale.y = 1 - (0.15 * Math.max(0, e.st)) / 0.7;
     settle(0, 3);
     if (e.st <= 0) {
@@ -859,7 +870,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     e.vx = ux * sp;
     e.vz = uz * sp;
     trot(9, 0.45);
-    e.clip?.('walk', { speed: sp });
+    e.clip?.('walk', paced(sp));
     P.head.rotation.x = lerp(P.head.rotation.x, 0, 0.15);
     eye.scale.setScalar(1);
     halo.material.opacity = 0.35;
@@ -904,7 +915,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     e.vx = d.x * C.charge * speedMul;
     e.vz = d.z * C.charge * speedMul;
     trot(20, 0.75);
-    e.clip?.('charge', { speed: C.charge * speedMul });
+    e.clip?.('charge', paced(C.charge * speedMul));
     if (Math.random() < dt * 25) burst(e.x, 0.1, e.z, SCHOOL_LIGHT.hallow, 1, 1, 0.04);
     if (e.st <= 0) {
       e.state = 'walk';
@@ -926,7 +937,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     // its candles flare, and it rears to stamp the spokes out
     e.vx = e.vz = 0;
     trot(0, 0);
-    e.clip?.('stamp', { beat: e.st });
+    e.clip?.('stamp', timed(e.st));
     const k = 1 - Math.max(0, e.st) / 0.6;
     halo.material.opacity = 0.35 + k * 0.6;
     eye.scale.setScalar(1 + k * 0.5);
@@ -940,7 +951,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
   } else if (e.state === 'spokes') {
     // it turns, and light streams out along its spokes
     e.vx = e.vz = 0;
-    e.clip?.('walk', { speed: C.spokes.spin * C.r }); // (stepping round on the spot as it turns)
+    e.clip?.('walk', paced(C.spokes.spin * C.r)); // (stepping round on the spot as it turns)
     e.spin = e.spin! + dt * C.spokes.spin;
     e.fireT = e.fireT! - dt;
     if (e.fireT <= 0) {
@@ -963,7 +974,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     // it rears (its stamp's clip plays on through the recovery, settling)
     e.vx = e.vz = 0;
     trot(0, 0);
-    e.clip?.('stamp', { beat: e.st });
+    e.clip?.('stamp', timed(e.st));
     const k = 1 - Math.max(0, e.st) / 0.55;
     P.body.rotation.x = -0.3 * k;
     P.body.position.z = -0.25 * k;
@@ -1209,7 +1220,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
   if (e.state === 'wake') {
     // the stone gives: it shakes itself and roars
     e.vx = e.vz = 0;
-    e.clip?.('roar', { beat: e.st });
+    e.clip?.('roar', timed(e.st));
     const k = 1 - Math.max(0, e.st) / 0.9;
     P.body.position.x = Math.sin(e.t * 40) * 0.03 * (1 - k);
     P.head.rotation.x = -0.4 * Math.sin(k * Math.PI);
@@ -1231,7 +1242,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
       e.vz = ux * sp * side;
     } // (in reach of its claws, it circles the mage rather than walking into them)
     stride(8 * quick, 0.5);
-    e.clip?.('walk', { speed: Math.hypot(e.vx, e.vz) }); // (as its animated creature: its prowl, paced to it)
+    e.clip?.('walk', paced(Math.hypot(e.vx, e.vz))); // (as its animated creature: its prowl, paced to it)
     relax();
     eye.scale.setScalar(1);
     halo.material.opacity = 0.35;
@@ -1258,7 +1269,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
   } else if (e.state === 'crouch') {
     // it sinks low, tail lashing, the spot it will land on marked on the floor
     e.vx = e.vz = 0;
-    e.clip?.('crouch', { beat: e.st });
+    e.clip?.('crouch', timed(e.st));
     stride(0, 0);
     const k = 1 - Math.max(0, e.st) / C.pounce.tell;
     P.body.position.y = -0.14 * k;
@@ -1285,7 +1296,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
       all = Math.hypot(t.x - f.x, t.z - f.z) || 1;
     const k = Math.min(1, 1 - left / all),
       sp = C.pounce.speed * speedMul;
-    e.clip?.('pounce', { beat: left / sp }); // (its forepaws come down as it lands: the arc is the body's, below)
+    e.clip?.('pounce', timed(left / sp)); // (its forepaws come down as it lands: the arc is the body's, below)
     P.body.position.y = 4 * 0.45 * k * (1 - k);
     P.legs.children.forEach((l, i) => {
       l.rotation.x = i < 2 ? -0.9 : 0.8;
@@ -1316,7 +1327,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
   } else if (e.state === 'windSwipe') {
     // it rears a forepaw, claws out
     e.vx = e.vz = 0;
-    e.clip?.('swipe', { beat: e.st }); // (its claws rake down as the shards go out)
+    e.clip?.('swipe', timed(e.st)); // (its claws rake down as the shards go out)
     stride(0, 0);
     const k = 1 - Math.max(0, e.st) / C.swipe.tell;
     P.legs.children[1].rotation.x = -1.3 * k;
@@ -1334,7 +1345,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
   } else if (e.state === 'windRoar') {
     // head up, jaws wide
     e.vx = e.vz = 0;
-    e.clip?.('roar', { beat: e.st }); // (its head thrown up as the ring goes out)
+    e.clip?.('roar', timed(e.st)); // (its head thrown up as the ring goes out)
     stride(0, 0);
     const k = 1 - Math.max(0, e.st) / C.roar.tell;
     P.head.rotation.x = -0.45 * k;
@@ -1369,7 +1380,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
     e.vx = e.vz = 0;
     stride(0, 0);
     relax();
-    e.clip?.('idle', { after: true }); // (once its blow has played out)
+    e.clip?.('idle', AFTER); // (once its blow has played out)
     if (e.st <= 0) {
       e.state = 'prowl';
       e.st = 1.8 / quick;

@@ -42,8 +42,31 @@ export interface BossBuilt {
   /** A made look that is an animated creature (madeBosses.ts): play its clip `name`, cross-faded, paced to the `speed` it
       covers or timed so its blow falls in `beat` seconds; `after` a blow that is still playing out, once it has; a clip
       it plays over the others (a flinch) starts on top of them. */
-  clip?: (name: string, o?: { speed?: number; beat?: number; after?: boolean }) => void;
+  clip?: (name: string, o?: Readonly<ClipAsk>) => void;
 }
+
+/** How the fight asks a boss's creature for a clip (`BossBuilt.clip`). */
+export interface ClipAsk {
+  speed?: number;
+  beat?: number;
+  after?: boolean;
+}
+/* The fight asks for a clip every step: one ask, filled in again each time (the clip reads it at once and keeps none). */
+const ask: ClipAsk = {};
+/** A clip paced to the `speed` it covers (a walk, a charge). */
+export function paced(speed: number) {
+  ask.speed = speed;
+  ask.beat = ask.after = undefined;
+  return ask;
+}
+/** A clip timed so its blow falls in `beat` seconds. */
+export function timed(beat: number) {
+  ask.beat = beat;
+  ask.speed = ask.after = undefined;
+  return ask;
+}
+/** A clip once the blow still playing out has (standing again after a rear). */
+export const AFTER: Readonly<ClipAsk> = Object.freeze({ after: true });
 
 /** The ring of runes behind its head that the fight turns (in its own plane, facing the camera, tipped back a little; in
     its school's colour, not added light, which the halo behind it would wash to white). */

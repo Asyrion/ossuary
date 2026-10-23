@@ -143,6 +143,10 @@ test(
     await page.keyboard.press('F2');
     await expect(page.locator('#dev .dv-tab.on')).toHaveText('Rooms & runs');
     await click('The Pyre Knight');
+    // (the menu loads the boss's creature before it starts the fight)
+    await page.waitForFunction(
+      () => (window as unknown as { __game: { run: { boss: string } } }).__game.run.boss === 'pyre',
+    );
     const boss = await page.evaluate(() => {
       const g = (window as unknown as W).__game as unknown as G5 & { run: { boss: string } };
       return { boss: g.run.boss, items: g.player.items, coins: g.player.coins, rooms: g.rooms().length };

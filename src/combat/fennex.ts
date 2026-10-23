@@ -17,7 +17,7 @@ import { blob, disposeTree } from '../render/materials';
 import { mergeRig } from '../render/rig';
 import { markActor, markThing } from '../render/pixelLook';
 import { SCHOOL_LIGHT } from '../render/arcane';
-import { fennexLook, type Built } from '../actors/fennexLook';
+import { fennexCreatureReady, fennexLook, preloadFennex, type Built } from '../actors/fennexLook';
 import { CREATURES } from '../actors/madeCreatures';
 import { toast } from '../notify';
 import { burst } from './fx';
@@ -108,6 +108,8 @@ export function updateFennex(dt: number, acting: boolean) {
   }
   G.run.fennexFrom ??= G.run.floor;
   const stage = fennexStage();
+  if (!fen) void preloadFennex(); // (bound: its creatures, if they haven't loaded since the title)
+  if (fen && !fen.look.creature && fennexCreatureReady(stage)) remakeFennex(); // (built in code while they loaded)
   if (!fen || Math.hypot(fen.x - player.x, fen.z - player.z) > F.leash) {
     // (bound, or left behind in another room: it comes to the mage's side)
     if (fen) {
@@ -186,7 +188,7 @@ export function updateFennex(dt: number, acting: boolean) {
     const M = F.made;
     f.pace += ((d > M.moved ? step / dt : 0) - f.pace) * (1 - Math.exp(-M.settle * dt));
     const v = f.pace;
-    f.look.clip(v < M.still ? 'idle' : f.prey || v > speedOf(F.speed) * M.run ? 'run' : 'trot', { speed: v });
+    f.look.clip(v < M.still ? 'idle' : f.prey || v > speedOf(F.speed) * M.run ? 'run' : 'trot', v);
   }
   // full-grown, it breathes Ember at a foe near it (as a creature, its bolts go out as its clip throws its head forward)
   if (stage === 3 && f.windup > 0) {
@@ -202,9 +204,9 @@ export function updateFennex(dt: number, acting: boolean) {
       f.windup = at;
       f.breath = F.breath.every;
     } else if (e) breathe(f, e);
-    else f.breath = 0.3;
+    else f.breath = F.breath.retry;
   }
-  if (f.mouth) f.mouth.material.opacity *= Math.exp(-4 * dt);
+  if (f.mouth) f.mouth.material.opacity *= Math.exp(-F.breath.fade * dt);
   f.g.position.set(f.x, 0, f.z);
   f.g.rotation.y = f.face;
   f.clock += dt;
@@ -217,16 +219,16 @@ function breathe(f: NonNullable<typeof fen>, e: Enemy) {
   f.face = Math.atan2(Math.cos(a), Math.sin(a));
   for (let i = 0; i < B.count; i++) {
     const b = a + (i / (B.count - 1) - 0.5) * B.spread;
-    fireSpellBolt(f.x + Math.cos(b) * 0.4, f.z + Math.sin(b) * 0.4, Math.cos(b), Math.sin(b), {
+    fireSpellBolt(f.x + Math.cos(b) * B.out, f.z + Math.sin(b) * B.out, Math.cos(b), Math.sin(b), {
       damage: player.stats.damage * B.mul,
       range: B.range + B.reach,
       speed: B.speed,
       color: SCHOOL_LIGHT.ember,
-      scale: 0.6,
+      scale: B.size,
       status: { burn: B.burn },
     });
   }
-  if (f.mouth) f.mouth.material.opacity = 0.9;
+  if (f.mouth) f.mouth.material.opacity = B.glow;
   Sfx.at(f.x, f.z).ember();
   f.breath = B.every;
 }

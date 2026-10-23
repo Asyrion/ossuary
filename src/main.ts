@@ -59,7 +59,6 @@ import { startLoop, uiHooks } from './loop';
 import { cleanSeed } from './rng';
 import { isTouch } from './util';
 import { loadAssets } from './assets/models';
-import { preloadBossCreatures } from './actors/madeBosses';
 import { preloadFennex } from './actors/fennexLook';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
@@ -238,9 +237,9 @@ async function boot() {
   initLevelUp({ pause, resume });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map((f) => document.fonts.load(f)));
-  // (models, tiles and icons from data/assets.json: before the first floor is built; then the creatures a boss fights
-  // as, and Fen-Nex's)
-  const assets = loadAssets().then(() => Promise.all([preloadBossCreatures(), preloadFennex()]));
+  // (models, tiles and icons from data/assets.json: before the first floor is built. The animated creatures are not
+  // waited for: a floor's boss's load as the floor is built (flow.ts), Fen-Nex's once the title is up)
+  const assets = loadAssets();
   try {
     await Promise.race([chalkFonts, new Promise((r) => setTimeout(r, 1500))]);
   } catch {
@@ -253,6 +252,7 @@ async function boot() {
   prepareTitle();
   await loadDefaultHero();
   showScreen('title');
+  void preloadFennex(); // (in the background, ready by the time a rune is found; binding it asks again)
   if (startsAtVigil()) document.getElementById('btnStart')!.textContent = STR.vigil.titleStart; // (Start wakes the mage at the Vigil)
   startLoop(input);
   (await dev)?.install(); // (window.__game once the title is up and the hero loaded, as the browser tests expect)

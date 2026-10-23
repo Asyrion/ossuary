@@ -5,7 +5,8 @@
    Reads a Tripo GLB, binds its skin again from the bones (Tripo's auto-rig weights can't bend a limb), bakes
    the clips of its recipe (tools/creatures/<id>.ts) into it as glTF animations, cuts its textures to 1,024 px JPEG and
    writes public/assets/creatures/<id>.glb, with what the game needs to play it (each clip's length, whether it loops,
-   when its sounds fall, how fast its walk goes) in data/creatures.json, then bakes its texture as pixel art (texel-bake.ts). */
+   when its sounds fall, how fast its walk goes) in data/creatures.json, then bakes its texture as pixel art (texel-bake.ts)
+   and, for a creature a run loads, takes the texture out of the file (creature-strip.ts: the game wears the bake). */
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { simplify, textureCompress, weld } from '@gltf-transform/functions';
@@ -31,6 +32,7 @@ import * as fennexFull from './creatures/fennex_full';
 import { TOWNSFOLK_RECIPES } from './creatures/townsfolk';
 import { BUDGETS } from '../src/assets/assetData';
 import { texelBake } from './texel-bake';
+import { RUN_CREATURES, stripCreature } from './creature-strip';
 
 /** Each recipe: its legs, skin, jaw, clips, the bones that move, its walk's speed, how far it is turned to face +z, how
     tall it stands in the game, and the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
@@ -279,6 +281,10 @@ async function main() {
     `${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map((p) => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out}${rebuilt ? `, its rest pose rebuilt from the bind (${rebuilt} joints)` : ''}${skin === R.rebind && skin ? ', its skin bound again from the Mixamo bones' : ''}, turned ${turned} degrees`,
   );
   await texelBake(id); // (its texture as pixel art at the size the game draws it)
+  if (RUN_CREATURES.includes(id)) {
+    const stripped = await stripCreature(id); // (the texture itself, which a run never wears, out of its file)
+    console.log(`${id}: its texture taken out of its file once baked, ${(stripped.after / 1024).toFixed(0)} KB`);
+  }
 }
 main().catch((e) => {
   console.error(e);

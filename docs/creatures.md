@@ -117,7 +117,16 @@ Send me a preview video before anything ships. Ship only when I say so.
    the texture made pixel art at the size the game draws the creature, `<id>.texel.png` and `<id>.glow.png`, named in
    `data/creatures.json`'s `texel` (a unit test fails for a creature without them). Tuning is `CFG.creatures.texel`. It
    reads the game's file, so it needs no source model; after changing the tuning or a creature's height, run
-   `npm run texel-bake -- <id>` (`-- all` for every creature).
+   `npm run texel-bake -- <id>` (`-- all` for every creature). A creature a run loads (a boss's, Fen-Nex's) has no
+   texture left in its file to bake from (5c): rebuild it with `animate-creature` (Rebuilding a creature) instead.
+5c. **The texture taken out** (`tools/creature-strip.ts`, 2026-10-23). A run wears only the bake, never the JPEGs in the
+   file (about 0.2 to 0.4 MB a creature), so `animate-creature` takes them out once it has baked, for the creatures a run
+   loads (`RUN_CREATURES`: those `CFG.madeBosses` names and Fen-Nex's two). Their images, textures and samplers go; each
+   material stays, marked `extras.texel` (three.js `userData.texel`), so `wearTexel` still dresses those meshes in the
+   bake; meshes, UVs, skeleton and clips are written back as they were. `npm run creature-strip -- <id>...` (or `-- run`)
+   does it to files already written, without baking their clips again: the ten files went from 13.3 MB to 10.4 MB and
+   drew the same, pixel for pixel, before and after (2026-10-23). The townspeople keep their textures: the Vigil draws a
+   speaker's icon from its file as it is (`town.ts` `speakerIcon`).
 6. **Preview.** With `npm run dev` running, `npm run creature-preview -- <id>` writes `creature-previews/<id>.mp4`.
 7. **Dev menu.** Add a name in `DEV_STR.creatureNames` (`src/dev/strings.ts`); the menu lists creatures from the data by itself. It's under
    Galleries → Animated creatures:
@@ -180,10 +189,11 @@ driven down at its `at`, 0.55 s) and `hit` (a flinch and a dazed shake). A clip 
 (`speed`) and when its blow falls (`at`); both go into data/creatures.json. Height 2.8 tiles (the still model's size in
 the fight), boss budget (1.48 million triangles simplified to 14,548).
 
-**How a boss plays its clips** (`madeBosses.ts`): a boss whose `CFG.madeBosses` entry names a `creature` is loaded at
-boot (`preloadBossCreatures`, `preloadCreature`), since a boss's look is built at once; once loaded it replaces the
-still model, fitted and dressed the same way (its surface `madeSurface` on the creature's baked pixel-art texture, so a
-hit lights it as it lit the still). The look returns `clip(name, { speed, beat })`, which the fight calls each step in
+**How a boss plays its clips** (`madeBosses.ts`): a boss whose `CFG.madeBosses` entry names a `creature` is loaded as
+its floor is built (`preloadBossCreatures`, `preloadCreature`; the title waits for none), since a boss's look is built at
+once; once loaded it replaces the still model (a boss built before its creature has come fights as the still), fitted and dressed the same way (its surface `madeSurface` on the creature's baked pixel-art texture, so a
+hit lights it as it lit the still). The look returns `clip(name, ask)` (bossLooks.ts `paced(speed)`, `timed(beat)`, `AFTER`: one ask reused, no object a
+step), which the fight calls each step in
 its states (`updateHart`): the clip is cross-faded in once (`blend`) and paced, to the speed it covers (the walk by
 `walkSpeed`, the gallop by its `speed`, times the model's scale) or so its `at` falls in `beat` seconds, within `pace`.
 The mixer runs on the boss's own clock in its `idle(t)`. What the fight did to its code look's parts still shows: the
@@ -351,8 +361,9 @@ and head snapped forward at its `at`), `breathe` (the full shape only: head draw
 about 7,760). Heights: the Rune Fox 0.85 (its look in code at stage 2, to its ears: its texel baked for the larger), the
 full shape 0.92 (stage 3).
 
-**How it plays them** (`actors/fennexLook.ts`, `combat/fennex.ts`): both are loaded at boot (`preloadFennex`), as its
-look is built at once; once loaded, `fennexLook(stage)` returns the creature (scaled so the familiar's own stage scale,
+**How it plays them** (`actors/fennexLook.ts`, `combat/fennex.ts`): both are loaded ahead (`preloadFennex`: in the
+background once the title is up, and asked again as the rune is bound), as its look is built at once; built in code
+until they have come, and built again as its creature where it stands once they have; once loaded, `fennexLook(stage)` returns the creature (scaled so the familiar's own stage scale,
 `CFG.artifacts.fennex.scale`, gives its look in code's size), else the look in code. It wears the creature's baked
 pixel-art material itself (`readyCreature(id).mat`, shared, its glowing markings lit: no hit lights a familiar), and is
 an actor in the pixel look (`markActor`: outline and rim, as the bosses' creatures). Its gait follows its smoothed speed

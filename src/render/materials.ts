@@ -351,10 +351,12 @@ export function mergeStill(root: THREE.Object3D) {
   }
 }
 
-/** Free the GPU resources of a removed object tree: every geometry and material not flagged shared.
+/** Free the GPU resources of a removed object tree: every geometry and material not flagged shared, and what an
+    animated copy keeps running (`userData.stop`: its mixer's actions stopped and let go, madeCreatures.ts `keepMixer`).
     Textures are left alone (they are shared or cached elsewhere). */
 export function disposeTree(obj: THREE.Object3D) {
   obj.traverse((o) => {
+    (o.userData.stop as (() => void) | undefined)?.();
     const m = o as THREE.Mesh;
     if (!(o as THREE.Sprite).isSprite && m.geometry && !m.geometry.userData.shared) m.geometry.dispose(); // sprites share one internal geometry
     const mats = m.material ? (Array.isArray(m.material) ? m.material : [m.material]) : [];
