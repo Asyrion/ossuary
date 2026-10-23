@@ -123,7 +123,8 @@ import { elementDev, sapMul } from '../world/mechanisms';
 import { wardFoe } from '../actors/wardShield';
 import { callWanderer, wandererState } from '../items/wanderer';
 import { dragonInfo } from '../actors/pillarDragon';
-import { fennexInfo, growFennex } from '../combat/fennex';
+import { fennexInfo, growFennex, remakeFennex } from '../combat/fennex';
+import { fennexCreature, setFennexCreature } from '../actors/fennexLook';
 import { fullness, mostDrunk } from '../magic/drinking';
 import {
   findEveryReaction,
@@ -782,6 +783,15 @@ export function installHooks() {
     },
     growFennex() {
       growFennex();
+    },
+    /** Whether Fen-Nex is its animated creature (else its look built in code); setting it builds it again at once. Its
+        clip shows in `fennex.clip`. */
+    fennexCreature: (on?: boolean) => {
+      if (on !== undefined) {
+        setFennexCreature(on);
+        remakeFennex();
+      }
+      return fennexCreature();
     },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
         sets lodestones leaping. */

@@ -7,7 +7,8 @@ two-legged rig, in a mid-stride pose); the Chameleon Wyvern the third (2026-10-0
 1.4 tiles, boss budget: `tools/creatures/chameleon.ts`, the recipe for a model that came through the owner's
 EDA-ModelWebViewer, for wings, and the first with sound files). The Hallowed Hart (2026-10-23) is the first that
 fights, the Hollow Warden the second, then the War-Tiger, the Drowned Abbess, the Pyre Knight, both Twin Guardians and
-Kaelith (below, "A creature that fights"); the others are looks only.
+Kaelith (below, "A creature that fights"); Fen-Nex runs at the mage's heel as two (below, "A familiar as a creature");
+the others are looks only.
 The thirteen people of M7 (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly and Kaelith) came a third way,
 rigged by Tripo with its humanoid **Mixamo** skeleton and no clips: one recipe for all of them (below, "People on a Mixamo
 rig").
@@ -293,3 +294,34 @@ sinking and reeling come from the fight's `body` (`moves`, `under`). No walk or 
 
 **Next:** another boss or foe fights as its creature the same way: a `creature` in its `CFG.madeBosses` entry and
 `e.clip?.(...)` in its states.
+
+## A familiar as a creature: Fen-Nex (2026-10-23)
+
+The familiar of the Rune of Fen-Nex as two creatures (`tools/creatures/fennex.ts` holds the recipe both share,
+`foxClips`; `fennex_full.ts` its full shape's bones and gaits): `fennex`, the Rune Fox (stages 1 and 2), and
+`fennex_full`, its full shape (stage 3). Tripo's quadruped rig, `walk.glb` the input, both facing +z (`face = 0`), the
+skin kept; no jaw bone in either. The fox's hind legs end at the hock (its foot has no bone: `paw` only); the full
+shape's legs have four bones, its shoulder feathers their own (`wings`), and Tripo named its right hind leg `0_Right`.
+Clips, all in code: `idle`, `trot` (diagonal pairs, at the heel), `run` (a rotary gallop, its dart), `bite` (the neck
+and head snapped forward at its `at`), `breathe` (the full shape only: head drawn back, thrown forward at its `at`),
+`shake` (a dog's shake). `trot` and `run` carry their `speed`. Enemy budget (14,752 and 14,806 triangles simplified to
+about 7,760). Heights: the Rune Fox 0.85 (its look in code at stage 2, to its ears: its texel baked for the larger), the
+full shape 0.92 (stage 3).
+
+**How it plays them** (`actors/fennexLook.ts`, `combat/fennex.ts`): both are loaded at boot (`preloadFennex`), as its
+look is built at once; once loaded, `fennexLook(stage)` returns the creature (scaled so the familiar's own stage scale,
+`CFG.artifacts.fennex.scale`, gives its look in code's size), else the look in code. It wears the creature's baked
+pixel-art material itself (`readyCreature(id).mat`, shared, its glowing markings lit: no hit lights a familiar), and is
+an actor in the pixel look (`markActor`: outline and rim, as the bosses' creatures). Its gait follows its smoothed speed
+(`CFG.artifacts.fennex.made`: `idle` below `still`, `run` on a dart or above `run` times its heel speed, else
+`trot`), paced by the clip's `speed` within `pace`, cross-faded by `blend`. `bite` and `breathe` are played over the
+gait (additive, `overClip` in madeCreatures.ts: neck, head and wings only, rest to rest): the bite starts as far out as
+the dart covers in its `at`, and the breath is drawn first, its bolts going out at its `at` (in code they go out at
+once). `shake` plays once as it grows and the gait waits for it. What the texture paints (the fox's runes, gold swirls,
+spine line and starry plume; the full shape's flame-tipped feathers, ear flames, leg spirals and tail flame) is no longer
+built; what rides its bones in code: the fox's eye glows, paw mist, plume aura, twinkling stars and motes; the full
+shape's eye glows, mouth glow (lit by the breath) and tail-flame glow, and embers. Bones are found by their name as
+three.js sanitises it (`tripo::Head_2` is `tripoHead_2`). ?assets=off, a file that failed, or the dev switch (Galleries
+→ Animated creatures, "Fen-Nex is", `__game.fennexCreature(on)`: built again at once) leave the looks in code.
+`__game.fennex` names its `creature` and `clip` (time, pace, the clips over it). Both stand in the gallery like the
+others. Frames on and off: `npx tsx asset-previews/rig/fennex/shots.ts on|off`.

@@ -527,7 +527,10 @@ Azyrion's arc: four stages by artifacts held (every `CFG.arc.perLevels` levels c
 Dev: `DEV.arc`, `__game.arc`, `setArc(n)`.
 
 Fen-Nex, the Rune Fox (Rune of Fen-Nex): `combat/fennex.ts`; keeps at the mage's heel, darts to bite, grows a stage
-a floor from the floor it was bound on (`G.run.fennexFrom`), breathes Ember in its full shape. `__game.fennex`.
+a floor from the floor it was bound on (`G.run.fennexFrom`), breathes Ember in its full shape. `__game.fennex`. Its look
+(`actors/fennexLook.ts`) is an animated creature for each shape once loaded at boot (`preloadFennex`; docs/creatures.md,
+"A familiar as a creature"), its clips chosen from its speed and what it does; the looks in code stay for ?assets=off
+and the dev switch (`__game.fennexCreature`).
 
 ## Items and economy
 

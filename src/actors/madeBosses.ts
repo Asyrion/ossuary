@@ -18,7 +18,7 @@ import { assetsOn, modelFor } from '../assets/models';
 import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
 import { madeSurface, type MadeSurface } from './madeFoes';
-import { CREATURES, preloadCreature, readyCreature } from './madeCreatures';
+import { CREATURES, overClip, preloadCreature, readyCreature } from './madeCreatures';
 
 const box = new THREE.Box3(),
   size = new THREE.Vector3(),
@@ -205,15 +205,6 @@ function animated(c: Creature): Worn {
   return { model, creature: c, mixer, actions };
 }
 
-/** A clip played over the others (a flinch): made additive, from its first frame (its rest), once for every copy. */
-const overClips = new Map<string, THREE.AnimationClip>();
-function overClip(id: string, clip: THREE.AnimationClip) {
-  const key = id + '/' + clip.name;
-  let o = overClips.get(key);
-  if (!o) overClips.set(key, (o = THREE.AnimationUtils.makeClipAdditive(clip.clone())));
-  return o;
-}
-
 /** The clip a boss made as a creature plays now, its time and pace (the dev hooks), or null. */
 export const bossClipNow = (e: { model?: THREE.Object3D }) =>
   (
@@ -354,7 +345,10 @@ function fights(
     c = worn.creature!,
     info = CREATURES[c.id];
   model.updateMatrixWorld(true);
-  const head = model.getObjectByName(c.head);
+  // (a bone by its name in the file: the loader strips the characters a track path reserves, Tripo's `tripo::Head_1`
+  // comes as `tripoHead_1`)
+  const boneOf = (name: string) => model.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name));
+  const head = boneOf(c.head);
   /** `o` (on the body) made to ride bone `b` where it stands; a holder keeps the model's scale off it. */
   const ride = (o: THREE.Object3D, b: THREE.Object3D) => {
     const holder = new THREE.Object3D();
@@ -369,12 +363,12 @@ function fights(
   // (the eye's place rides the head, so its glow goes where the antlers go)
   if (head && parts.eye) ride(parts.eye, head);
   // (its fire rides its bone, as it rode its part of the look in code: the Pyre Knight's helm)
-  const fireBone = c.fire ? model.getObjectByName(c.fire) : undefined;
+  const fireBone = c.fire ? boneOf(c.fire) : undefined;
   if (fireBone) for (const f of body.children.filter((o) => o.userData.fire)) ride(f, fireBone);
   const mover = c.moves ? parts[c.moves] : undefined;
   const bonesOf = (by: Readonly<Record<string, number>> = {}) =>
     Object.entries(by).flatMap(([name, k]) => {
-      const b = model.getObjectByName(name);
+      const b = boneOf(name);
       return b ? [{ b, k, rest: b.quaternion.clone() }] : [];
     });
   const bows = bonesOf(c.bow),

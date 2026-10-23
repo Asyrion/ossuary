@@ -1160,5 +1160,200 @@
       "colours": 24,
       "glowing": 28
     }
+  },
+  "fennex": {
+    "file": "assets/creatures/fennex.glb",
+    "height": 0.85,
+    "modelHeight": 0.749,
+    "modelLength": 1,
+    "walkSpeed": 1.8207,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "trot": {
+        "duration": 0.34,
+        "loop": true,
+        "speed": 1.8207,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.01,
+            "sound": "pawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.17,
+            "sound": "pawFront",
+            "at": "frontRight"
+          },
+          {
+            "t": 0.18,
+            "sound": "pawRear",
+            "at": "rearLeft"
+          }
+        ]
+      },
+      "run": {
+        "duration": 0.3,
+        "loop": true,
+        "speed": 3.7778,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.03,
+            "sound": "pawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.135,
+            "sound": "pawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.165,
+            "sound": "pawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "bite": {
+        "duration": 0.45,
+        "loop": false,
+        "at": 0.16,
+        "events": [
+          {
+            "t": 0.16,
+            "sound": "snap"
+          }
+        ]
+      },
+      "shake": {
+        "duration": 0.8,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/fennex.texel.png",
+      "glow": "assets/creatures/fennex.glow.png",
+      "side": 64,
+      "colours": 24,
+      "glowing": 30
+    }
+  },
+  "fennex_full": {
+    "file": "assets/creatures/fennex_full.glb",
+    "height": 0.92,
+    "modelHeight": 0.823,
+    "modelLength": 0.999,
+    "walkSpeed": 2.005,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "trot": {
+        "duration": 0.38,
+        "loop": true,
+        "speed": 2.005,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.011,
+            "sound": "pawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.19,
+            "sound": "pawFront",
+            "at": "frontRight"
+          },
+          {
+            "t": 0.201,
+            "sound": "pawRear",
+            "at": "rearLeft"
+          }
+        ]
+      },
+      "run": {
+        "duration": 0.32,
+        "loop": true,
+        "speed": 4.1667,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.032,
+            "sound": "pawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.144,
+            "sound": "pawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.176,
+            "sound": "pawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "bite": {
+        "duration": 0.45,
+        "loop": false,
+        "at": 0.16,
+        "events": [
+          {
+            "t": 0.16,
+            "sound": "snap"
+          }
+        ]
+      },
+      "shake": {
+        "duration": 0.8,
+        "loop": false,
+        "events": []
+      },
+      "breathe": {
+        "duration": 0.9,
+        "loop": false,
+        "at": 0.32,
+        "events": [
+          {
+            "t": 0.04,
+            "sound": "inhale"
+          }
+        ]
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/fennex_full.texel.png",
+      "glow": "assets/creatures/fennex_full.glow.png",
+      "side": 64,
+      "colours": 24,
+      "glowing": 250
+    }
   }
 }

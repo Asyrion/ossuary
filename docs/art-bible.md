@@ -460,6 +460,15 @@ edge in the floor's shadow colour, over what stands round them; rime a deeper fr
 hard steps; spores in flat bands; the gloom raven's gloom in umbral bands with a violet rim; the scorch a charcoal of its
 own; the Deep Angler's lamp in amber bands; and pickups and artifacts on a pale lilac halo.
 
+### 4.32 Fen-Nex made in Tripo (2026-10-23, for the owner to see)
+
+Fen-Nex, the Rune Fox and its full shape, are rigged Tripo creatures (docs/creatures.md, "A familiar as a creature").
+The rule that changes: as its creature it is drawn as an **actor** (the closed outline and the rim of 4.12, its light in
+steps), as the bosses' creatures are, not as a thing; its look in code stays a thing. What the texture paints (runes,
+swirls, the starry plume, the flame-tipped feathers, the leg spirals) is not built again in code; its glows are (eyes,
+paw mist, the plume's aura and stars; the mouth and the tail flame's glow, embers), riding its bones. At its size its
+texture bakes to 64 texels a side, so the fox's thinnest cyan lines are not kept lit (`glowShare`): its glows carry it.
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
