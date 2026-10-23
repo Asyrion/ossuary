@@ -1147,15 +1147,49 @@ export const CFG = {
   // model (its painted flames don't light), and how its surface is lit (madeFoes.ts `MadeSurface`: `tint` times its
   // texture, the pale abbess darkened off her pale floor; `lift`, the knight's black cloak a hole in floor 3's)
   madeBosses: {
-    abbess: { size: 1, keep: ['ring', 'halo'], tint: 0.66 },
-    pyre: { size: 1, keep: ['ring', 'halo'], fire: 'helm', tint: 1.7, lift: '#241d30', hot: 1.2 },
-    tiger: { size: 1, keep: ['ring', 'halo', 'rime', 'floor'] },
-    twins: { size: 1, keep: ['ring', 'halo'], eye: 0.74 },
+    abbess: {
+      size: 1,
+      keep: ['ring', 'halo'],
+      tint: 0.66,
+      creature: { id: 'abbess', head: 'tripo::Head_1', blend: 0.2, pace: [0.4, 2.5], over: { hit: 1.2 } },
+    },
+    pyre: {
+      size: 1,
+      keep: ['ring', 'halo'],
+      fire: 'helm',
+      tint: 1.7,
+      lift: '#241d30',
+      hot: 1.2,
+      creature: { id: 'pyre', head: 'Head', blend: 0.18, pace: [0.4, 2.5], fire: 'Head', tint: 0.75 },
+    },
+    // (its pounce's arc and its shakes from the fight's `body`, its crouch and the rest its clips')
+    tiger: {
+      size: 1,
+      keep: ['ring', 'halo', 'rime', 'floor'],
+      creature: { id: 'tiger', head: 'bone_19', blend: 0.15, pace: [0.4, 2.5], moves: 'body' },
+    },
+    // (the first guardian fights as its creature, its head turning after the mage by `look`; the second's rig came out
+    // wrong, so it stands as its still)
+    twins: {
+      size: 1,
+      keep: ['ring', 'halo'],
+      eye: 0.74,
+      creature: {
+        id: 'twins',
+        head: 'Head',
+        look: { NeckTwist01: 0.5, Head: 0.5 },
+        blend: 0.2,
+        pace: [0.4, 2.5],
+        over: { hit: 1.2 },
+      },
+    },
     twins2: { size: 1, keep: ['ring', 'halo'], eye: 0.74 }, // (the second guardian's own model)
     // (a boss with a `creature` fights as that animated creature once loaded, data/creatures.json `<id>`: the bone its eye's
     // glow rides (`head`), its neck's bones bowed by `bow` times the fight's lowered head, its clips cross-faded over
     // `blend` seconds and their pace (the walk to its speed, a blow to the fight's) held within `pace`, a clip played over
-    // the others when it is struck (`over`: the seconds it rests before it plays again); else the still model)
+    // the others when it is struck (`over`: the seconds it rests before it plays again), the part whose place the fight
+    // moves lifting and shaking it (`moves`), the bone its fire rides (`fire`), its neck turned after the fight's head
+    // (`look`), its own texture's `tint`; else the still model)
     hart: {
       size: 1,
       keep: ['ring', 'halo', 'floor'],
@@ -1180,8 +1214,22 @@ export const CFG = {
     serpent: { size: 1.4, keep: ['ring', 'halo'], centre: true, at: { eye: [0.5, 0.62, 0.62] }, tint: 0.8 }, // (its pale bone held toward the jelly's green floor)
     // (Kaelith's violet-black plate lifted in the Seal's dark violet, so it reads on the Seal's floor; kneeling at the end,
     // its own model; its floor's circle and its eyes' glow kept)
-    kaelith: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.88, lift: '#221a3e' },
-    kaelith_kneel: { size: 1, keep: ['ring', 'halo', 'floor'], eye: 0.8, lift: '#221a3e' },
+    // (both fight and kneel as its rigged creature once loaded, data/creatures.json `kaelith`: its sinking into shadow and
+    // its reeling from the fight's `body`)
+    kaelith: {
+      size: 1,
+      keep: ['ring', 'halo', 'floor'],
+      eye: 0.88,
+      lift: '#221a3e',
+      creature: { id: 'kaelith', head: 'mixamorigHead', blend: 0.2, pace: [0.4, 2.5], moves: 'body', under: true },
+    },
+    kaelith_kneel: {
+      size: 1,
+      keep: ['ring', 'halo', 'floor'],
+      eye: 0.8,
+      lift: '#221a3e',
+      creature: { id: 'kaelith', head: 'mixamorigHead', blend: 0.2, pace: [0.4, 2.5] },
+    },
   },
   // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
   // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across

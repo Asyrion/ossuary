@@ -6,7 +6,8 @@ the size of a horse, 1.8 tiles, boss budget: `tools/creatures/dragonling.ts`, th
 two-legged rig, in a mid-stride pose); the Chameleon Wyvern the third (2026-10-05, a feathered wyvern the size of a pony,
 1.4 tiles, boss budget: `tools/creatures/chameleon.ts`, the recipe for a model that came through the owner's
 EDA-ModelWebViewer, for wings, and the first with sound files). The Hallowed Hart (2026-10-23) is the first that
-fights, the Hollow Warden the second (below, "A creature that fights"); the others are looks only.
+fights, the Hollow Warden the second, then the War-Tiger, the Drowned Abbess, the Pyre Knight, the first Twin Guardian and
+Kaelith (below, "A creature that fights"); the others are looks only.
 The thirteen people of M7 (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly and Kaelith) came a third way,
 rigged by Tripo with its humanoid **Mixamo** skeleton and no clips: one recipe for all of them (below, "People on a Mixamo
 rig").
@@ -211,6 +212,55 @@ to each wind-up so the slam falls as the burst or the volley goes out, and `idle
 settled. Its config keeps the still's `hot` (the candle crown's glow) and `tint`; it has no `bow` (its fight lowers no
 head). Height 2.2 tiles in the gallery (in the fight it is fitted to the look in code, as the still), boss budget (1.46
 million triangles simplified to 14,550).
+
+**What the later bosses added** (2026-10-23): `moves` names a part whose place the fight moves (the War-Tiger's pounce
+arc and shakes, Kaelith sinking into shadow, `under`, may go below the floor); `fire` the bone a boss's flames ride (the
+Pyre Knight's helm); `look` the neck bones the fight's head turning turns (the Twin Guardian's gaze, even as stone);
+`tint` the creature's own tint where its texture is lighter or darker than the still's. A clip with no `at` is timed by
+its first sound (Kaelith's sweep). A boss that stands as a statue holds a `statue` clip (the fight calls its `idle` in
+that state too). `__game.bossClip` reads the first boss in the room that is a creature (of the twins, the first).
+Recipes share `tools/creatures/moves.ts` (keys, turns, a step cycle, rearing, Tripo's preset clips read and replayed)
+and, for Tripo's biped rig, `tools/creatures/biped.ts`. Frames of each fight, creature on and off:
+`npx tsx asset-previews/rig/fightshots.ts <boss> on|off` (asset-previews is not in the repo, nor are the rigged sources
+and presets the recipes read from it: `asset-previews/rig/<id>/`).
+
+### The War-Tiger
+
+Floor 3's boss (`tools/creatures/tiger.ts`): Tripo's quadruped rig (`walk.glb`), facing -z (`face = 180`), the skin kept.
+All clips in code: `idle`, `statue` (held still as stone), `walk` (a low prowl), `crouch` (sinking to spring, tail
+lashing, deepest at its `at`), `pounce` (stretched, forepaws down at its `at`; the fight's `body` lifts it, `moves`),
+`swipe` (a forepaw raised and raked down at its `at`), `roar` (also its waking) and `hit` (dazed, its stun). Height 1.8,
+14,543 triangles. Its still model (`foe_tiger.glb`) faces a quarter turn off its walk; the creature faces it.
+
+### The Drowned Abbess
+
+Floor 2's boss (`tools/creatures/abbess.ts`), an axolotl: quadruped rig, facing +x (`face = -90`), the skin kept, its
+gills on their own bones. In code: `idle`, `walk` (swimming over the floor, body and tail weaving), `wail` (reared up,
+gills flung wide, risen by its `at` and held through the volleys; also its burst up out of the water), `dive` and `hit`
+(`over`). It has no jaw bone; its chin drops a little. Height 1.5, 14,547 triangles.
+
+### The Pyre Knight
+
+Floor 2's knight (`tools/creatures/pyre.ts`): Tripo's biped rig and its preset clips. `idle` and `walk` (in place) are
+Tripo's; `slash` a window of Tripo's (the blade overhead and down at its `at`, timed to the first embers, played on
+through the spray); in code on the presets: `aim`, `charge` (the walk at a run, bent forward), `crouch` (held through the
+leap) and `hit` (Tripo's `hurt` sits him on the floor for 14 s). His flames ride his `Head` bone (`fire`); his texture is
+lighter than the still's (`tint` 0.75). Height 3.2, 14,548 triangles.
+
+### The Twin Guardians
+
+Floor 3's pair (`tools/creatures/twins.ts`). The first guardian on Tripo's biped rig: `idle`, `walk` (in place) and `slam`
+(a window of Tripo's slash, its hips kept square to the mage: `square`) from the presets; `statue`, `guard` (its left paw
+raised as a shield), `rear` (its gaze) and `hit` (`over`) in code; `look` turns its neck after the mage. Height 2.45,
+14,548 triangles. The second guardian's rig came out wrong (its head bone in its chest, its thighs at two heights; the
+presets fold it onto the floor), so it fights as its still until Tripo rigs it again.
+
+### Kaelith
+
+The Seal's boss fights as the rigged Mixamo figure baked for the galleries (`kaelith`, "People on a Mixamo rig"): `idle`
+while it stalks, `sweep` timed to its fan, `talk` (its free hand) for its volleys and the black sun's pull, `kneel` as it
+holds the seal (its body no longer lowered in code) and at the end, played through and held (`kaelith_kneel`). Its
+sinking and reeling come from the fight's `body` (`moves`, `under`). No walk or hit clip: it glides and reels as before.
 
 **Next:** another boss or foe fights as its creature the same way: a `creature` in its `CFG.madeBosses` entry and
 `e.clip?.(...)` in its states.

@@ -41,7 +41,7 @@ export function buildTwin(e: Enemy) {
     made = madeBossLook(second ? 'twins2' : 'twins', code), // (each its own made guardian, where it is in)
     L = (made ?? code)(),
     P = L.parts;
-  e.mats = mergeRig(L.group, L.idle, 'boss:twin' + (second ? 2 : 1) + (made ? ':made' : ''), [
+  e.mats = mergeRig(L.group, L.idle, 'boss:twin' + (second ? 2 : 1) + (L.clip ? ':creature' : made ? ':made' : ''), [
     P.eye,
     P.ring,
     P.head,
@@ -51,6 +51,7 @@ export function buildTwin(e: Enemy) {
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group;
   e.idle = L.idle;
+  e.clip = L.clip; // (as its animated creature: its clips played by its states, updateTwin)
   e.shadow = L.shadow;
   e.openShadow = L.openShadow;
   e.bossSchool = L.school;
@@ -121,14 +122,20 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
   P.head.rotation.y = Math.max(-1, Math.min(1, Math.atan2(player.x - e.x, player.z - e.z) - e.face));
   if (e.state === 'statue') {
     e.vx = e.vz = e.kx = e.kz = 0;
+    if (e.clip) {
+      e.clip('statue'); // (as its animated creature: held still as stone, its head still turning)
+      e.idle?.(e.t);
+    }
     if (d < C.wake || e.hp < e.maxHp || e.st < 0 || (!t.dead && t.hp < t.maxHp)) wake(e);
     return e.face;
   }
   e.idle?.(e.t);
   e.ring!.rotation.z += dt * (e.state.startsWith('wind') ? 5 : 1.2);
+  if (e.flash > 0 && e.role !== 'shield') e.clip?.('hit'); // (as its animated creature: it flinches as a blow lands)
   if (e.state === 'wake') {
     // it stands up out of the stone
     e.vx = e.vz = 0;
+    e.clip?.('idle');
     const k = 1 - Math.max(0, e.st) / 0.9;
     P.body.position.x = Math.sin(e.t * 40) * 0.03 * (1 - k);
     halo.material.opacity = 0.3 * k;
@@ -156,6 +163,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
     P.armL.rotation.x = lerp(P.armL.rotation.x, -1.1, 0.15);
     P.armR.rotation.x = lerp(P.armR.rotation.x, 0, 0.15);
     halo.material.opacity = 0.3;
+    e.clip?.('guard'); // (its left paw raised before it as a shield)
     const to = e.target!,
       gx = to.x - e.x,
       gz = to.z - e.z,
@@ -170,6 +178,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
     const sp = C.speed * speedMul * (e.rage ? C.rage.speed : 1) * (d > C.keep ? 1 : 0);
     e.vx = ux * sp;
     e.vz = uz * sp; // (it stops at arm's length)
+    e.clip?.(sp ? 'walk' : 'idle', { speed: sp });
     halo.material.opacity = 0.3;
     P.armR.rotation.x = lerp(P.armR.rotation.x, 0, 0.15);
     P.body.position.y = Math.abs(Math.sin(e.t * 4)) * 0.04;
@@ -183,6 +192,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
   } else if (e.state === 'windSlam') {
     // it rears, its right paw high
     e.vx = e.vz = 0;
+    e.clip?.('slam', { beat: e.st }); // (its fists raised high and brought down on the floor as the ring goes out)
     const k = 1 - Math.max(0, e.st) / (C.slam.tell * fast);
     P.body.rotation.x = -0.2 * k;
     P.armR.rotation.x = -2.2 * k;
@@ -206,6 +216,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
   } else if (e.state === 'windGaze') {
     // its eyes blaze
     e.vx = e.vz = 0;
+    e.clip?.('rear'); // (rearing up to fix the mage with its gaze, held through the stream)
     const k = 1 - Math.max(0, e.st) / (C.gaze.tell * fast);
     (P.eyeGlow as THREE.Sprite).material.opacity = 0.7 + k * 0.3;
     (P.eyeGlow as THREE.Sprite).scale.setScalar(0.7 + k * 1.6);
@@ -241,6 +252,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
     }
   } else if (e.state === 'recover') {
     e.vx = e.vz = 0;
+    e.clip?.('idle', { after: true });
     P.armR.rotation.x = lerp(P.armR.rotation.x, 0, 0.2);
     if (e.st <= 0) {
       e.state = 'stalk';

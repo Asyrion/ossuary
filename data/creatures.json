@@ -778,5 +778,314 @@
       "colours": 24,
       "glowing": 0
     }
+  },
+  "tiger": {
+    "file": "assets/creatures/tiger.glb",
+    "height": 1.8,
+    "modelHeight": 0.53,
+    "modelLength": 0.999,
+    "walkSpeed": 0.3704,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 0.9,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.225,
+            "sound": "pawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.45,
+            "sound": "pawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.675,
+            "sound": "pawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "roar": {
+        "duration": 1.1,
+        "loop": false,
+        "at": 0.65,
+        "events": [
+          {
+            "t": 0.05,
+            "sound": "inhale"
+          },
+          {
+            "t": 0.45,
+            "sound": "roar",
+            "loud": true
+          }
+        ]
+      },
+      "statue": {
+        "duration": 0.5,
+        "loop": false,
+        "events": []
+      },
+      "crouch": {
+        "duration": 0.6,
+        "loop": false,
+        "at": 0.6,
+        "events": []
+      },
+      "pounce": {
+        "duration": 0.75,
+        "loop": false,
+        "at": 0.5,
+        "events": [
+          {
+            "t": 0.5,
+            "sound": "slam",
+            "loud": true
+          }
+        ]
+      },
+      "swipe": {
+        "duration": 0.8,
+        "loop": false,
+        "at": 0.5,
+        "events": [
+          {
+            "t": 0.5,
+            "sound": "clawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "hit": {
+        "duration": 1.2,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/tiger.texel.png",
+      "glow": "assets/creatures/tiger.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 246
+    }
+  },
+  "abbess": {
+    "file": "assets/creatures/abbess.glb",
+    "height": 1.5,
+    "modelHeight": 0.453,
+    "modelLength": 1,
+    "walkSpeed": 0.1667,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 1.2,
+        "loop": true,
+        "events": []
+      },
+      "wail": {
+        "duration": 1,
+        "loop": false,
+        "at": 0.6,
+        "events": [
+          {
+            "t": 0.05,
+            "sound": "inhale"
+          },
+          {
+            "t": 0.4,
+            "sound": "roar",
+            "loud": true
+          }
+        ]
+      },
+      "dive": {
+        "duration": 0.7,
+        "loop": false,
+        "events": []
+      },
+      "hit": {
+        "duration": 0.5,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/abbess.texel.png",
+      "glow": "assets/creatures/abbess.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 0
+    }
+  },
+  "pyre": {
+    "file": "assets/creatures/pyre.glb",
+    "height": 3.2,
+    "modelHeight": 1,
+    "modelLength": 0.393,
+    "walkSpeed": 0.6385,
+    "clips": {
+      "idle": {
+        "duration": 15.333333015441895,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 2.3333332538604736,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawRear"
+          },
+          {
+            "t": 1.167,
+            "sound": "pawRear"
+          }
+        ]
+      },
+      "slash": {
+        "duration": 1.55,
+        "loop": false,
+        "at": 0.8499999999999999,
+        "events": [
+          {
+            "t": 0.85,
+            "sound": "slam",
+            "loud": true
+          }
+        ]
+      },
+      "aim": {
+        "duration": 0.6,
+        "loop": false,
+        "events": []
+      },
+      "charge": {
+        "duration": 1.1666666269302368,
+        "loop": true,
+        "speed": 1.2771,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawRear"
+          },
+          {
+            "t": 0.583,
+            "sound": "pawRear"
+          }
+        ]
+      },
+      "crouch": {
+        "duration": 0.55,
+        "loop": false,
+        "at": 0.55,
+        "events": []
+      },
+      "hit": {
+        "duration": 1.1,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/pyre.texel.png",
+      "glow": "assets/creatures/pyre.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 3940
+    }
+  },
+  "twins": {
+    "file": "assets/creatures/twins.glb",
+    "height": 2.45,
+    "modelHeight": 0.926,
+    "modelLength": 0.717,
+    "walkSpeed": 0.5953,
+    "clips": {
+      "idle": {
+        "duration": 15.333333015441895,
+        "loop": true,
+        "events": []
+      },
+      "walk": {
+        "duration": 2.3333332538604736,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "pawFront"
+          },
+          {
+            "t": 1.167,
+            "sound": "pawFront"
+          }
+        ]
+      },
+      "slam": {
+        "duration": 1.4000000000000001,
+        "loop": false,
+        "at": 0.7499999999999998,
+        "events": [
+          {
+            "t": 0.75,
+            "sound": "slam",
+            "loud": true
+          }
+        ]
+      },
+      "rear": {
+        "duration": 0.7,
+        "loop": false,
+        "events": [
+          {
+            "t": 0.1,
+            "sound": "inhale"
+          }
+        ]
+      },
+      "guard": {
+        "duration": 0.6,
+        "loop": false,
+        "events": []
+      },
+      "statue": {
+        "duration": 0.5,
+        "loop": false,
+        "events": []
+      },
+      "hit": {
+        "duration": 0.5,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/twins.texel.png",
+      "glow": "assets/creatures/twins.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 45
+    }
   }
 }

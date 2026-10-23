@@ -21,13 +21,16 @@ for (const boss of ['abbess', 'pyre'])
           parts?: Record<string, unknown>;
         };
         const look = { school: foe.bossSchool, aff: foe.bossAff, parts: Object.keys(foe.parts ?? {}).length > 5 };
-        const states = new Set<string>();
+        const states = new Set<string>(),
+          clips = new Set<string>();
         let hidden = false,
           seconds = 0;
         for (; seconds < 240 && g.enemies.length; seconds += 0.25) {
           w.__fight(0.25);
           states.add(foe.state);
           hidden ||= !!foe.hidden;
+          const clip = (g as unknown as { bossClip: { clip: string; over: string[] } | null }).bossClip; // (its animated creature)
+          if (clip) for (const c of [clip.clip, ...clip.over]) clips.add(c);
         }
         g.sim(0.5);
         const spots = (g.current as RoomView & { spots: unknown[] }).spots;
@@ -36,6 +39,7 @@ for (const boss of ['abbess', 'pyre'])
           look,
           seconds,
           states: [...states],
+          clips: [...clips],
           hidden,
           left: g.enemies.length,
           cleared: g.current.cleared,
@@ -50,6 +54,12 @@ for (const boss of ['abbess', 'pyre'])
         boss === 'abbess'
           ? { school: 'frost', aff: { weak: 'storm', resist: 'frost' }, parts: true }
           : { school: 'ember', aff: { weak: 'frost', resist: 'ember' }, parts: true },
+      );
+      // it fights as its animated creature, its clips following its states (a flinch over them as the blows land)
+      expect(result.clips).toEqual(
+        expect.arrayContaining(
+          boss === 'abbess' ? ['walk', 'wail', 'dive', 'hit'] : ['walk', 'slash', 'crouch', 'aim'],
+        ),
       );
       expect(errors).toEqual([]);
     },
@@ -187,9 +197,10 @@ test('the War-Tiger stands as a statue until the mage comes near, loses its plat
       moved: Math.hypot(e.x - x0, e.z - z0),
       plates: e.plates,
       guard: e.guard,
+      clip: (g as unknown as { bossClip: { clip: string } | null }).bossClip?.clip, // (its animated creature)
     };
   });
-  expect(still).toEqual({ far: true, state: 'statue', contact: 0, moved: 0, plates: 4, guard: 0.4 });
+  expect(still).toEqual({ far: true, state: 'statue', contact: 0, moved: 0, plates: 4, guard: 0.4, clip: 'statue' });
   await page.keyboard.press('Space'); // a glyph chalked while it stands, then moved beside it: the blast knocks a plate off and wakes it
   const plates = await page.evaluate(() => {
     const g = (window as unknown as W).__game as G2,
@@ -218,7 +229,8 @@ test('the War-Tiger stands as a statue until the mage comes near, loses its plat
     seen.worn = e.plates; // (blows turned wear a plate through)
     // with the mage across the room, it crouches and pounces at where they stood, throwing frost as it lands
     const room = g.current,
-      states = new Set<string>();
+      states = new Set<string>(),
+      clips = new Set<string>();
     let frost = false;
     g.player.x = room.cx - 5;
     g.player.z = room.cz;
@@ -232,6 +244,8 @@ test('the War-Tiger stands as a statue until the mage comes near, loses its plat
       g.player.hp = g.player.maxHp;
       g.sim(0.05);
       states.add(e.state);
+      const clip = (g as unknown as { bossClip: { clip: string } | null }).bossClip;
+      if (clip) clips.add(clip.clip);
       if (e.state === 'crouch' && !stepped) {
         g.player.z += 1.5;
         stepped = true;
@@ -240,29 +254,50 @@ test('the War-Tiger stands as a statue until the mage comes near, loses its plat
     }
     seen.pounced = ['crouch', 'pounce'].every((st) => states.has(st)) && (states.has('recover') || states.has('stun'));
     seen.frost = frost;
+    seen.clips = ['crouch', 'pounce'].every((c) => clips.has(c)); // (as its animated creature: it sinks and springs)
     return seen;
   });
-  expect(plates).toMatchObject({ glyph: [3, 'wake'], shatter: 2, guard: 0.7, worn: 1, pounced: true, frost: true });
+  expect(plates).toMatchObject({
+    glyph: [3, 'wake'],
+    shatter: 2,
+    guard: 0.7,
+    worn: 1,
+    pounced: true,
+    frost: true,
+    clips: true,
+  });
   expect(plates.weak).toBeCloseTo(6);
   expect(plates.resist).toBeCloseTo(2); // (half again, and half, of what gets through)
   const result = await page.evaluate(() => {
     const w = window as unknown as W,
       g = w.__game as G2,
       foe = g.enemies.find((e) => e.isBoss) as Boss;
-    const states = new Set<string>();
+    const states = new Set<string>(),
+      clips = new Set<string>();
     let called = false,
       seconds = 0;
     for (; seconds < 240 && g.enemies.length; seconds += 0.25) {
       w.__fight(0.25);
       states.add(foe.state);
+      const clip = (g as unknown as { bossClip: { clip: string } | null }).bossClip;
+      if (clip) clips.add(clip.clip);
       called ||= !!foe.summoned;
     }
     g.sim(0.5);
-    return { seconds, states: [...states], called, left: g.enemies.length, cleared: g.current.cleared };
+    return {
+      seconds,
+      states: [...states],
+      clips: [...clips],
+      called,
+      left: g.enemies.length,
+      cleared: g.current.cleared,
+    };
   });
   console.log(`tiger beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`);
   expect(result).toMatchObject({ called: true, left: 0, cleared: true });
   expect(result.states).toEqual(expect.arrayContaining(['prowl', 'windSwipe', 'windRoar']));
+  // it fights as its animated creature, its clips following its states
+  expect(result.clips).toEqual(expect.arrayContaining(['walk', 'swipe', 'roar']));
   expect(errors).toEqual([]);
 });
 
@@ -394,7 +429,9 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
     g.warp(1);
     g.sim(0.7, true);
     const twins = g.enemies.filter((f) => f.isBoss) as Twin[],
-      still = twins.map((t) => [t.state, t.contact]);
+      still = twins.map((t) => [t.state, t.contact]),
+      clipNow = () => (g as unknown as { bossClip: { clip: string; over: string[] } | null }).bossClip, // (the first guardian's animated creature)
+      clips = new Set<string>([clipNow()?.clip ?? 'none']);
     g.sim(1);
     const stay = twins.map((t) => t.state);
     g.player.x = twins[0].x;
@@ -425,8 +462,11 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
     for (let k = 0; k < 240 && shield.role === 'shield'; k++) {
       g.player.hp = g.player.maxHp;
       g.sim(0.05);
+      const c = clipNow();
+      if (c) for (const n of [c.clip, ...c.over]) clips.add(n);
     }
     out.traded = [shield.role, strike.role, !!strike.ward];
+    out.clips = [...clips];
     // one falls: the other rages, and the fight isn't over
     const fall = g.enemies.indexOf(shield);
     g.hit(fall, 9999);
@@ -456,6 +496,8 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
     traded: ['strike', 'shield', true],
   });
   expect(woke.states).toEqual(['guard', 'stalk']);
+  // the first guardian fights as its animated creature: still as stone, then its clips following its states
+  expect(woke.clips).toEqual(expect.arrayContaining(['statue', 'guard', 'slam']));
   expect(woke.rage).toEqual({ left: 1, rage: true, glance: false, ward: false, cleared: false });
   const fight = await page.evaluate(() => {
     const w = window as unknown as W,
@@ -649,6 +691,7 @@ test('Kaelith: the Sentinel stalks, sweeps, fires and steps through shadow; at t
     bar: number;
     banner1: string;
     states: string[];
+    clips: string[];
     p1: K;
     banner2: string;
     p2: K;
@@ -665,12 +708,13 @@ test('Kaelith: the Sentinel stalks, sweeps, fires and steps through shadow; at t
     const g = window.__game, P = g.player; P.invuln = 999;
     g.warp(g.rooms().find(r => r.plan.templateId === 'seal_kaelith').plan.id); P.x = g.current.cx; P.z = g.current.cz + 3.5; g.sim(1, true);
     const bar = document.querySelectorAll('#bossbar .mark').length, banner1 = document.querySelector('#banner .t').textContent;
-    const states = new Set(); for (let t = 0; t < 60; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); }
+    const states = new Set(), clips = new Set(), clip = () => { const c = g.bossClip; if (c) clips.add(c.clip); }; // (its rigged creature's clips)
+    for (let t = 0; t < 60; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); clip(); }
     if (!states.has('sink')) { const k = g.enemies.find(e => e.isBoss); k.state = 'sink'; k.st = .5; for (let t = 0; t < 12; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); } } // (its step waits on where its circling leaves it standing dark; if none came, it steps now)
     const p1 = g.kaelith;
     g.kaelithToPhase(2); g.sim(.2, true); const banner2 = document.querySelector('#banner .t').textContent;
     g.sim(3); const p2 = g.kaelith, hit = (() => { const i = g.enemies.findIndex(e => e.isBoss), e = g.enemies[i], h = e.hp; g.hit(i, 10, 'ember'); return h - e.hp; })();
-    for (let t = 0; t < 30; t++) { P.hp = P.maxHp; g.sim(.25); }
+    for (let t = 0; t < 30; t++) { P.hp = P.maxHp; g.sim(.25); clip(); }
     const horde = g.enemies.filter(e => !e.dead && !e.isBoss).length;
     const KIND = { ember: 'burn', frost: 'chill', storm: 'shock', hallow: 'sanct', umbral: 'hex' };
     for (const w of g.kaelith.wards) g.element(KIND[w.school], w.x, w.z);
@@ -686,12 +730,14 @@ test('Kaelith: the Sentinel stalks, sweeps, fires and steps through shadow; at t
     const i = g.enemies.findIndex(e => e.isBoss); g.enemies[i].hidden = false; g.hit(i, 99999, 'hallow'); g.sim(1, true);
     const fell = { kaelith: g.kaelith, banner: document.querySelector('#banner .t').textContent, way: g.wayDown, clear: Math.hypot(g.kaelithKnelt.x - g.wayDown.x, g.kaelithKnelt.z - g.wayDown.z) };
     P.x = fell.way.x; P.z = fell.way.z; g.sim(.5);
-    return { bar, banner1, states: [...states], p1, banner2, p2, hit, horde, reel, banner3, pulled, held, p3, fell, state: g.state };
+    return { bar, banner1, states: [...states], clips: [...clips], p1, banner2, p2, hit, horde, reel, banner3, pulled, held, p3, fell, state: g.state };
   })()`);
   expect(r.bar).toBe(2);
   expect(r.banner1).toBe('Kaelith'); // (its bar marks the phases)
   expect(r.p1!.phase).toBe(1);
   expect(r.states).toEqual(expect.arrayContaining(['stalk', 'windSweep', 'windVolley', 'sink', 'gone', 'rise']));
+  // it fights as its rigged creature: its blade swept, its hand casting, kneeling to hold the seal
+  expect(r.clips).toEqual(expect.arrayContaining(['idle', 'sweep', 'talk', 'kneel']));
   expect(r.banner2).toBe('The seal cracks');
   expect(r.p2!.phase).toBe(2);
   expect(r.p2!.guard).toBe(0.25);
