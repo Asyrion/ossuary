@@ -3,7 +3,9 @@
    fox of rune-light (the Rune Fox, stage 1); a floor deeper it is full-grown (stage 2) and its bite burns;
    another floor, and it comes into its full shape (stage 3: a long white beast between fox, cat and dragon, its fur blown
    back into flame-tipped feathers, its legs plated dark blue with red spiral runes) and breathes Ember besides. The floor
-   it was bound on is kept in the run (`G.run.fennexFrom`). Tuning in CFG.artifacts.fennex. */
+   it was bound on is kept in the run (`G.run.fennexFrom`). Its look is an animated creature made in Tripo for each
+   shape (fennexLook.ts, docs/creatures.md): it stands, trots at the mage's heel and gallops on a dart, bites and breathes
+   over its gait, and shakes itself as it grows. Tuning in CFG.artifacts.fennex. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Enemy } from '../types';
@@ -13,9 +15,10 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree } from '../render/materials';
 import { mergeRig } from '../render/rig';
-import { markThing } from '../render/pixelLook';
+import { markActor, markThing } from '../render/pixelLook';
 import { SCHOOL_LIGHT } from '../render/arcane';
-import { fennexLook } from '../actors/fennexLook';
+import { fennexLook, type Built } from '../actors/fennexLook';
+import { CREATURES } from '../actors/madeCreatures';
 import { toast } from '../notify';
 import { burst } from './fx';
 import { damageEnemy } from './damage';
@@ -26,8 +29,15 @@ import { angleLerp } from '../util';
 const F = CFG.artifacts.fennex;
 let fen: {
   g: THREE.Group;
+  look: Built;
   idle: (t: number) => void;
   mouth?: THREE.Sprite;
+  /** Its own clock, for a creature's clips (`t` is its gait's, which runs with its pace). */
+  clock: number;
+  /** Seconds until the bolts of a breath it has drawn go out (an animated creature's breath, timed to its clip). */
+  windup: number;
+  /** How fast it has gone of late (tiles a second, smoothed: it catches up in small steps at the heel). */
+  pace: number;
   stage: number;
   x: number;
   z: number;
@@ -45,16 +55,22 @@ export const fennexStage = () =>
 function make(stage: number, x: number, z: number, face: number) {
   const L = fennexLook(stage),
     g = new THREE.Group();
-  mergeRig(L.group, L.idle, 'fennex:' + stage);
+  if (!L.creature) mergeRig(L.group, L.idle, 'fennex:' + stage);
   L.group.scale.setScalar(F.scale[stage - 1]);
-  markThing(L.group); // (its closed outline in the pixel look, its colours as made: art bible 4.4)
+  // (its closed outline in the pixel look: as an animated creature an actor's, with its rim, as the bosses' creatures;
+  // built in code a thing's, its colours as made: art bible 4.4)
+  (L.creature ? markActor : markThing)(L.group);
   g.add(L.group, blob(L.shadow * F.scale[stage - 1]));
   g.position.set(x, 0, z);
   scene.add(g);
   return {
     g,
+    look: L,
     idle: L.idle,
     mouth: L.parts?.mouth as THREE.Sprite | undefined,
+    clock: 0,
+    windup: 0,
+    pace: 0,
     stage,
     x,
     z,
@@ -106,6 +122,7 @@ export function updateFennex(dt: number, acting: boolean) {
     scene.remove(fen.g);
     disposeTree(fen.g);
     fen = make(stage, x, z, face);
+    fen.look.clip?.('shake'); // (it shakes itself into its new shape)
     burst(x, 0.6, z, stage === 3 ? 0xff8a2a : 0x8ff0ff, 30, 2.4, 0.06);
     Sfx.at(x, z).wake();
     toast(STR.toast.fennexGrows[stage - 2], 3.5);
@@ -123,7 +140,10 @@ export function updateFennex(dt: number, acting: boolean) {
     tx = f.prey.x;
     tz = f.prey.z;
     sp = speedOf(F.dash);
-    if (Math.hypot(tx - f.x, tz - f.z) < f.prey.r + 0.35) {
+    const gap = Math.hypot(tx - f.x, tz - f.z) - (f.prey.r + 0.35);
+    // (its snap starts as far out as it runs in the time the clip takes to snap shut)
+    if (f.look.creature && gap < sp * (CREATURES[f.look.creature].clips.bite?.at ?? 0)) f.look.clip?.('bite');
+    if (gap < 0) {
       const e = f.prey,
         dx = e.x - f.x,
         dz = e.z - f.z,
@@ -161,36 +181,75 @@ export function updateFennex(dt: number, acting: boolean) {
     f.face = angleLerp(f.face, Math.atan2(dx, dz), 1 - Math.exp(-12 * dt));
     f.t += dt * Math.min(1.6, 0.5 + step / dt / F.speed);
   }
-  // full-grown, it breathes Ember at a foe near it
-  if (stage === 3 && f.breath <= 0) {
-    const e = nearest(f.x, f.z, F.breath.range);
-    if (e) {
-      const a = Math.atan2(e.z - f.z, e.x - f.x),
-        B = F.breath;
-      f.face = Math.atan2(Math.cos(a), Math.sin(a));
-      for (let i = 0; i < B.count; i++) {
-        const b = a + (i / (B.count - 1) - 0.5) * B.spread;
-        fireSpellBolt(f.x + Math.cos(b) * 0.4, f.z + Math.sin(b) * 0.4, Math.cos(b), Math.sin(b), {
-          damage: player.stats.damage * B.mul,
-          range: B.range + 0.5,
-          speed: B.speed,
-          color: SCHOOL_LIGHT.ember,
-          scale: 0.6,
-          status: { burn: B.burn },
-        });
-      }
-      if (f.mouth) f.mouth.material.opacity = 0.9;
-      Sfx.at(f.x, f.z).ember();
-      f.breath = B.every;
-    } else f.breath = 0.3;
+  if (f.look.clip) {
+    // its gait by how fast it goes: standing, trotting at the mage's heel, galloping on a dart (or to catch up)
+    const M = F.made;
+    f.pace += ((d > 0.05 ? step / dt : 0) - f.pace) * (1 - Math.exp(-M.settle * dt));
+    const v = f.pace;
+    f.look.clip(v < M.still ? 'idle' : f.prey || v > speedOf(F.speed) * M.run ? 'run' : 'trot', { speed: v });
+  }
+  // full-grown, it breathes Ember at a foe near it (as a creature, its bolts go out as its clip throws its head forward)
+  if (stage === 3 && f.windup > 0) {
+    f.windup -= dt;
+    const e = nearest(f.x, f.z, F.breath.range + 0.5);
+    if (e) f.face = Math.atan2(e.x - f.x, e.z - f.z);
+    if (f.windup <= 0 && e) breathe(f, e);
+  } else if (stage === 3 && f.breath <= 0) {
+    const e = nearest(f.x, f.z, F.breath.range),
+      at = f.look.creature ? CREATURES[f.look.creature].clips.breathe?.at : undefined;
+    if (e && at) {
+      f.look.clip?.('breathe');
+      f.windup = at;
+      f.breath = F.breath.every;
+    } else if (e) breathe(f, e);
+    else f.breath = 0.3;
   }
   if (f.mouth) f.mouth.material.opacity *= Math.exp(-4 * dt);
   f.g.position.set(f.x, 0, f.z);
   f.g.rotation.y = f.face;
-  f.idle(f.t);
+  f.clock += dt;
+  f.idle(f.look.creature ? f.clock : f.t);
+}
+/** Its breath: a fan of Ember bolts at foe `e`, its mouth lit. */
+function breathe(f: NonNullable<typeof fen>, e: Enemy) {
+  const a = Math.atan2(e.z - f.z, e.x - f.x),
+    B = F.breath;
+  f.face = Math.atan2(Math.cos(a), Math.sin(a));
+  for (let i = 0; i < B.count; i++) {
+    const b = a + (i / (B.count - 1) - 0.5) * B.spread;
+    fireSpellBolt(f.x + Math.cos(b) * 0.4, f.z + Math.sin(b) * 0.4, Math.cos(b), Math.sin(b), {
+      damage: player.stats.damage * B.mul,
+      range: B.range + 0.5,
+      speed: B.speed,
+      color: SCHOOL_LIGHT.ember,
+      scale: 0.6,
+      status: { burn: B.burn },
+    });
+  }
+  if (f.mouth) f.mouth.material.opacity = 0.9;
+  Sfx.at(f.x, f.z).ember();
+  f.breath = B.every;
 }
 /** Dev hooks: where Fen-Nex is, how grown, what it hunts; and growing it a stage (as if a floor had gone by). */
-export const fennexInfo = () => (fen ? { stage: fen.stage, x: fen.x, z: fen.z, hunting: !!fen.prey } : null);
+export const fennexInfo = () =>
+  fen
+    ? {
+        stage: fen.stage,
+        x: fen.x,
+        z: fen.z,
+        hunting: !!fen.prey,
+        creature: fen.look.creature ?? null, // (the animated creature it is, or null built in code)
+        clip: fen.look.clipNow?.() ?? null, // (the clip it plays, its time and pace, and the clips over it)
+      }
+    : null;
 export function growFennex() {
   if (G.run.fennexFrom !== undefined && fennexStage() < 3) G.run.fennexFrom--;
+}
+/** Build its look again where it stands (the dev menu's switch between its creature and its look in code). */
+export function remakeFennex() {
+  if (!fen) return;
+  const { x, z, face, stage } = fen;
+  scene.remove(fen.g);
+  disposeTree(fen.g);
+  fen = make(stage, x, z, face);
 }

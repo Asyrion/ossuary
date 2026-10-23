@@ -126,6 +126,104 @@ test("Fen-Nex: the Rune of Fen-Nex binds it at the mage's heel; it bites foes, g
   expect(errors).toEqual([]);
 });
 
+test('Fen-Nex as its animated creatures: it stands, trots at the heel, gallops and bites, shakes as it grows, breathes, and is built in code when switched off', async ({
+  page,
+}) => {
+  const errors = await start(page, '?room=crypt_b&seed=FEN1&give=fennex_rune');
+  type Clip = { clip: string; time: number; rate: number; over: string[] };
+  type G2 = GameHooks & {
+    fennex: {
+      stage: number;
+      x: number;
+      z: number;
+      hunting: boolean;
+      creature: string | null;
+      clip: Clip | null;
+    } | null;
+    growFennex(): void;
+    fennexCreature(on?: boolean): boolean;
+    clearRoom(): void;
+    spawn(kind: string, x?: number, z?: number): Foe & { hp: number; maxHp: number };
+  };
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2,
+      out: Record<string, unknown> = {};
+    g.warp(1);
+    g.clearRoom();
+    g.player.x = g.current.cx - 1.5;
+    g.player.z = g.current.cz;
+    /** Step `s` seconds a sixtieth at a time (the mage walking `vx` a second, unhurt), noting every clip it played. */
+    const seen = new Set<string>();
+    const run = (s: number, vx = 0) => {
+      for (let k = 0; k < Math.round(s * 60); k++) {
+        g.player.hp = g.player.maxHp;
+        g.player.x += vx / 60;
+        g.sim(1 / 60);
+        const c = g.fennex?.clip;
+        if (c) for (const n of [c.clip, ...c.over]) seen.add(`${g.fennex!.stage}:${n}`);
+      }
+    };
+    run(1);
+    out.creature1 = g.fennex?.creature;
+    out.stands = g.fennex?.clip?.clip;
+    run(1.2, 3); // (the mage walks east: it trots after)
+    run(0.8);
+    const foe = g.spawn('rotling', g.fennex!.x + 3.5, g.fennex!.z);
+    foe.hp = foe.maxHp = 9999;
+    run(2.5); // (it darts at the foe and bites it)
+    out.bitten = foe.hp < 9999;
+    g.clearRoom();
+    run(0.6);
+    g.growFennex();
+    run(0.05);
+    out.grown = g.fennex?.clip?.clip; // (it shakes itself as it grows)
+    out.creature2 = g.fennex?.creature;
+    run(1);
+    g.growFennex();
+    run(0.6);
+    out.creature3 = g.fennex?.creature;
+    const close = g.spawn('rotling', g.fennex!.x + 1.6, g.fennex!.z);
+    close.hp = close.maxHp = 9999;
+    run(4); // (its breath comes round)
+    out.seen = [...seen].sort();
+    g.fennexCreature(false); // (built in code at once)
+    run(0.1);
+    out.off = { creature: g.fennex?.creature, clip: g.fennex?.clip };
+    g.fennexCreature(true);
+    run(0.1);
+    out.on = g.fennex?.creature;
+    return out;
+  });
+  expect(result).toMatchObject({
+    creature1: 'fennex',
+    stands: 'idle',
+    bitten: true,
+    grown: 'shake',
+    creature2: 'fennex',
+    creature3: 'fennex_full',
+    off: { creature: null, clip: null },
+    on: 'fennex_full',
+  });
+  expect(result.seen).toEqual(
+    expect.arrayContaining(['1:idle', '1:trot', '1:run', '1:bite', '2:shake', '3:shake', '3:breathe']),
+  );
+  expect(errors).toEqual([]);
+});
+
+test('Fen-Nex is built in code with the made assets off', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_b&seed=FEN1&give=fennex_rune&assets=off');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GameHooks & {
+      fennex: { stage: number; creature: string | null; clip: unknown } | null;
+    };
+    g.warp(1);
+    g.sim(0.5);
+    return { stage: g.fennex?.stage, creature: g.fennex?.creature, clip: g.fennex?.clip };
+  });
+  expect(r).toEqual({ stage: 1, creature: null, clip: null });
+  expect(errors).toEqual([]);
+});
+
 test('new artifacts: the censer fans three bolts, the moth stings foes, and the skull circles the mage', async ({
   page,
 }) => {

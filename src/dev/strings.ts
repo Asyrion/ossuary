@@ -21,8 +21,12 @@ export const DEV_STR = {
     on: (names: string) => `${names} fight as: their animated creatures (from the next boss built)`,
     off: (names: string) => `${names} fight as: their still models (from the next boss built)`,
   },
+  fennexCreature: {
+    on: 'Fen-Nex is: its animated creatures (the Rune Fox, its full shape)',
+    off: 'Fen-Nex is: its looks built in code',
+  },
   creaturesNote:
-    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the bosses their blows, leaps and flinches) and rests, its sounds on its paws and its roar. The Hart, the Warden, the War-Tiger, the Abbess, the Pyre Knight, both Twin Guardians and Kaelith also fight as their creatures; the rest are looks only.',
+    'Its clips baked by tools/animate-creature.ts; it walks a lap, roars at the mage (or plays its other clips in turn: the bosses their blows, leaps and flinches) and rests, its sounds on its paws and its roar. The Hart, the Warden, the War-Tiger, the Abbess, the Pyre Knight, both Twin Guardians and Kaelith also fight as their creatures, and Fen-Nex runs at the heel of the mage as its two; the rest are looks only.',
   creatureNames: {
     owlbear: 'Owlbear',
     dragonling: 'Dragonling',
@@ -47,6 +51,8 @@ export const DEV_STR = {
     ferryman: 'The Ferryman',
     jelly: 'Dr. Jelly',
     kaelith: 'Kaelith',
+    fennex: 'Fen-Nex, the Rune Fox',
+    fennex_full: 'Fen-Nex in its full shape',
   } as Record<string, string>,
   scapes: 'Soundscapes',
   music: 'Music',

@@ -14,7 +14,8 @@ import { jellyGives } from '../world/jellyGives';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
-import { fennexInfo, growFennex } from '../combat/fennex';
+import { fennexInfo, growFennex, remakeFennex } from '../combat/fennex';
+import { fennexCreature, setFennexCreature } from '../actors/fennexLook';
 import { dress, heldNow, takeAllOff, triedOn, tryOn, wornNow } from '../actors/costume';
 import { isCostume } from '../actors/costumeData';
 import { clearTransforms, formTransform } from '../items/transforms';
@@ -1244,6 +1245,18 @@ function build() {
   };
   fightsLabel();
   made.append(fightsAs);
+  // (Fen-Nex as its animated creatures or its looks in code: built again at once)
+  const fenAs = btn('', () => {
+    setFennexCreature(!fennexCreature());
+    remakeFennex();
+    fenLabel();
+  });
+  const fenLabel = () => {
+    fenAs.textContent = S.fennexCreature[fennexCreature() ? 'on' : 'off'];
+    fenAs.classList.toggle('on', !fennexCreature());
+  };
+  fenLabel();
+  made.append(fenAs);
 
   // the coin faces: every face side by side ahead of the mage, as the room draws them
   const coins = section(pages.galleries, S.coinGallery);

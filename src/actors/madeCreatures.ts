@@ -1,8 +1,9 @@
 /* Creatures made in Tripo and animated in code (docs/creatures.md): a model whose clips tools/animate-creature.ts baked
    (public/assets/creatures/<id>.glb, data/creatures.json), loaded once and copied, worn as pixel art made from its own
    texture (texturePixel.ts, baked by tools/texel-bake.ts). The townspeople wear them at the Vigil; the dev menu's
-   Galleries tab stands one ahead of the mage (dev/creatureGallery.ts); a boss that fights as one (the Hallowed Hart) is
-   loaded ahead at boot (`preloadCreature`), since its look is built at once (madeBosses.ts). */
+   Galleries tab stands one ahead of the mage (dev/creatureGallery.ts); a boss that fights as one (the Hallowed Hart) and
+   the familiar Fen-Nex are loaded ahead at boot (`preloadCreature`), since their looks are built at once (madeBosses.ts,
+   fennexLook.ts). */
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -51,8 +52,9 @@ function loadFile(file: string) {
   return loaded.get(file)!;
 }
 
-/** Creatures loaded ahead, for a look built at once: the loaded model and its baked pixel-art texture. */
-const ready = new Map<string, { gltf: GLTF; map: THREE.Texture }>();
+/** Creatures loaded ahead, for a look built at once: the loaded model, its baked pixel-art texture and the material
+    made of it (shared by every copy: its glow lit, for a look no hit lights). */
+const ready = new Map<string, { gltf: GLTF; map: THREE.Texture; mat: THREE.MeshToonMaterial }>();
 /** Load creature `id` ahead (a boss that fights as it: madeBosses.ts). Never rejects: a file that fails leaves the look
     it would have replaced, with a warning. */
 export async function preloadCreature(id: string) {
@@ -64,13 +66,23 @@ export async function preloadCreature(id: string) {
       loadFile(info.file),
       texelMaterial(id, { file: base + info.texel.file, glow: base + info.texel.glow }),
     ]);
-    if (mat.map) ready.set(id, { gltf, map: mat.map });
+    if (mat.map) ready.set(id, { gltf, map: mat.map, mat });
   } catch (e) {
     console.warn(`creature ${id}: could not be loaded (${String(e)}); its look stays as it was`);
   }
 }
 /** Creature `id` loaded ahead, or undefined while it isn't. */
 export const readyCreature = (id: string) => ready.get(id);
+
+/** A clip played over the others (a flinch, a bite on the run): made additive from its first frame (its rest), once for
+    every copy of creature `id`. */
+const overClips = new Map<string, THREE.AnimationClip>();
+export function overClip(id: string, clip: THREE.AnimationClip) {
+  const key = id + '/' + clip.name;
+  let o = overClips.get(key);
+  if (!o) overClips.set(key, (o = THREE.AnimationUtils.makeClipAdditive(clip.clone())));
+  return o;
+}
 
 /** A made model ready to stand (the townspeople use it too, at the Vigil): loaded once and copied, worn as pixel art from
     its texture, scaled to its height, on a shadow, with its clips ready in a mixer (a clip that doesn't loop holds its last

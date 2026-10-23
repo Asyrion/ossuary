@@ -980,6 +980,11 @@ export const CFG = {
       leash: 9,
       bite: { every: 1.3, mul: [0.6, 0.85, 1.1] },
       breath: { every: 3.2, range: 3.2, count: 5, spread: 0.6, speed: 7, mul: 0.45, burn: 2 },
+      // as its animated creature (fennexLook.ts, docs/creatures.md): the cross-fade between clips (s); the pace a clip may
+      // play at to match its speed (slowest, fastest); below `still` tiles a second it stands, above `run` times its heel
+      // speed it gallops (and always on a dart), its speed smoothed at `settle` a second (at the heel it catches up in
+      // small steps); its bite starts as far out as it runs in the time its clip takes to snap shut
+      made: { blend: 0.15, pace: [0.5, 2.6], still: 0.6, run: 1.25, settle: 6 },
     },
     // Candle Moth: seconds between stings, reach (and its halo's size: a larger one read as a white blot in a soft cloud)
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7, glow: 0.5 },
