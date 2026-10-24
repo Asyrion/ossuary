@@ -47,7 +47,7 @@ below; the light is what the mage climbs back to.
 | One attack (tears) changed by items | A free cantrip plus two active spells with mana, cooldowns and runes |
 | Pills with random effects | Potions to identify, brew from reagents, and drink or throw |
 | Items are mostly passive stat and tear changes | Artifacts include foci that reshape the cantrip, cursed artifacts and set bonuses |
-| No character growth inside a run beyond items | XP, levels, attributes and boon choices |
+| No character growth inside a run beyond items | XP, levels, attributes and trait choices |
 | Rooms are obstacles | Rooms react to magic: oil burns, water conducts, braziers empower |
 | Bombs: placed, then wait | Blast glyphs: chalked runes the cantrip sets off from afar, chaining and burning in the bolts' colour |
 | Unlocks are new items | The Vigil: the dead the mage frees become its people, and it opens to the magic the mage knows |
@@ -87,7 +87,7 @@ The room loop stays; what the player gets from each room, and what they do betwe
 flowchart LR
   A[Clear room] --> B[XP + reagents<br/>+ chance of drop]
   B --> C{Level up?}
-  C -- yes --> D[Choose 1 of 3 boons]
+  C -- yes --> D[Choose 1 of 3 Mana Infused Traits]
   C -- no --> E[Explore]
   D --> E
   E --> F[Library: learn a spell]
@@ -101,7 +101,7 @@ flowchart LR
 | Loop element | Isaac-style prototype | Magic RPG version |
 | --- | --- | --- |
 | Room reward | Chance of a heart | XP always; reagents from enemies; chance of heart, mana vial or coin |
-| Growth in a run | Items only | Items plus levels: each level offers 3 boons, pick 1 |
+| Growth in a run | Items only | Items plus levels: each level offers 3 Mana Infused Traits, pick 1 |
 | Special rooms per floor | Treasure, boss | Treasure, ordeal, boss, merchant, secret, library on every floor; Dr. Jelly's laboratory on floors 1 and 3, a shrine on floors 2 and 4, the waystone room on floors 1 to 5; sometimes a bone altar or locked vault |
 | Between floors | Trapdoor, straight on | Waystone room, holding the way down: a rest (full mana, every cooldown ended), a pair of runes, carving and lifting runes, reordering the belt |
 | Death | Everything lost | Run items lost; Arcane Dust, the freed, spell knowledge, discovered recipes and bestiary entries kept; the run's echo waits at the Vigil |
@@ -378,9 +378,9 @@ potions. Six schools of magic apply status effects that combine with each other 
 
 | Layer | Input | Cost | Changed by |
 | --- | --- | --- | --- |
-| Cantrip (today's bolt) | Arrow keys, 4 directions | Free | The equipped focus artifact, boons, passive artifacts |
+| Cantrip (today's bolt) | Arrow keys, 4 directions | Free | The equipped focus artifact, traits, passive artifacts |
 | Spell 1 and 2 | Q and E / LB and RB | Mana + cooldown | Runes socketed into the spell, school mastery |
-| Potion | R tapped drinks, held throws; F chooses (d-pad: up; left, right) | One potion from the belt | Alchemy boons, some artifacts |
+| Potion | R tapped drinks, held throws; F chooses (d-pad: up; left, right) | One potion from the belt | Alchemy traits, some artifacts |
 
 **Mana:** a blue bar under the hearts, 100 at start. It refills 4 per second out of combat and 1 per second in combat;
 killing an enemy with the cantrip gives 3 (kills by spells don't; a burn keeps whoever lit it). Mana vials drop from
@@ -610,7 +610,7 @@ its schools' light, budgets and how to add one: `docs/effects.md`).
 `shape` picks a behaviour in code (a beam, a placed seal, a shotgun, a wall, a chain, a self aura, holy ground, a
 pillar of light, orbiting motes, a bolt, rising hands, a mark); a cone, a dash and a summon come with the spells that
 need them. `params` holds the numbers only the shape reads (each shape's list is checked). Everything else is data, so
-new spells are mostly new entries. Tags and the shape decide which runes and boons apply.
+new spells are mostly new entries. Tags and the shape decide which runes and traits apply.
 
 **Casting animation:** the hero's `cast_a_spell` window is reused for every spell; strong spells can play a longer
 part of the same clip. A second Tripo clip (a two-handed channel) would help beams and cones later.
@@ -897,7 +897,7 @@ the merchant sells them. The belt is reordered at a waystone or in the inventory
 (flask, vial, jar, teardrop, skull, bulb) and twelve of fourteen liquid colours, each potion in a run its own colour
 and each shape on two potions, dealt on the run's seed. The belly of the bottle is the glowing draught itself, so its
 colour reads at the pixel size. Unknown potions show only their bottle. A potion drunk or thrown is known for the rest
-of the run (a line says so, and its card shows what it was); a potion is also identified by an identify boon, or at an
+of the run (a line says so, and its card shows what it was); a potion is also identified by an identify trait, or at an
 alchemy table (once a visit Dr. Jelly looks at an unknown potion in the belt for nothing). Once a recipe has been
 brewed, that potion is always identified in future runs. The inventory's Potions tab lists the belt, the pouch and
 every potion known, the rest sealed.
@@ -991,7 +991,7 @@ model in pixel art (24 px).
 
 ## RPG progression
 
-Growth happens on two timescales: levels, attributes and boons inside a run (lost on death), and knowledge, unlocks
+Growth happens on two timescales: levels, attributes and traits inside a run (lost on death), and knowledge, unlocks
 and a few powers at the Vigil between runs (kept). Power mostly stays inside the run; the few powers kept are offset
 by deeper floors and the vows.
 
@@ -1002,8 +1002,9 @@ by deeper floors and the vows.
 - **Insight** (XP) comes from a foe's purse (its health ÷ 4, twice for a champion), each fight room's first clear (4 a
   floor, an ordeal twice), each boss (60, 130, 230, 360, 540) and each potion kind's first use. Level cap 12 per run.
   A level reached rises over the mage; its choice waits for the fight to end, then the level-up screen pauses the game
-  (like a card choice).
-- **Each level up:** +1 attribute point to spend, and the player picks 1 of 3 boons.
+  (like a card choice). A short surge of mana, in the mana bar's blue, rises through the trait cards as they are dealt,
+  and the one taken flares (stepped pixel frames, under 0.6 s, never holding up the choice; none under reduced motion).
+- **Each level up:** +1 attribute point to spend, and the player picks 1 of 3 Mana Infused Traits.
 - **The curve:** level 2 by the second fight room in three runs of four, floors ending at levels 4, 7, 9 and 11, the
   cap of 12 on floor 5, never before. Every three levels gained count as one artifact toward Azyrion's arc. A deeper
   start begins at the floor's expected level, its choices waiting.
@@ -1015,12 +1016,13 @@ by deeper floors and the vows.
 | Will | Max mana +10, mana regeneration +5% | 0 |
 | Swiftness | Move speed +3%, cantrip fire delay −3% | 0 |
 
-**Boons** (`data/boons.json`). Eighteen: two for each of the six schools, each taken up to twice (stronger the second
-time, rank II), and six general. Every deal holds one general card, and leans to the schools in the hand, the schools
-cast and the boons taken (a card that leans says so); with both slots of one school (attuned) two of the three are
-that school's. A school boon taken with no spell of its school in hand pledges the next library to a page of it.
+**Mana Infused Traits** (the code calls them boons: `data/boons.json`, `progression/boons.ts`, `G.run.boons`). Eighteen:
+two for each of the six schools, each taken up to twice (stronger the second time, rank II), and six general. Every deal
+holds one general card, and leans to the schools in the hand, the schools cast and the traits taken (a card that leans
+says so); with both slots of one school (attuned) two of the three are that school's. A school trait taken with no spell
+of its school in hand pledges the next library to a page of it.
 
-| Boon | School | Effect (rank I) |
+| Trait | School | Effect (rank I) |
 | --- | --- | --- |
 | Banked Coals | Ember | Burn lasts half again as long on foes, and so do burning oil and the mage's burning ground |
 | Flamekeeper | Ember | In a fight, each flame within 2.5 tiles gives 1 mana a second, up to four |
@@ -1398,7 +1400,7 @@ Pickups feed the three resources of a run (health, mana, gold) plus reagents for
 | Merchant | Artifact, hearts, keys and glyphs for obols; stock of every kind of ware | 1 |
 | Secret room | Behind a cracked wall; obols, glyphs and keys, or an artifact from the secret pool | 1 |
 | Locked vault | Behind a padlocked door; an artifact while the budget lasts, otherwise a hoard | 0 or 1 |
-| Shrine | Cleanse a curse for coins; bargain a heart container for a boon | 1 on floors 2 and 4 |
+| Shrine | Cleanse a curse for coins; bargain a heart container for a trait | 1 on floors 2 and 4 |
 | Library | Choose 1 of 3 grimoire pages; rebuy a replaced spell for coins | 1 |
 | Elemental trial | Room full of oil, water or braziers; clear it with the right school for a bonus reward | Optional, 0 or 1 |
 | Alchemy table | Brew from reagents, identify one potion for free | 1 on floors 1 and 3 |
@@ -1494,11 +1496,11 @@ screen turns pale), the obols are paid and the stone crumbles. If time runs out,
 flees back into its stone, and the mage can try again.
 
 **The shrine's bargain.** Every shrine (floors 2 and 4) has a bargain stone at the head of its circle (at its foot or
-beside it where a doorway's way in runs there): a stele with a heart carved into it and runes down its face. Walking
-up to it says how; a spell cast into it costs nothing, its runes run red, and it deals three boons, two of that
-spell's school and one general (from the rest when that school's are spent), on the level-up screen with each card's
-price. Taking one pays a heart container, never the last (the stone refuses then), and the runes turn gold: once a
-shrine. Esc backs out with nothing paid, and the stone waits to be tried again.
+beside it where a doorway's way in runs there): a stele with a heart carved into it and runes down its face. Walking up
+to it says how; a spell cast into it costs nothing, its runes run red, and it deals three Mana Infused Traits, two of
+that spell's school and one general (from the rest when that school's are spent), on the level-up screen with each
+card's price. Taking one pays a heart container, never the last (the stone refuses then), and the runes turn gold: once
+a shrine. Esc backs out with nothing paid, and the stone waits to be tried again.
 
 **Artifacts that bend the economy** (placeholder names). Each shows in the magic, not only in the numbers.
 
@@ -1593,7 +1595,7 @@ Audio is designed for headphones first: every sound has a position in the room, 
 | Music | Layered stems per floor: explore, combat, boss | Enemies alive in the room, boss phase, low health |
 | Ambience | A looping bed per floor biome plus random one-shots placed around the room | Floor, room type (library, shrine, alchemy) |
 | Sound effects | Spells, cantrip, potions, enemies, footsteps, doors, pickups | Every gameplay event, positioned in space |
-| Interface | Menus, level up, boon choice, artifact pickup fanfare | Player actions outside the room |
+| Interface | Menus, level up, trait choice, artifact pickup fanfare | Player actions outside the room |
 
 **Headphone-first spatial sound**
 
@@ -1701,7 +1703,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Hero | Footsteps × 4 surfaces × 3 variants, hurt, death, level-up voice | 16 |
 | World | Doors, gates, braziers, oil, water, secret walls, pickups | 20 |
 | Economy | Coins (3 variants), key, lock, glyph chalk, fuse and blast, urn break, chest open, purchase | 12 |
-| Interface | Menu, confirm, back, boon cards, grimoire pages | 10 |
+| Interface | Menu, confirm, back, trait cards, grimoire pages | 10 |
 
 **3D models (Tripo)**
 
@@ -1721,7 +1723,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 
 **Visual effects** (code and particles, no Tripo): cantrip bolts per focus, 15 spell effects, 5 status visuals, 5 reaction bursts, potion splashes, level-up glow, portal and waystone.
 
-**2D and interface:** icons for about 15 spells, 61 artifacts, 12 potions (plus unknown bottles), 7 reagents, 7 runes and 18 boons (their icons drawn in code: rune strokes and boon sigils); floor and wall textures per biome (procedural now, painted later); fonts already chosen.
+**2D and interface:** icons for about 15 spells, 61 artifacts, 12 potions (plus unknown bottles), 7 reagents, 7 runes and 18 Mana Infused Traits (their icons drawn in code: rune strokes and trait sigils); floor and wall textures per biome (procedural now, painted later); fonts already chosen.
 
 **Sourcing options (to decide)**
 
@@ -1747,7 +1749,7 @@ every system.)
 | Engine | Current three.js (ES modules; WebGPU is optional, WebGL the default) |
 | Assets | GLB files in `public/assets`, loaded at runtime |
 | Asset prep | A script resizes textures to 1024 px, checks clips and reports problems |
-| Content | JSON data: rooms, enemies, spells, runes, artifacts, potions, recipes, boons |
+| Content | JSON data: rooms, enemies, spells, runes, artifacts, potions, recipes, traits |
 | Hosting | GitHub Pages or itch.io |
 | History | Git |
 
@@ -1784,7 +1786,7 @@ milestones are in `docs/archive/`.
 | M4.11 Spell marks | You can see your magic | The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle | Built |
 | M4.12 Fantasy foes | Creatures of Eda, not critters | The cute looks and the plain animals of the bestiary redone as creatures of fantasy, each fight unchanged; the Warden wears the Owlbear (`docs/archive/M4.12-plan.md`) | Built |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory, the jelly serpent; the Verdant school and its garden rooms (`docs/archive/M5-plan.md`) | Built |
-| M6 RPG growth | Growth you can feel | Insight and levels, four attributes, 18 boons and the level-up screen, 7 runes found and carved at the waystone, the waystone room, the shrine's bargain, levels toward the arc; harder runs (more rooms, scarcer hearts, never tougher foes) (`docs/archive/M6-plan.md`) | Built |
+| M6 RPG growth | Growth you can feel | Insight and levels, four attributes, 18 Mana Infused Traits and the level-up screen, 7 runes found and carved at the waystone, the waystone room, the shrine's bargain, levels toward the arc; harder runs (more rooms, scarcer hearts, never tougher foes) (`docs/archive/M6-plan.md`) | Built |
 | R0 to R5 The reset | Back on track | A feature freeze while the docs, the code, the look (pre-rendered pixel-art sprites from Tripo 3D, the line from Asyrion/Godot-Tamer) and the story (told through magic) are redone, ending in a vertical slice the owner play-tests; M7's steps 3 to 9 come to `main` in R0, its steps 10 to 13 are planned again inside R4 (`docs/RESET-plan.md`) | Open |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel, in the Seal below floor 5); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight. Steps 1 to 9 are built; steps 10 to 13 wait for the reset's R4 (`docs/M7-plan.md`) | Open |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix | Planned |

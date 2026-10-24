@@ -621,9 +621,9 @@ export const STR = {
     title: "The shrine's bargain",
     sub: 'Take one: it costs a heart container. Esc leaves the stone as it was.',
     price: 'Costs a heart container',
-    how: 'The bargain stone: cast a spell into it, and it offers boons of that school for a heart.',
+    how: 'The bargain stone: cast a spell into it, and it offers Mana Infused Traits of that school for a heart.',
     refused: 'The stone will not take your last heart.',
-    kept: 'The bargain is kept: a heart for a boon. The stone falls quiet.',
+    kept: 'The bargain is kept: a heart for a Mana Infused Trait. The stone falls quiet.',
     backed: 'You step back from the bargain. The stone waits.',
     hint: 'Arrows choose · Enter or Space takes · Esc steps back, nothing paid',
   },
@@ -906,16 +906,16 @@ export const STR = {
     },
     spent: (name: string) => `${name} +1`,
   },
-  /** Boons (names in data/boons.json, placeholders). */
+  /** Mana Infused Traits, the player's word for what the code calls boons (names in data/boons.json). */
   boons: {
-    kindOf: (school: string) => `${school} boon`,
-    kindGeneral: 'Boon',
+    kindOf: (school: string) => `${school} trait`,
+    kindGeneral: 'Trait',
     ranked: (name: string) => `${name} II`,
     pledged: (school: string) => `The next library will remember ${school}.`,
     pledgeKept: (school: string) => `The library remembered your pledge: a page of ${school} waits.`,
-    attuned: (school: string) => `Attuned: the boons you are offered lean to ${school}.`,
+    attuned: (school: string) => `Attuned: the Mana Infused Traits you are offered lean to ${school}.`,
     lean: (school: string) => `Your ${school} draws it`,
-    /** The line each school boon says the first time it acts in a run. */
+    /** The line each school trait says the first time it acts in a run. */
     acts: {
       bankedCoals: 'Banked Coals: your fires burn longer.',
       flamekeeper: 'Flamekeeper: the flames near you feed your mana while the fight lasts.',
@@ -934,8 +934,8 @@ export const STR = {
       brewersBreath: "Brewer's Breath: what you drank breathes out round your feet, and spares you.",
       afterglow: 'Afterglow: the spell still lights your hand; the cantrip carries some of it.',
     } as Record<string, string>,
-    mendSpent: 'Your boons have mended all they can in this room.',
-    yours: 'Your boons',
+    mendSpent: 'Your Mana Infused Traits have mended all they can in this room.',
+    yours: 'Your Mana Infused Traits',
   },
   /** The panel over a merchant's ware: its price, how it is bought, and the crow's two wares. */
   shop: {
@@ -1013,8 +1013,8 @@ export const STR = {
       next > 0 ? `Level ${level}: ${next} insight to the next` : `Level ${level}, the most this run allows`,
     first: "What a foe's magic held passes into your hand: insight. Enough of it, and you grow a level.",
     cap: 'You can learn no more this run.',
-    waits: 'A level waits: when the fight is won, choose its boon.',
-    chooseBoon: 'Choose a boon',
+    waits: 'A level waits: when the fight is won, choose its Mana Infused Trait.',
+    chooseBoon: 'Choose a Mana Infused Trait',
     choosePoint: (n: number) => `Spend a point on an attribute${n > 1 ? ` (${n} to spend)` : ''}`,
     attrNow: (n: number) => `${n} point${n === 1 ? '' : 's'} now`,
     hint: 'Arrows choose · Enter or Space takes · the choice waits for you',
@@ -1403,7 +1403,7 @@ export const STR = {
       root: (v: number) => `Root ${v} s`,
       grow: (v: number) => `Overgrown ${v} s`,
     } as Record<string, (v: number) => string>,
-    /** A status's number changed by a boon: the number now, and the spell's own beside it. */
+    /** A status's number changed by a trait: the number now, and the spell's own beside it. */
     boosted: (chip: string, base: number) => `${chip} (${base})`,
     statusText: {
       burn: 'Burn: damage over time.',
@@ -1504,9 +1504,9 @@ export const STR = {
       levelText: (insight: number, next: number, points: number) =>
         `${insight} insight${next ? `, ${next} more to the next level` : ', the most this run allows'}. A level brings a point to spend on an attribute${points ? ` (${points} to spend)` : ''}.`,
       points: (n: number) => `${n} point${n === 1 ? '' : 's'}`,
-      boons: 'Boons',
-      noBoons: 'No boons yet',
-      boonsText: 'Each level brings a choice of three boons. What you take lasts until the run ends.',
+      boons: 'Mana Infused Traits',
+      noBoons: 'No Mana Infused Traits yet',
+      boonsText: 'Each level brings a choice of three Mana Infused Traits. What you take lasts until the run ends.',
     },
     base: (v: string) => `Base ${v}`,
     straight: 'Straight',

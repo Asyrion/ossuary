@@ -354,6 +354,59 @@ test(
   },
 );
 
+for (const still of [false, true])
+  test(`the level-up screen offers Mana Infused Traits with a mana surge through the cards and a flare on the one taken${still ? ', both skipped under reduced motion' : ''}`, async ({
+    page,
+  }) => {
+    if (still) await page.emulateMedia({ reducedMotion: 'reduce' });
+    const errors = await start(page, '?seed=LVUP&level=3&autolevel=0');
+    type GS = {
+      sim(s: number): void;
+      player: { invuln: number };
+      offer: { open: boolean; phase: string; surge: boolean };
+    };
+    // (the names of the CSS animations running on the screen's cards, or on the flare)
+    const shown = await page.evaluate(() => {
+      const w = (window as unknown as { __game: GS }).__game;
+      w.player.invuln = 999;
+      for (let k = 0; k < 200 && !w.offer.open; k++) w.sim(1 / 60);
+      const names = document
+        .getAnimations()
+        .map((a) => (a as CSSAnimation).animationName ?? '')
+        .filter((n) => n.startsWith('lv'));
+      return {
+        offer: w.offer,
+        title: document.getElementById('lvTitle')?.textContent,
+        sub: document.getElementById('lvSub')?.textContent,
+        kinds: [...document.querySelectorAll('#lvCards .lvCard small')].map((e) => e.textContent ?? ''),
+        names,
+      };
+    });
+    expect(shown.offer).toMatchObject({ open: true, phase: 'boon', surge: !still });
+    expect(shown.title).toBe('Level 2');
+    expect(shown.sub).toBe('Choose a Mana Infused Trait');
+    expect(shown.kinds).toHaveLength(3);
+    for (const k of shown.kinds) expect(k).toMatch(/trait$/i);
+    if (still) expect(shown.names).toEqual([]);
+    else expect(shown.names).toEqual(expect.arrayContaining(['lvPulse', 'lvRise', 'lvMotes']));
+    await page.waitForTimeout(650); // (past the choice's lock, and the surge over)
+    const taken = await page.evaluate(() => {
+      const w = (window as unknown as { __game: GS }).__game;
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' }));
+      const f = document.getElementById('lvFlare')!;
+      return {
+        phase: w.offer.phase,
+        surge: w.offer.surge,
+        flare: f.className,
+        names: f.getAnimations().map((a) => (a as CSSAnimation).animationName ?? ''),
+      };
+    });
+    expect(taken).toMatchObject({ phase: 'point', surge: false }); // (taken at once: the flare never waits on play)
+    expect(taken.flare).toBe(still ? '' : 'on');
+    expect(taken.names).toEqual(still ? [] : ['lvFlare']);
+    expect(errors).toEqual([]);
+  });
+
 test("Tempered and the boons taken: a level's screen spends every point it owes, Tempered's three too, and the inventory's mage tab lists the boons", async ({
   page,
 }) => {
@@ -390,7 +443,7 @@ test("Tempered and the boons taken: a level's screen spends every point it owes,
   await page.keyboard.press('KeyI');
   for (let k = 0; k < 4; k++) await page.keyboard.press('KeyE');
   const list = (await page.locator('#invList').innerText()).toLowerCase(); // (section labels are set in capitals)
-  expect(list).toContain('boons');
+  expect(list).toContain('mana infused traits');
   expect(list).toContain('tempered');
   expect(list).toContain('deep winter');
   expect(errors).toEqual([]);

@@ -276,6 +276,152 @@ body {
 .lvAttr {
   min-height: 150px;
 }
+/* the mana surge (Mana Infused Traits, ui/levelUp.ts): as a deal of traits is shown, a band of the mana bar's three blues
+   rises through each card with a few motes, its edge pulsing; the trait taken flares (#lvFlare) as the page turns. Held
+   frames (steps), hard pixels at the HUD's --u, the mana bar's own tones, no blur. `--surge-at` (set as each page is
+   drawn) keeps a card redrawn by an arrow mid-surge on the surge's clock, so it never starts over. */
+:root {
+  --lvSurge: 0.42s;
+  --lvFlare: 0.24s;
+}
+.lvCard {
+  position: relative;
+  overflow: hidden;
+}
+.lvCard:nth-child(2) {
+  --lvK: 60ms;
+}
+.lvCard:nth-child(3) {
+  --lvK: 120ms;
+}
+.lvSurge .lvCard,
+.lvSurge .lvCard::before,
+.lvSurge .lvCard::after {
+  animation-duration: var(--lvSurge);
+  animation-delay: calc(var(--surge-at, 0ms) + var(--lvK, 0ms));
+  animation-fill-mode: backwards;
+}
+.lvSurge .lvCard {
+  animation-name: lvPulse;
+  animation-timing-function: steps(1, end);
+}
+.lvSurge .lvCard::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: calc(var(--u) * 6);
+  background: linear-gradient(#9fd0ff 0 calc(var(--u) * 2), #4a86e8 0 calc(var(--u) * 4), #2f5cb8 0);
+  opacity: 0.55;
+  pointer-events: none;
+  animation-name: lvRise;
+  animation-timing-function: steps(7, end);
+}
+.lvSurge .lvCard::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--u);
+  height: var(--u);
+  background: #9fd0ff;
+  box-shadow:
+    calc(var(--u) * -34) calc(var(--u) * -6) #4a86e8,
+    calc(var(--u) * -24) calc(var(--u) * -15) #9fd0ff,
+    calc(var(--u) * -14) calc(var(--u) * -3) #4a86e8,
+    calc(var(--u) * -5) calc(var(--u) * -20) #9fd0ff,
+    calc(var(--u) * 9) calc(var(--u) * -9) #4a86e8,
+    calc(var(--u) * 19) calc(var(--u) * -2) #9fd0ff,
+    calc(var(--u) * 28) calc(var(--u) * -17) #4a86e8,
+    calc(var(--u) * 36) calc(var(--u) * -7) #9fd0ff;
+  opacity: 0;
+  pointer-events: none;
+  animation-name: lvMotes;
+  animation-timing-function: steps(6, end);
+}
+@keyframes lvPulse {
+  0% {
+    border-color: #2f5cb8;
+    box-shadow: 0 0 0 var(--u) #2f5cb8;
+  }
+  25% {
+    border-color: #4a86e8;
+    box-shadow: 0 0 0 calc(var(--u) * 2) #4a86e8;
+  }
+  50% {
+    border-color: #9fd0ff;
+    box-shadow: 0 0 0 calc(var(--u) * 2) #9fd0ff;
+  }
+  75% {
+    border-color: #4a86e8;
+    box-shadow: 0 0 0 var(--u) #2f5cb8;
+  }
+}
+@keyframes lvRise {
+  from {
+    top: 100%;
+  }
+  to {
+    top: calc(var(--u) * -6);
+  }
+}
+@keyframes lvMotes {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.3;
+    transform: translateY(calc(var(--u) * -90));
+  }
+}
+#lvFlare {
+  position: fixed;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0;
+}
+#lvFlare.on {
+  animation: lvFlare var(--lvFlare) steps(1, end);
+}
+@keyframes lvFlare {
+  0% {
+    opacity: 1;
+    background: rgba(159, 208, 255, 0.35);
+    box-shadow:
+      inset 0 0 0 calc(var(--u) * 2) #9fd0ff,
+      0 0 0 var(--u) #4a86e8;
+    outline: var(--u) solid transparent;
+  }
+  33% {
+    opacity: 1;
+    background: rgba(74, 134, 232, 0.2);
+    box-shadow:
+      inset 0 0 0 var(--u) #4a86e8,
+      0 0 0 calc(var(--u) * 2) #9fd0ff;
+    outline: var(--u) solid #4a86e8;
+    outline-offset: calc(var(--u) * 4);
+  }
+  66% {
+    opacity: 1;
+    background: transparent;
+    box-shadow: none;
+    outline: var(--u) solid #2f5cb8;
+    outline-offset: calc(var(--u) * 8);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lvSurge .lvCard,
+  .lvSurge .lvCard::before,
+  .lvSurge .lvCard::after,
+  #lvFlare.on {
+    animation: none;
+  }
+}
 #level.waits {
   border-color: #e8c878;
   box-shadow: 0 0 8px rgba(232, 200, 120, 0.7);

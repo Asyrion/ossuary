@@ -67,7 +67,9 @@ test(
     await expect(detail).toContainText('Grave obol');
     // the mage's numbers
     await page.keyboard.press('KeyE');
-    await expect(page.locator('#invList .tile', { hasText: 'Mana' }).first()).toContainText('of 140');
+    await expect(page.locator('#invList .tile', { hasText: 'Mana', hasNotText: 'Mana Infused' }).first()).toContainText(
+      'of 140',
+    );
     // I closes it and the game goes on; from the pause menu it comes back to the pause menu
     await page.keyboard.press('KeyI');
     await expect(inv).toBeHidden();

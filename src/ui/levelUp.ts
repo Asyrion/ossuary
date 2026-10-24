@@ -32,6 +32,7 @@ let open = false,
   cards: Card[] = [],
   chosen = 0,
   lockUntil = 0,
+  surgeAt = -Infinity,
   mode: 'level' | 'bargain' = 'level';
 let actions: { pause(): void; resume(): void } = {
   pause: () => {},
@@ -53,6 +54,7 @@ export const offerNow = () => ({
   level: levelNow(),
   pending: G.run.pending,
   chosen,
+  surge: $('lvCards').classList.contains('lvSurge'),
   cards: cards.map((c) => ({ ...c })),
 });
 
@@ -83,6 +85,7 @@ export function openBargainDeal(school: School) {
   cards = dealNow(school);
   chosen = 0;
   phase = 'boon';
+  surge();
   render();
   lock();
   return true;
@@ -110,8 +113,26 @@ function deal() {
     done();
     return;
   }
+  if (phase === 'boon') surge();
   render();
   lock();
+}
+/** Motion is the system's to refuse: then no surge and no flare (the choice is the same). */
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** A deal of traits shown: the mana surge rises through its cards from now (style.css, `.lvSurge`). */
+function surge() {
+  surgeAt = still() ? -Infinity : performance.now();
+}
+/** The trait taken flares where its card stood, over whatever comes next (the point's page, or the room again). */
+function flare() {
+  const card = $('lvCards').querySelector(`.lvCard[data-i="${chosen}"]`),
+    f = $('lvFlare');
+  if (!card || still()) return;
+  const r = card.getBoundingClientRect();
+  Object.assign(f.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  f.classList.remove('on');
+  void f.offsetWidth; // (a reflow, so the flare starts over when two are taken in quick turn)
+  f.classList.add('on');
 }
 /** Choices wait a moment once shown (counted from when the cards are drawn: the first draw of a sigil takes a while). */
 function lock() {
@@ -131,6 +152,7 @@ function take() {
   if (phase === 'boon') {
     const c = cards[chosen];
     if (!c) return;
+    flare();
     if (mode === 'bargain') {
       Sfx.cardTake();
       close();
@@ -183,7 +205,11 @@ function render() {
     : phase === 'boon'
       ? L().chooseBoon
       : L().choosePoint(pointsHere());
-  const box = $('lvCards');
+  const box = $('lvCards'),
+    surging = phase === 'boon' && surgeAt > -Infinity;
+  box.classList.toggle('lvSurge', surging);
+  // (a page redrawn mid-surge keeps the surge's clock; one drawn after it ends shows nothing more)
+  if (surging) box.style.setProperty('--surge-at', `${-(performance.now() - surgeAt)}ms`);
   if (phase === 'boon') {
     box.innerHTML = cards
       .map((c, k) => {
