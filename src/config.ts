@@ -1382,9 +1382,21 @@ export const CFG = {
     kaelith: { lean: 0.12, bow: 0.2, spread: [0.25, 0.1] as [number, number] },
     angler: { swim: [1.3, 0.08] as [number, number], rear: 0.35, swell: 0.08 },
   },
-  // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels (below and from `tall` window pixels high), and a
-  // spell's icon in pixels across, made pixel art (render/pixelIcons.ts), and the purse's obol in pixels across
-  hud: { pixel: [2, 3] as [number, number], tall: 900, spellIcon: 16, coin: 12 },
+  // the HUD (ui/hud.ts, art bible 4.6): its pixel in screen pixels and its text's scale (below and from `tall` window
+  // pixels high: the CSS's `--u` and `--t`, set from here), a spell's icon in pixels across, made pixel art
+  // (render/pixelIcons.ts), the mana vial's liquid in pixels across (as tools/hud/hudart.py draws the vial), the map's
+  // size in pixels and a room cell on it (across, down, the gap between cells), the steps a spell's cooldown drains in,
+  // and how long a spell's ready flash shows (seconds; its frame is the CSS's)
+  hud: {
+    pixel: [1, 2] as [number, number],
+    text: [1, 1.5] as [number, number],
+    tall: 900,
+    spellIcon: 30,
+    vial: 158,
+    map: { w: 104, h: 72, cell: [12, 8, 2] as [number, number, number] },
+    cdSteps: 16,
+    ready: 0.3,
+  },
   // alchemy (items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the

@@ -16,7 +16,7 @@
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-/* (one look, dark, whatever the system's theme: the vault's panels are stone and brass, art bible 4.6) */
+/* (one look, dark, whatever the system's theme: the HUD's glass and gold, art bible 4.6) */
 *,
 *::before,
 *::after {
@@ -102,163 +102,423 @@ body {
   inset: 0;
   pointer-events: none;
 }
-/* the HUD in framed panels of brass and stone (art bible 4.6, variant B), each pixel of its frames and icons --u screen
-   pixels (ui/hud.ts hudPixel: CFG.hud, about the room's pixel); a frame is a nine-slice of pixel art (tools/art/hudframe.py) */
+/* the HUD (art bible 4.6, "arcane glass, held back"): glass and gold for what counts (the hearts and the mana top left,
+   the spells, the level and the belt bottom centre, and the cards), a stepped, dithered dark backing for the rest (the
+   purse, the map, the chips, the artifacts, the toasts). Each pixel of its pictures is --u screen pixels and its text
+   scales by --t, both set from CFG.hud by ui/hud.ts (one HUD pixel a screen pixel at 720 lines, two from 900); the
+   pictures are drawn by tools/hud/hudart.py into public/assets/hud/. Motion only in held frames (steps), no blur. */
 :root {
-  --u: 2px;
+  --out: #120f18;
+  --glass0: #161826;
+  --glass: #1a1d2e;
+  --glass2: #2b3047;
+  --glass3: #434a6a;
+  --glass4: #6a7396;
+  --gold1: #6e5446;
+  --gold2: #b8956a;
+  --gold3: #f2d49a;
+  --gold4: #fff6d8;
+  --mana0: #1c2e6e;
+  --mana1: #2f5cb8;
+  --mana2: #4a86e8;
+  --mana3: #9fd0ff;
+  --mana4: #e6f4ff;
+  --jade: #5fa38a;
+  --jade3: #a8e0c0;
+  /* text kept legible over the room: a hard one-pixel outline, no soft shadow */
+  --edge:
+    var(--u) 0 var(--out), calc(var(--u) * -1) 0 var(--out), 0 var(--u) var(--out), 0 calc(var(--u) * -1) var(--out),
+    var(--u) var(--u) var(--out);
 }
-@media (min-height: 900px) {
-  :root {
-    --u: 3px;
-  }
-}
-.hpanel {
+.glass {
   position: absolute;
-  border: solid transparent;
-  border-width: calc(var(--u) * 4);
-  border-image: url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;
+  border: calc(var(--u) * 9) solid transparent;
+  border-image: url(/assets/hud/glass.png) 9 fill / calc(var(--u) * 9) stretch;
   image-rendering: pixelated;
-  padding: calc(var(--u) * 2);
+}
+.halo {
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  image-rendering: pixelated;
 }
 #pVitals {
-  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 6);
-  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 6);
+  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 8);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 8);
+  padding: var(--u) calc(var(--u) * 3) calc(var(--u) * 2);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 2);
+  gap: calc(var(--u) * 4);
 }
 #pBar {
+  position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--u) * 6);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--u) * 10);
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  gap: calc(var(--u) * 8);
 }
 #pTop {
   position: absolute;
-  right: calc(env(safe-area-inset-right, 0px) + var(--u) * 6);
-  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 6);
+  right: calc(env(safe-area-inset-right, 0px) + var(--u) * 4);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 4);
   display: flex;
   align-items: flex-start;
-  gap: calc(var(--u) * 3);
-}
-#pTop .hpanel {
-  position: static;
+  gap: 0;
 }
 #pPurse {
-  padding: calc(var(--u) * 2) calc(var(--u) * 3);
+  padding: 0 calc(var(--u) * 2);
 }
 #pMap {
-  padding: var(--u);
+  padding: 0;
 }
 #items:empty,
 #afflict:empty {
   display: none;
 }
+/* the hearts: rubies in gold settings, a frame each of hearts.png (row 0: full, half, empty, the pale, black and
+   hallowed motes, Vigor's half container full and empty; rows 1 to 3: a heart's crack, full to empty, full to half,
+   half to empty, five held frames) */
 #hearts {
   display: flex;
-  align-items: flex-end;
-  gap: var(--u);
+  align-items: center;
+  gap: calc(var(--u) * 2);
 }
-#hearts svg {
+#hearts .ht {
   display: block;
+  flex: none;
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 26);
+  background: url(/assets/hud/hearts.png) 0 0 / calc(var(--u) * 224) calc(var(--u) * 104) no-repeat;
+  image-rendering: pixelated;
 }
-#hearts svg.half {
-  margin-right: 0;
-} /* Vigor's half container: its left half alone */
-#hearts svg.soul {
-  filter: drop-shadow(0 0 calc(var(--u) * 2) rgba(200, 220, 255, 0.35));
+#hearts .ht.f1 {
+  background-position-x: calc(var(--u) * -28);
 }
-#hearts svg.soul.black {
-  filter: drop-shadow(0 0 calc(var(--u) * 2) rgba(162, 102, 255, 0.5));
+#hearts .ht.f0 {
+  background-position-x: calc(var(--u) * -56);
 }
-#hearts svg.soul.hallowed {
-  filter: drop-shadow(0 0 calc(var(--u) * 2) rgba(255, 227, 154, 0.5));
+#hearts .ht.soul.pale {
+  background-position-x: calc(var(--u) * -84);
+}
+#hearts .ht.soul.black {
+  background-position-x: calc(var(--u) * -112);
+}
+#hearts .ht.soul.hallowed {
+  background-position-x: calc(var(--u) * -140);
+}
+#hearts .ht.half {
+  width: calc(var(--u) * 16);
+  background-position-x: calc(var(--u) * -168);
+} /* (Vigor's half container: a half setting) */
+#hearts .ht.half.f0 {
+  background-position-x: calc(var(--u) * -196);
+}
+#hearts .ht.c20 {
+  animation: htCrack20 0.4s steps(5, end);
+}
+#hearts .ht.c21 {
+  animation: htCrack21 0.4s steps(5, end);
+}
+#hearts .ht.c10 {
+  animation: htCrack10 0.4s steps(5, end);
+} /* (the frames' row only while it plays: then the heart as it is left) */
+@keyframes htCrack20 {
+  from {
+    background-position: 0 calc(var(--u) * -26);
+  }
+  to {
+    background-position: calc(var(--u) * -140) calc(var(--u) * -26);
+  }
+}
+@keyframes htCrack21 {
+  from {
+    background-position: 0 calc(var(--u) * -52);
+  }
+  to {
+    background-position: calc(var(--u) * -140) calc(var(--u) * -52);
+  }
+}
+@keyframes htCrack10 {
+  from {
+    background-position: 0 calc(var(--u) * -78);
+  }
+  to {
+    background-position: calc(var(--u) * -140) calc(var(--u) * -78);
+  }
+}
+/* the mana vial (vial.png: the glass and its gold caps; its liquid the CSS's, in the mana's four blues, filled in whole
+   HUD pixels by ui/hud.ts), a stepped shimmer and two bubbles in it, its number beside it */
+#manaRow {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 4);
 }
 #mana {
   position: relative;
-  width: calc(var(--u) * 64);
-  height: calc(var(--u) * 6);
-  border: solid transparent;
-  border-width: calc(var(--u) * 2);
-  border-image: url(/assets/hud/bar.png) 2 fill / calc(var(--u) * 2) stretch;
+  flex: none;
+  width: calc(var(--u) * 176);
+  height: calc(var(--u) * 18);
+  background: url(/assets/hud/vial.png) 0 0 / 100% 100% no-repeat;
   image-rendering: pixelated;
-  overflow: hidden;
-  box-sizing: content-box;
 }
+#mana::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--u) * 9);
+  top: calc(var(--u) * 4);
+  width: calc(var(--u) * 158);
+  height: calc(var(--u) * 10);
+  background: var(--glass0);
+} /* (the empty glass) */
 #mana i {
+  position: absolute;
+  left: calc(var(--u) * 9);
+  top: calc(var(--u) * 4);
+  width: 0;
+  height: calc(var(--u) * 10);
+  overflow: hidden;
+  background: linear-gradient(
+    var(--mana3) 0 var(--u),
+    var(--mana2) 0 calc(var(--u) * 5),
+    var(--mana1) 0 calc(var(--u) * 8),
+    var(--mana0) 0
+  );
+  box-shadow: inset calc(var(--u) * -1) 0 0 var(--mana4);
+}
+#mana i::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--u) * -6);
+  top: var(--u);
+  width: calc(var(--u) * 3);
+  height: calc(var(--u) * 6);
+  background: rgba(230, 244, 255, 0.55);
+  animation: vialShimmer 2.6s steps(40, end) infinite;
+}
+#mana i::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--u) * 40);
+  top: calc(var(--u) * 8);
+  width: var(--u);
+  height: var(--u);
+  background: var(--mana4);
+  box-shadow: calc(var(--u) * 31) calc(var(--u) * 1) var(--mana4);
+  animation: vialBubble 1.8s steps(6, end) infinite;
+}
+@keyframes vialShimmer {
+  to {
+    transform: translateX(calc(var(--u) * 168));
+  }
+}
+@keyframes vialBubble {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(calc(var(--u) * -6));
+    opacity: 0;
+  }
+}
+#mana.flash i {
+  background: linear-gradient(
+    #ffb0a0 0 var(--u),
+    #e05a4a 0 calc(var(--u) * 5),
+    #a8281d 0 calc(var(--u) * 8),
+    #5a140e 0
+  );
+}
+#mana.hexed i {
+  background: linear-gradient(
+    #e0c0ff 0 var(--u),
+    #9a5ae8 0 calc(var(--u) * 5),
+    #6a2ab8 0 calc(var(--u) * 8),
+    #3a1670 0
+  );
+}
+#mana.hexed::before {
+  box-shadow: 0 0 0 var(--u) #b784ff;
+}
+#manaNum {
+  min-width: calc(var(--t) * 24px);
+  font: 800 calc(var(--t) * 14px) / 1 var(--f-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--mana3);
+  text-shadow: var(--edge);
+}
+/* the insight thread under the vial (verdigris, pale at the cap) */
+#insight {
+  margin-left: calc(var(--u) * 9);
+  width: calc(var(--u) * 158);
+  height: calc(var(--u) * 2);
+  background: #11131f;
+  overflow: hidden;
+}
+#insight i {
   display: block;
   height: 100%;
   width: 100%;
-  background: linear-gradient(#9fd0ff 0 calc(var(--u) * 2), #4a86e8 0 calc(var(--u) * 4), #2f5cb8 0);
+  background: linear-gradient(var(--jade3) 0 var(--u), var(--jade) 0);
+  transform: scaleX(0);
   transform-origin: left;
-  transition: background 0.2s;
+  transition: transform 0.25s steps(5, end);
 }
-#mana.flash i {
-  background: linear-gradient(#ffb0a0 0 calc(var(--u) * 2), #e05a4a 0 calc(var(--u) * 4), #a8281d 0);
+#insight.cap i {
+  background: var(--jade3);
 }
-#mana.hexed i {
-  background: linear-gradient(#e0c0ff 0 calc(var(--u) * 2), #9a5ae8 0 calc(var(--u) * 4), #6a2ab8 0);
-}
-#mana.hexed {
-  box-shadow: 0 0 calc(var(--u) * 4) rgba(183, 132, 255, 0.85);
-}
-/* the level-up screen: three boon cards (then four attributes) side by side, the chosen one lit in its colour */
+/* the level-up screen: three boon cards (then four attributes) side by side as glass cards (card.png) under a gold crest,
+   the boon's sigil in a medallion; the chosen one stands up a little, a ring round it breathing in held frames and a
+   glint running along its top. The title between two gold flourishes, over the room dimmed (no card round it). */
 #scrLevel {
   justify-content: center;
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(8, 8, 16, 0.74);
 }
 .card.lvUp {
-  max-width: 880px;
+  max-width: calc(600px + var(--u) * 280);
   width: 100%;
+  border: 0;
+  border-image: none;
+  background: none;
+  text-align: center;
+}
+.card.lvUp h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 10);
+  font-weight: 700;
+  font-size: calc(var(--t) * 30px);
+  letter-spacing: 0.06em;
+  color: var(--gold3);
+  text-shadow: var(--edge);
+}
+.card.lvUp h2::before,
+.card.lvUp h2::after {
+  content: '';
+  flex: none;
+  width: calc(var(--u) * 60);
+  height: calc(var(--u) * 22);
+  background: url(/assets/hud/wing.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+}
+.card.lvUp h2::before {
+  transform: scaleX(-1);
+}
+.card.lvUp p.place {
+  color: var(--mana3);
+  margin-inline: auto;
+  font-size: calc(var(--t) * 13px);
+}
+.card.lvUp p.small {
+  margin-inline: auto;
+  font-size: calc(var(--t) * 14px);
 }
 .lvCards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
-  margin: 6px 0 4px;
+  grid-template-columns: repeat(auto-fit, minmax(calc(150px + var(--u) * 60), 1fr));
+  gap: calc(var(--u) * 24);
+  margin: calc(var(--u) * 34) 0 calc(var(--u) * 6);
+  text-align: center;
+}
+.lvSlot {
+  position: relative;
+  display: flex;
+}
+.lvSlot .crest {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: calc(var(--u) * -21);
+  width: calc(var(--u) * 52);
+  height: calc(var(--u) * 22);
+  transform: translateX(-50%);
+  background: url(/assets/hud/crest.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.lvSlot.sel {
+  transform: translateY(calc(var(--u) * -8));
+}
+.lvSlot.sel::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--u) * -5);
+  border: calc(var(--u) * 2) solid var(--mana3);
+  pointer-events: none;
+  animation: lvBreathe 1.2s steps(1, end) infinite;
+}
+.lvSlot.sel::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: calc(var(--u) * 10);
+  width: calc(var(--u) * 18);
+  height: var(--u);
+  background: var(--gold4);
+  pointer-events: none;
+  animation: lvGlint 2.4s steps(30, end) infinite;
+}
+@keyframes lvBreathe {
+  50% {
+    border-color: var(--mana2);
+    inset: calc(var(--u) * -6);
+  }
+}
+@keyframes lvGlint {
+  60%,
+  100% {
+    left: calc(100% - var(--u) * 28);
+  }
 }
 .lvCard {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: calc(var(--u) * 4);
   text-align: center;
-  padding: 14px 12px 12px;
-  border: 1px solid #3a2f24;
-  border-top: 3px solid var(--c);
-  border-radius: 3px;
-  background: #17120e;
-  color: #e8dcc2;
+  padding: calc(var(--u) * 12) calc(var(--u) * 6) calc(var(--u) * 6);
+  border: calc(var(--u) * 13) solid transparent;
+  border-image: url(/assets/hud/card.png) 13 fill / calc(var(--u) * 13) stretch;
+  image-rendering: pixelated;
+  background: none;
+  color: var(--ink);
   cursor: pointer;
-  font: 15px/1.35 var(--f-ui);
-  min-height: 220px;
-}
-.lvCard[aria-selected='true'] {
-  border-color: var(--c);
-  box-shadow:
-    0 0 0 1px var(--c),
-    0 0 18px color-mix(in srgb, var(--c) 45%, transparent);
-  background: #221a13;
+  font: calc(var(--t) * 15px) / 1.35 var(--f-ui);
+  min-height: calc(160px + var(--u) * 140);
 }
 .lvCard img {
-  width: 72px;
-  height: 72px;
+  box-sizing: content-box;
+  width: calc(24px + var(--u) * 24);
+  height: calc(24px + var(--u) * 24);
+  padding: calc(var(--u) * 2);
+  border: calc(var(--u) * 11) solid transparent;
+  border-image: url(/assets/hud/medallion.png) 11 fill / calc(var(--u) * 11) stretch;
   image-rendering: pixelated;
-}
+} /* (the boon's 24 px sigil in whole steps, 2x and 3x) */
 .lvCard b {
-  font: 400 22px var(--f-display);
-  color: var(--c);
+  margin-top: calc(var(--u) * 4);
+  font: 700 calc(var(--t) * 20px) var(--f-display);
+  color: var(--gold4);
+  text-shadow: var(--edge);
 }
 .lvCard small {
-  font-size: 12px;
-  letter-spacing: 0.12em;
+  font-size: calc(var(--t) * 11px);
+  font-weight: 800;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #a99b80;
+  color: var(--c);
+}
+.lvCard span {
+  padding-top: calc(var(--u) * 10);
+  background: linear-gradient(var(--gold2) 0 0) top center / 60% var(--u) no-repeat;
 }
 .lvCard em {
   font-style: normal;
-  font-size: 12px;
+  font-size: calc(var(--t) * 12px);
   font-weight: 700;
   color: var(--c);
 }
@@ -266,19 +526,19 @@ body {
   color: #e05a4a;
 }
 .lvCard i {
-  font: italic 14px/1.35 var(--f-serif);
-  color: #a99b80;
+  font: italic 500 calc(var(--t) * 13px) / 1.3 var(--f-ui);
+  color: #8f97b8;
   margin-top: auto;
 }
 #lvSub {
   max-width: none;
 }
 .lvAttr {
-  min-height: 150px;
+  min-height: calc(110px + var(--u) * 60);
 }
-/* the mana surge (Mana Infused Traits, ui/levelUp.ts): as a deal of traits is shown, a band of the mana bar's three blues
+/* the mana surge (Mana Infused Traits, ui/levelUp.ts): as a deal of traits is shown, a band of the mana vial's three blues
    rises through each card with a few motes, its edge pulsing; the trait taken flares (#lvFlare) as the page turns. Held
-   frames (steps), hard pixels at the HUD's --u, the mana bar's own tones, no blur. `--surge-at` (set as each page is
+   frames (steps), hard pixels at the HUD's --u, the vial's own tones, no blur. `--surge-at` (set as each page is
    drawn) keeps a card redrawn by an arrow mid-surge on the surge's clock, so it never starts over. */
 :root {
   --lvSurge: 0.42s;
@@ -288,10 +548,10 @@ body {
   position: relative;
   overflow: hidden;
 }
-.lvCard:nth-child(2) {
+.lvSlot:nth-child(2) .lvCard {
   --lvK: 60ms;
 }
-.lvCard:nth-child(3) {
+.lvSlot:nth-child(3) .lvCard {
   --lvK: 120ms;
 }
 .lvSurge .lvCard,
@@ -312,7 +572,7 @@ body {
   right: 0;
   top: 100%;
   height: calc(var(--u) * 6);
-  background: linear-gradient(#9fd0ff 0 calc(var(--u) * 2), #4a86e8 0 calc(var(--u) * 4), #2f5cb8 0);
+  background: linear-gradient(var(--mana3) 0 calc(var(--u) * 2), var(--mana2) 0 calc(var(--u) * 4), var(--mana1) 0);
   opacity: 0.55;
   pointer-events: none;
   animation-name: lvRise;
@@ -325,16 +585,16 @@ body {
   bottom: 0;
   width: var(--u);
   height: var(--u);
-  background: #9fd0ff;
+  background: var(--mana3);
   box-shadow:
-    calc(var(--u) * -34) calc(var(--u) * -6) #4a86e8,
-    calc(var(--u) * -24) calc(var(--u) * -15) #9fd0ff,
-    calc(var(--u) * -14) calc(var(--u) * -3) #4a86e8,
-    calc(var(--u) * -5) calc(var(--u) * -20) #9fd0ff,
-    calc(var(--u) * 9) calc(var(--u) * -9) #4a86e8,
-    calc(var(--u) * 19) calc(var(--u) * -2) #9fd0ff,
-    calc(var(--u) * 28) calc(var(--u) * -17) #4a86e8,
-    calc(var(--u) * 36) calc(var(--u) * -7) #9fd0ff;
+    calc(var(--u) * -34) calc(var(--u) * -6) var(--mana2),
+    calc(var(--u) * -24) calc(var(--u) * -15) var(--mana3),
+    calc(var(--u) * -14) calc(var(--u) * -3) var(--mana2),
+    calc(var(--u) * -5) calc(var(--u) * -20) var(--mana3),
+    calc(var(--u) * 9) calc(var(--u) * -9) var(--mana2),
+    calc(var(--u) * 19) calc(var(--u) * -2) var(--mana3),
+    calc(var(--u) * 28) calc(var(--u) * -17) var(--mana2),
+    calc(var(--u) * 36) calc(var(--u) * -7) var(--mana3);
   opacity: 0;
   pointer-events: none;
   animation-name: lvMotes;
@@ -342,20 +602,16 @@ body {
 }
 @keyframes lvPulse {
   0% {
-    border-color: #2f5cb8;
-    box-shadow: 0 0 0 var(--u) #2f5cb8;
+    box-shadow: 0 0 0 var(--u) var(--mana1);
   }
   25% {
-    border-color: #4a86e8;
-    box-shadow: 0 0 0 calc(var(--u) * 2) #4a86e8;
+    box-shadow: 0 0 0 calc(var(--u) * 2) var(--mana2);
   }
   50% {
-    border-color: #9fd0ff;
-    box-shadow: 0 0 0 calc(var(--u) * 2) #9fd0ff;
+    box-shadow: 0 0 0 calc(var(--u) * 2) var(--mana3);
   }
   75% {
-    border-color: #4a86e8;
-    box-shadow: 0 0 0 var(--u) #2f5cb8;
+    box-shadow: 0 0 0 var(--u) var(--mana1);
   }
 }
 @keyframes lvRise {
@@ -390,24 +646,24 @@ body {
     opacity: 1;
     background: rgba(159, 208, 255, 0.35);
     box-shadow:
-      inset 0 0 0 calc(var(--u) * 2) #9fd0ff,
-      0 0 0 var(--u) #4a86e8;
+      inset 0 0 0 calc(var(--u) * 2) var(--mana3),
+      0 0 0 var(--u) var(--mana2);
     outline: var(--u) solid transparent;
   }
   33% {
     opacity: 1;
     background: rgba(74, 134, 232, 0.2);
     box-shadow:
-      inset 0 0 0 var(--u) #4a86e8,
-      0 0 0 calc(var(--u) * 2) #9fd0ff;
-    outline: var(--u) solid #4a86e8;
+      inset 0 0 0 var(--u) var(--mana2),
+      0 0 0 calc(var(--u) * 2) var(--mana3);
+    outline: var(--u) solid var(--mana2);
     outline-offset: calc(var(--u) * 4);
   }
   66% {
     opacity: 1;
     background: transparent;
     box-shadow: none;
-    outline: var(--u) solid #2f5cb8;
+    outline: var(--u) solid var(--mana1);
     outline-offset: calc(var(--u) * 8);
   }
   100% {
@@ -418,110 +674,126 @@ body {
   .lvSurge .lvCard,
   .lvSurge .lvCard::before,
   .lvSurge .lvCard::after,
+  .lvSlot.sel::before,
+  .lvSlot.sel::after,
   #lvFlare.on {
     animation: none;
   }
+  .lvSlot.sel::after {
+    display: none;
+  }
 }
-#level.waits {
-  border-color: #e8c878;
-  box-shadow: 0 0 8px rgba(232, 200, 120, 0.7);
-}
-/* the insight strip under the mana bar (gold, full at the cap) and the level beside the spell slots */
-#insight {
-  width: calc(var(--u) * 64);
-  height: var(--u);
-  margin-top: calc(var(--u) * -1);
-  background: #0b0910;
-  overflow: hidden;
-}
-#insight i {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: #e8c878;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s;
-}
-#insight.cap i {
-  background: #fff0c0;
-}
+/* the level as a jade gem between the spells (levelgem.png: the gem, then lit while a level's choice waits) */
 #level {
   position: relative;
-  width: calc(var(--u) * 14);
-  height: calc(var(--u) * 18);
-  border: solid transparent;
-  border-width: calc(var(--u) * 3);
-  border-image: url(/assets/hud/slot.png) 3 fill / calc(var(--u) * 3) stretch;
+  flex: none;
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 34);
+  margin-bottom: calc(var(--u) * 10);
+  background: url(/assets/hud/levelgem.png) 0 0 / calc(var(--u) * 56) calc(var(--u) * 34) no-repeat;
   image-rendering: pixelated;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   line-height: 1;
-  color: #e8c878;
-  text-shadow: 0 1px 0 #000;
-  box-sizing: content-box;
+  color: var(--gold4);
+}
+#level.waits {
+  animation: gemWaits 0.8s steps(1, end) infinite;
+}
+@keyframes gemWaits {
+  0%,
+  49% {
+    background-position-x: calc(var(--u) * -28);
+  }
 }
 #level small {
-  font: 700 calc(var(--u) * 3) var(--f-ui);
-  letter-spacing: 0.06em;
+  position: absolute;
+  top: calc(var(--t) * -12px);
+  left: 50%;
+  transform: translateX(-50%);
+  font: 800 calc(var(--t) * 9px) var(--f-ui);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #b8a07a;
+  color: var(--gold3);
+  text-shadow: var(--edge);
 }
 #level b {
-  font: 700 calc(var(--u) * 7) var(--f-display);
+  font: 700 calc(var(--t) * 16px) var(--f-display);
+  text-shadow: var(--edge);
 }
+/* what holds the mage (ui/afflictions.ts): words on the dithered backing, each with a pip in its colour */
 #afflict {
   position: absolute;
-  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 6);
-  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 36);
+  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 4);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 82);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--u);
+  gap: calc(var(--u) * 2) calc(var(--u) * 8);
   max-width: 46vw;
+  padding: 0 calc(var(--u) * 2);
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  image-rendering: pixelated;
   pointer-events: none;
 }
 #afflict span {
-  font: 600 11px var(--f-ui);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 3);
+  font: 800 calc(var(--t) * 12px) var(--f-ui);
   color: #efe6d6;
-  background: rgba(10, 8, 16, 0.72);
-  border: 1px solid rgba(0, 0, 0, 0.6);
-  border-left: 3px solid var(--c);
-  border-radius: 2px;
-  padding: 1px 6px 2px;
-  text-shadow: 0 1px 1px #000;
+  text-shadow: var(--edge);
   white-space: nowrap;
 }
+#afflict span::before {
+  content: '';
+  flex: none;
+  width: calc(var(--u) * 3);
+  height: calc(var(--u) * 3);
+  background: var(--c);
+  box-shadow:
+    0 calc(var(--u) * -2) 0 calc(var(--u) * -1) var(--c),
+    0 calc(var(--u) * 2) 0 calc(var(--u) * -1) var(--c),
+    calc(var(--u) * -2) 0 0 calc(var(--u) * -1) var(--c),
+    calc(var(--u) * 2) 0 0 calc(var(--u) * -1) var(--c),
+    0 0 0 var(--u) var(--out);
+} /* (a little cross of its colour) */
+/* the spells: two octagonal medallions (medallion.png, a nine-slice; lit as a spell comes ready, red when a cast is
+   refused), the icon inside, the key on a glass tab at the corner, the cost in mana blue; the cooldown a veil that
+   drains in steps (ui/hud.ts) */
 #spells {
   display: flex;
-  gap: calc(var(--u) * 2);
-  align-items: center;
+  gap: calc(var(--u) * 8);
+  align-items: flex-end;
 }
 #spells .slot {
   position: relative;
-  width: calc(var(--u) * 18);
-  height: calc(var(--u) * 18);
-  border: solid transparent;
-  border-width: calc(var(--u) * 3);
-  border-image: url(/assets/hud/slot.png) 3 fill / calc(var(--u) * 3) stretch;
+  flex: none;
+  width: calc(var(--u) * 32);
+  height: calc(var(--u) * 32);
+  border: calc(var(--u) * 11) solid transparent;
+  border-image: url(/assets/hud/medallion.png) 11 fill / calc(var(--u) * 11) stretch;
   image-rendering: pixelated;
-  overflow: hidden;
   box-sizing: content-box;
+}
+#spells .slot.ready {
+  border-image-source: url(/assets/hud/medallion_lit.png);
+}
+#spells .slot.flash {
+  border-image-source: url(/assets/hud/medallion_red.png);
 }
 #spells .slot svg {
   position: absolute;
-  inset: calc(var(--u) * 1);
-  width: calc(var(--u) * 16);
-  height: calc(var(--u) * 16);
-  filter: drop-shadow(0 0 5px currentColor);
+  inset: calc(var(--u) * 4);
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
 }
 #spells .slot img.icon {
   position: absolute;
   left: 0;
   top: 0;
-  width: calc(var(--u) * 18);
-  height: calc(var(--u) * 18);
+  width: calc(var(--u) * 32);
+  height: calc(var(--u) * 32);
   image-rendering: pixelated;
 }
 #spells .slot .cd {
@@ -529,176 +801,184 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(17, 19, 31, 0.74);
 }
 #spells .slot b {
   position: absolute;
-  left: 0;
-  top: -1px;
-  font: 700 calc(var(--u) * 5) var(--f-ui);
-  color: #e8dcc2;
-  text-shadow:
-    1px 1px 0 #000,
-    -1px 0 0 #000;
+  left: calc(var(--u) * -14);
+  top: calc(var(--u) * -15);
+  width: calc(var(--u) * 15);
+  height: calc(var(--u) * 15);
+  display: grid;
+  place-items: center;
+  background: var(--glass2);
+  box-shadow:
+    0 0 0 var(--u) var(--gold2),
+    0 0 0 calc(var(--u) * 2) var(--out);
+  font: 800 calc(var(--t) * 12px) / 1 var(--f-ui);
+  color: var(--gold4);
 }
 #spells .slot small {
   position: absolute;
-  right: 0;
-  bottom: -1px;
-  font: 700 calc(var(--u) * 5) var(--f-ui);
-  color: #9ec8ff;
-  text-shadow:
-    1px 1px 0 #000,
-    -1px 0 0 #000;
+  right: calc(var(--u) * -12);
+  bottom: calc(var(--u) * -14);
+  font: 800 calc(var(--t) * 13px) / 1 var(--f-ui);
+  color: var(--mana3);
+  text-shadow: var(--edge);
 }
 #spells .slot.empty {
   opacity: 0.45;
 }
-#spells .slot.poor svg {
+#spells .slot.poor img.icon,
+#spells .slot.poor svg:not(.blood) {
   opacity: 0.35;
-}
-#spells .slot.flash {
-  box-shadow:
-    0 0 0 var(--u) #e05a4a,
-    0 0 calc(var(--u) * 4) rgba(224, 90, 74, 0.8);
 }
 /* a pip for each place in the slot's socket (the rune's colour; hollow while empty), and Vein's half heart, lit
    while it would pay in blood */
 #spells .slot .pips {
   position: absolute;
-  right: 2px;
-  top: 2px;
+  right: calc(var(--u) * -9);
+  top: calc(var(--u) * -9);
   display: flex;
-  gap: 2px;
+  gap: calc(var(--u) * 2);
 }
 #spells .slot .pips i {
-  width: 5px;
-  height: 5px;
-  transform: rotate(45deg);
+  width: calc(var(--u) * 5);
+  height: calc(var(--u) * 5);
   background: var(--c);
-  box-shadow: 0 0 3px var(--c);
-  border: 1px solid #0b0504;
+  box-shadow: 0 0 0 var(--u) var(--out);
 }
 #spells .slot .pips i.hollow {
-  background: none;
-  box-shadow: none;
-  border-color: #8a7a62;
+  background: var(--glass0);
+  box-shadow:
+    inset 0 0 0 var(--u) var(--glass4),
+    0 0 0 var(--u) var(--out);
 }
 #spells .slot svg.blood {
   inset: auto;
-  left: 2px;
-  bottom: 2px;
-  width: 10px;
-  height: 10px;
-  filter: none;
+  left: calc(var(--u) * -9);
+  bottom: calc(var(--u) * -9);
+  width: calc(var(--u) * 10);
+  height: calc(var(--u) * 10);
   opacity: 0.35;
 }
 #spells .slot.vein svg.blood {
   opacity: 1;
-  filter: drop-shadow(0 0 3px #c42c1f);
 }
 #spells .slot.vein small {
   color: #ff8a7a;
 }
-/* the potion belt under the spell slots (a slot for each potion it holds, the chosen one lit, an unknown one marked;
-   its keys beside it); the bottles are 24 px pixel art, drawn at that size */
+/* the potion belt beside the spells: a gold-arched socket for each potion it holds (socket.png; lit, the chosen one),
+   an unknown one marked, its keys after; the bottles are 24 px pixel art, a HUD pixel each */
 #belt {
   display: flex;
-  align-items: center;
-  gap: var(--u);
-  margin-left: calc(var(--u) * 4);
+  align-items: flex-end;
+  gap: calc(var(--u) * 3);
+  margin-bottom: calc(var(--u) * 8);
 }
 #belt .bslot {
   position: relative;
-  width: calc(var(--u) * 14);
-  height: calc(var(--u) * 14);
-  border: solid transparent;
-  border-width: calc(var(--u) * 3);
-  border-image: url(/assets/hud/slot.png) 3 fill / calc(var(--u) * 3) stretch;
+  flex: none;
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 36);
+  background: url(/assets/hud/socket.png) 0 0 / calc(var(--u) * 60) calc(var(--u) * 36) no-repeat;
   image-rendering: pixelated;
-  display: grid;
-  place-items: center;
-  box-sizing: content-box;
-}
-#belt .bslot img {
-  width: calc(var(--u) * 12);
-  height: calc(var(--u) * 12);
 }
 #belt .bslot.on {
-  box-shadow:
-    0 0 0 var(--u) #e8dcc2,
-    0 0 calc(var(--u) * 3) rgba(232, 220, 194, 0.55);
+  background-position-x: calc(var(--u) * -30);
+}
+#belt .bslot img {
+  position: absolute;
+  left: calc(var(--u) * 3);
+  top: calc(var(--u) * 8);
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
 }
 #belt .bslot.empty {
   opacity: 0.4;
 }
 #belt .bslot i {
   position: absolute;
-  right: -1px;
-  bottom: -2px;
-  font: 700 calc(var(--u) * 5) var(--f-ui);
+  right: calc(var(--u) * -2);
+  top: calc(var(--u) * -4);
+  font: 800 calc(var(--t) * 12px) var(--f-ui);
   font-style: normal;
-  color: #e8dcc2;
-  text-shadow:
-    1px 1px 0 #000,
-    -1px 0 0 #000;
+  color: var(--gold3);
+  text-shadow: var(--edge);
 }
 #belt b {
-  margin-left: var(--u);
-  font: 700 calc(var(--u) * 4) var(--f-ui);
-  color: #9a8a70;
-  text-shadow: 1px 1px 0 #000;
+  align-self: center;
+  margin-left: calc(var(--u) * 2);
+  font: 800 calc(var(--t) * 10px) var(--f-ui);
+  letter-spacing: 0.06em;
+  color: var(--glass4);
+  text-shadow: var(--edge);
   white-space: nowrap;
 }
 img.px {
   image-rendering: pixelated;
 }
+/* the artifacts held, on the dithered backing: 24 px pixel art, a HUD pixel each (artifactIcons.ts); the focus
+   underlined in gold, a curse ringed red, a cleansed one ringed pale */
 #items {
   position: absolute;
-  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 6);
-  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 46);
+  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 4);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 104);
   display: flex;
-  gap: var(--u);
+  gap: calc(var(--u) * 4);
+  padding: 0 calc(var(--u) * 2);
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  image-rendering: pixelated;
 }
-/* artifact icons are 24-pixel pixel art (artifactIcons.ts): each box's content (border-box: less its padding and border) a whole multiple */
 #items svg {
-  width: 28px;
-  height: 28px;
-  padding: 2px;
-  filter: drop-shadow(0 0 6px rgba(255, 170, 60, 0.6));
+  display: block;
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
 }
 #items svg.focus {
-  border: 1px solid rgba(232, 220, 194, 0.45);
-  border-radius: 4px;
-  padding: 1px;
-  background: rgba(10, 8, 6, 0.45);
+  box-shadow: 0 calc(var(--u) * 2) 0 var(--gold3);
 }
 #items svg.cursed {
-  filter: drop-shadow(0 0 5px rgba(200, 30, 20, 0.9));
+  box-shadow: 0 0 0 var(--u) #c42c1f;
 }
 #items svg.cleansed {
-  filter: drop-shadow(0 0 5px rgba(240, 230, 200, 0.75));
+  box-shadow: 0 0 0 var(--u) #e8dcc0;
 }
+/* the purse on the dithered backing: the obol's face, the bone key and the glyph stone (key.png, glyph.png), two-digit
+   counts */
 #purse {
-  display: flex;
-  flex-direction: column;
-  gap: var(--u);
-  font: 700 calc(var(--u) * 7) var(--f-ui);
-  color: #efe2c3;
-  text-shadow: 1px 1px 0 #000;
+  display: grid;
+  grid-template-columns: calc(var(--u) * 24) auto;
+  gap: calc(var(--u) * 3) calc(var(--u) * 5);
+  align-items: center;
+  font: 800 calc(var(--t) * 15px) / 1 var(--f-ui);
+  color: var(--gold4);
+  text-shadow: var(--edge);
 }
 #purse span {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--u) * 2);
+  display: contents;
 }
 #purse svg {
   display: block;
-  flex: none;
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
 }
-#purse span > svg {
-  width: calc(var(--u) * 14);
-  height: auto;
+#purse i {
+  display: block;
+  justify-self: center;
+  background: 0 0 / 100% 100% no-repeat;
+  image-rendering: pixelated;
+}
+#purse .keys i {
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 8);
+  background-image: url(/assets/hud/key.png);
+}
+#purse .glyphs i {
+  width: calc(var(--u) * 18);
+  height: calc(var(--u) * 18);
+  background-image: url(/assets/hud/glyph.png);
 }
 #purse b {
   font-variant-numeric: tabular-nums;
@@ -712,89 +992,119 @@ img.px {
 }
 #minimap {
   display: block;
-  width: calc(var(--u) * 60);
-  height: calc(var(--u) * 44);
-  opacity: 0.92;
-}
+  image-rendering: pixelated;
+} /* (its size from CFG.hud.map: ui/hud.ts) */
+/* the boss bar at the top: the name in gold, the life a ruby in a glass trough with a gold rim, in whole steps */
 #bossbar {
   position: absolute;
   left: 50%;
-  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 6);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 8);
   transform: translateX(-50%);
-  width: min(440px, 60vw);
+  width: min(calc(var(--u) * 240), 60vw);
   text-align: center;
   opacity: 0;
-  transition: opacity 0.4s;
+  transition: opacity 0.4s steps(4, end);
 }
 #bossbar.on {
   opacity: 1;
 }
 #bossname {
-  font-family: var(--f-serif);
-  font-style: italic;
-  font-size: 18px;
-  color: #f0d9b4;
-  text-shadow: 0 2px 3px #000;
+  font: italic 500 calc(var(--t) * 18px) var(--f-serif);
+  color: var(--gold3);
+  text-shadow: var(--edge);
 }
 #bossbar .track {
-  margin-top: 4px;
-  height: 10px;
-  background: rgba(0, 0, 0, 0.65);
-  border: 1px solid #6b3024;
-  border-radius: 5px;
+  position: relative;
+  margin-top: calc(var(--u) * 4);
+  height: calc(var(--u) * 6);
+  background: var(--glass0);
+  box-shadow:
+    0 0 0 var(--u) var(--out),
+    0 0 0 calc(var(--u) * 2) var(--gold2),
+    0 0 0 calc(var(--u) * 3) var(--out);
   overflow: hidden;
 }
 #bossbar .fill {
   height: 100%;
   width: 100%;
-  background: linear-gradient(#c73a24, #7c1b12);
-  transition: width 0.15s;
-}
-#bossbar .track {
-  position: relative;
+  background: linear-gradient(#ff8a70 0 var(--u), #c73a24 0 calc(var(--u) * 4), #7c1b12 0);
+  transition: width 0.15s steps(3, end);
 }
 #bossbar .mark {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px;
-  margin-left: -1px;
-  background: #e8dcc8;
-  opacity: 0.75;
+  width: var(--u);
+  background: var(--gold4);
+  opacity: 0.85;
 }
+/* the banner: a floor's name in gold opening from the middle in steps, a line under it, a gold rule between two
+   flourishes */
 #banner {
   position: absolute;
   left: 50%;
   top: 22%;
-  transform: translate(-50%, -8px);
+  transform: translateX(-50%);
   text-align: center;
   opacity: 0;
-  transition:
-    opacity 0.35s,
-    transform 0.35s;
+  transition: opacity 0.35s steps(4, end);
   width: min(94vw, 860px);
 }
 #banner.on {
   opacity: 1;
-  transform: translate(-50%, 0);
+}
+#banner.on .t {
+  animation: bannerOpen 0.5s steps(8, end);
+}
+@keyframes bannerOpen {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
 }
 #banner .t {
-  font-family: var(--f-display);
-  font-size: clamp(26px, 3.8vw, 40px);
-  letter-spacing: 0.02em;
-  color: #f3e2bf;
+  font: 700 calc(var(--t) * 40px) / 1.1 var(--f-display);
+  letter-spacing: 0.1em;
+  color: var(--gold3);
   text-shadow:
-    0 3px 0 #000,
-    0 0 18px rgba(0, 0, 0, 0.8);
-  line-height: 1.1;
+    var(--edge),
+    0 calc(var(--u) * 3) 0 var(--out);
 }
 #banner .s {
-  font-family: var(--f-serif);
-  font-style: italic;
-  font-size: clamp(15px, 2.2vw, 20px);
-  color: #d8c7a4;
-  text-shadow: 0 2px 2px #000;
-  margin-top: 6px;
+  font: italic 500 calc(var(--t) * 18px) var(--f-serif);
+  color: #d8cfe6;
+  text-shadow: var(--edge);
+  margin-top: calc(var(--u) * 4);
+}
+#banner .s:empty {
+  display: none;
+}
+#banner .rule {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: calc(var(--u) * 8);
+}
+#banner .rule::before,
+#banner .rule::after {
+  content: '';
+  width: calc(var(--u) * 60);
+  height: calc(var(--u) * 22);
+  background: url(/assets/hud/wing.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+}
+#banner .rule::before {
+  transform: scaleX(-1);
+}
+#banner .rule {
+  background: linear-gradient(
+      var(--gold3) 0 var(--u),
+      var(--gold1) 0 calc(var(--u) * 2),
+      var(--out) 0 calc(var(--u) * 3)
+    )
+    center / min(calc(var(--u) * 280), 50vw) calc(var(--u) * 3) no-repeat;
 }
 #pauseBtn {
   position: absolute;
@@ -805,10 +1115,10 @@ img.px {
   display: none;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  border: 1px solid rgba(232, 220, 194, 0.35);
-  background: rgba(10, 8, 6, 0.45);
-  color: #e8dcc2;
+  border: calc(var(--u) * 4) solid transparent;
+  border-image: url(/assets/hud/button.png) 4 fill / calc(var(--u) * 4) stretch;
+  background: none;
+  color: var(--ink);
   font: 700 15px var(--f-ui);
   letter-spacing: 1px;
 }
@@ -818,17 +1128,16 @@ body.touch #pauseBtn {
 /* play-test aid: the dev menu's key, bottom left (not on touch screens, which have no keyboard) */
 #devHint {
   position: absolute;
-  left: calc(env(safe-area-inset-left, 0px) + 16px);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-  font: 500 15px var(--f-ui);
+  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 4);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--u) * 4);
+  font: 500 calc(var(--t) * 13px) var(--f-ui);
   font-variant-numeric: lining-nums;
-  color: #e8dcc2;
+  color: var(--ink);
   opacity: 0.85;
-  padding: 4px 10px;
-  background: rgba(10, 8, 6, 0.55);
-  border: 1px solid rgba(94, 77, 57, 0.8);
-  border-radius: 2px;
-  text-shadow: 0 1px 2px #000;
+  padding: 0 calc(var(--u) * 2);
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  text-shadow: var(--edge);
   letter-spacing: 0.02em;
 }
 body.touch #devHint,
@@ -837,17 +1146,16 @@ body.touch #devHint,
 }
 #fpsInfo {
   position: absolute;
-  left: calc(env(safe-area-inset-left, 0px) + 16px);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 50px);
-  font: 500 13px var(--f-ui);
+  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 4);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--u) * 4 + var(--t) * 34px);
+  font: 500 calc(var(--t) * 12px) var(--f-ui);
   font-variant-numeric: tabular-nums;
-  color: #e8dcc2;
+  color: var(--ink);
   opacity: 0.85;
-  padding: 3px 8px;
-  background: rgba(10, 8, 6, 0.55);
-  border: 1px solid rgba(94, 77, 57, 0.8);
-  border-radius: 2px;
-  text-shadow: 0 1px 2px #000;
+  padding: 0 calc(var(--u) * 2);
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  text-shadow: var(--edge);
 }
 #fpsInfo[hidden] {
   display: none;
@@ -896,15 +1204,15 @@ body.touch #devHint,
 .screen.hidden {
   display: none;
 }
+/* every screen's card is a glass card (card.png: a double gold hairline, a jewel at each corner), dark whatever the
+   system's theme; its titles in gold */
 .card {
   max-width: 560px;
   color: var(--ink);
-  border: solid transparent;
-  border-width: calc(var(--u) * 4);
-  border-image: url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;
+  border: calc(var(--u) * 13) solid transparent;
+  border-image: url(/assets/hud/card.png) 13 fill / calc(var(--u) * 13) stretch;
   image-rendering: pixelated;
-  padding: 24px 26px 22px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  padding: 18px 20px 16px;
 }
 .card * {
   image-rendering: auto;
@@ -916,6 +1224,8 @@ body.touch #devHint,
   line-height: 0.95;
   margin: 0 0 10px;
   letter-spacing: 0.01em;
+  color: var(--gold3);
+  text-shadow: 0 calc(var(--u) * 3) 0 var(--out);
 }
 .card h2 {
   font-family: var(--f-display);
@@ -923,6 +1233,8 @@ body.touch #devHint,
   font-size: clamp(32px, 5vw, 48px);
   line-height: 1;
   margin: 0 0 10px;
+  color: var(--gold3);
+  text-shadow: 0 calc(var(--u) * 2) 0 var(--out);
 }
 .card p {
   font-family: var(--f-serif);
@@ -935,15 +1247,16 @@ body.touch #devHint,
 .card p.place {
   font-family: var(--f-ui);
   font-size: 13px;
-  letter-spacing: 0.16em;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: var(--mana3);
   margin: -2px 0 14px;
 }
 .card p.small {
   font-family: var(--f-ui);
   font-size: 14px;
-  color: var(--ink-dim);
+  color: #8f97b8;
   margin: 16px 0 0;
   line-height: 1.4;
 }
@@ -962,6 +1275,7 @@ body.touch #devHint,
 }
 .controls .k {
   font-weight: 700;
+  color: var(--gold4);
 }
 .btns {
   display: flex;
@@ -980,7 +1294,7 @@ body.touch #devHint,
   color: var(--ink-dim);
 }
 .vols input {
-  accent-color: #c9a86a;
+  accent-color: var(--gold2);
   width: 100%;
 }
 .summary {
@@ -1003,6 +1317,7 @@ body.touch #devHint,
 }
 .summary .seed {
   letter-spacing: 0.12em;
+  color: var(--gold3);
   user-select: text;
   -webkit-user-select: text;
 }
@@ -1017,53 +1332,60 @@ body.touch #devHint,
 .carried li {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 16px;
   font-weight: 500;
 }
+/* a small icon in a sunken socket (the end screen's artifacts, the lore card's, the inventory's large one): hard rings,
+   no soft edge */
 .carried svg {
-  width: 30px;
-  height: 30px;
+  width: calc(var(--u) * 24);
+  height: calc(var(--u) * 24);
   flex: none;
-  padding: 3px;
-  border-radius: 4px;
-  background: #17110c;
+  background: var(--glass0);
+  box-shadow:
+    0 0 0 var(--u) var(--glass2),
+    0 0 0 calc(var(--u) * 2) var(--out);
+  margin: calc(var(--u) * 2);
 }
 .carried svg.focus {
-  outline: 1px solid var(--amber);
-  outline-offset: -1px;
+  box-shadow:
+    0 0 0 var(--u) var(--gold3),
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 .carried svg.cursed {
   box-shadow:
-    0 0 0 1px #b0201a,
-    0 0 6px rgba(200, 30, 20, 0.8);
+    0 0 0 var(--u) #c42c1f,
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 .carried svg.cleansed {
   box-shadow:
-    0 0 0 1px #cfc4a8,
-    0 0 6px rgba(240, 230, 200, 0.5);
+    0 0 0 var(--u) #e8dcc0,
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
+/* buttons and tabs: cut glass with a cool rim (button.png); the primary, a chosen tab and a hovered button a gold rim
+   (button_on.png) */
 button.act {
   font: 700 17px var(--f-ui);
-  padding: 12px 22px;
-  border-radius: 2px;
-  border: 1px solid var(--line);
-  background: transparent;
+  padding: 8px 18px;
+  border: calc(var(--u) * 4) solid transparent;
+  border-image: url(/assets/hud/button.png) 4 fill / calc(var(--u) * 4) stretch;
+  image-rendering: pixelated;
+  background: none;
   color: var(--ink);
   cursor: pointer;
   min-height: 44px;
 }
 button.act.primary {
-  background: var(--amber);
-  border-color: #b77a2a;
-  color: var(--amber-ink);
+  border-image-source: url(/assets/hud/button_on.png);
+  color: var(--gold4);
 }
 button.act:hover {
-  filter: brightness(1.08);
+  border-image-source: url(/assets/hud/button_on.png);
 }
 button:focus-visible {
-  outline: 3px solid var(--amber);
-  outline-offset: 3px;
+  outline: calc(var(--u) * 2) solid var(--gold3);
+  outline-offset: calc(var(--u) * 2);
 }
 #rotate {
   position: fixed;
@@ -1098,136 +1420,145 @@ body.touch.portrait #rotate {
 #drop.on {
   display: flex;
 }
-/* the lore card: centred, a little below the middle of the screen (clear of the banner above and the toast below) */
+/* the lore card (a thing found): a glass panel, centred, a little below the middle of the screen (clear of the banner
+   above and the toast below) */
 #lore {
-  border: solid transparent;
-  border-width: calc(var(--u) * 4);
-  border-image: url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;
+  border: calc(var(--u) * 9) solid transparent;
+  border-image: url(/assets/hud/glass.png) 9 fill / calc(var(--u) * 9) stretch;
+  image-rendering: pixelated;
   position: absolute;
   left: 50%;
   top: 60%;
-  width: min(440px, 80vw);
+  width: min(calc(300px + var(--u) * 140), 80vw);
   display: flex;
-  gap: 14px;
+  gap: calc(var(--u) * 10);
   align-items: flex-start;
-  padding: 14px 16px 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  padding: calc(var(--u) * 4) calc(var(--u) * 6);
   opacity: 0;
-  transform: translate(-50%, -50%) translateY(10px);
+  transform: translate(-50%, -50%) translateY(calc(var(--u) * 6));
   transition:
-    opacity 0.35s,
-    transform 0.35s;
+    opacity 0.3s steps(3, end),
+    transform 0.3s steps(3, end);
   pointer-events: none;
 }
 #lore.on {
   opacity: 1;
   transform: translate(-50%, -50%);
 }
-#loreIcon svg {
-  width: 56px;
-  height: 56px;
-  flex: none;
-  padding: 4px;
-  border-radius: 4px;
-  background: #17110c;
-  filter: drop-shadow(0 0 6px rgba(255, 170, 60, 0.35));
-}
+#loreIcon svg,
 #loreIcon img {
-  width: 56px;
-  height: 56px;
+  display: block;
+  width: calc(24px + var(--u) * 24);
+  height: calc(24px + var(--u) * 24);
   flex: none;
-  padding: 4px;
-  border-radius: 4px;
-  background: #17110c;
-} /* (the bottles and reagents: 24 px pixel art at twice its size) */
+  background: var(--glass0);
+  box-shadow:
+    0 0 0 var(--u) var(--glass3),
+    0 0 0 calc(var(--u) * 2) var(--out);
+  margin: calc(var(--u) * 2);
+} /* (an artifact's, a bottle's, a reagent's 24 px of pixel art in whole steps, 2x and 3x) */
 #loreIcon svg.focus {
-  outline: 1px solid var(--amber);
-  outline-offset: -1px;
+  box-shadow:
+    0 0 0 var(--u) var(--gold3),
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 #loreIcon svg.cursed {
   box-shadow:
-    0 0 0 1px #b0201a,
-    0 0 8px rgba(200, 30, 20, 0.8);
+    0 0 0 var(--u) #c42c1f,
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 #lore .tx {
   min-width: 0;
 }
 #loreName {
-  font-family: var(--f-display);
-  font-size: 19px;
-  color: #f3e2bf;
-  line-height: 1.15;
-  text-shadow: 0 2px 0 #000;
+  font: 700 calc(var(--t) * 18px) / 1.15 var(--f-display);
+  color: var(--gold3);
+  text-shadow: var(--edge);
 }
 #loreKind {
-  font: 500 12px var(--f-ui);
-  letter-spacing: 0.12em;
+  font: 800 calc(var(--t) * 11px) var(--f-ui);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a99b80;
+  color: var(--mana3);
   margin-top: 2px;
 }
 #loreEffect {
-  font: 500 15px var(--f-ui);
-  color: #e8dcc2;
-  margin-top: 6px;
-  line-height: 1.3;
+  font: 500 calc(var(--t) * 14px) / 1.3 var(--f-ui);
+  color: var(--ink);
+  margin-top: calc(var(--u) * 4);
 }
 #loreText {
-  font-family: var(--f-serif);
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1.4;
-  color: #cbbd9f;
-  margin: 7px 0 0;
-  padding-top: 7px;
-  border-top: 1px solid rgba(94, 77, 57, 0.7);
+  font: italic 500 calc(var(--t) * 13px) / 1.35 var(--f-ui);
+  color: #a9a3c0;
+  margin: calc(var(--u) * 5) 0 0;
+  padding-top: calc(var(--u) * 5);
+  background: linear-gradient(var(--gold1) 0 0) top left / 100% var(--u) no-repeat;
 }
 @media (max-width: 700px) {
   #lore {
     width: min(360px, 86vw);
-    padding: 10px 12px;
-  }
-  #loreText {
-    font-size: 14px;
   }
 }
+/* the toast: one line on the dithered backing between two gold flourishes, dropping in in steps */
 #toast {
-  border: solid transparent;
-  border-width: calc(var(--u) * 4);
-  border-image: url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;
   position: fixed;
   left: 50%;
-  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 34);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 10);
   transform: translateX(-50%);
-  color: #e8dcc2;
-  padding: calc(var(--u) * 3) calc(var(--u) * 6);
-  font-size: calc(var(--u) * 7);
-  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 2);
+  color: var(--ink);
+  padding: 0 calc(var(--u) * 6);
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  image-rendering: pixelated;
+  font: 500 calc(var(--t) * 15px) / 1.3 var(--f-ui);
+  text-shadow: var(--edge);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition:
+    opacity 0.3s steps(3, end),
+    top 0.3s steps(3, end);
   pointer-events: none;
   max-width: 90vw;
   text-align: center;
 }
 #toast.on {
   opacity: 1;
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 14);
 }
-/* a grimoire page asking which spell to give up */
+#toast::before,
+#toast::after {
+  content: '';
+  flex: none;
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 11);
+  background: url(/assets/hud/wing.png) 0 0 / 100% 100%;
+  image-rendering: pixelated;
+}
+#toast::before {
+  order: -1;
+  transform: scaleX(-1);
+  margin-right: calc(var(--u) * 4);
+}
+#toast::after {
+  margin-left: calc(var(--u) * 4);
+}
+/* a grimoire page asking which spell to give up: a glass panel above the spells */
 #prompt {
-  border: solid transparent;
-  border-width: calc(var(--u) * 4);
-  border-image: url(/assets/hud/panel.png) 4 fill / calc(var(--u) * 4) round;
+  border: calc(var(--u) * 9) solid transparent;
+  border-image: url(/assets/hud/glass.png) 9 fill / calc(var(--u) * 9) stretch;
+  image-rendering: pixelated;
   position: fixed;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--u) * 58);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--u) * 84);
   transform: translateX(-50%);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
-  color: #e8dcc2;
-  padding: 10px 18px 8px;
-  font-size: 15px;
+  color: var(--ink);
+  padding: calc(var(--u) * 2) calc(var(--u) * 8);
+  font-size: calc(var(--t) * 14px);
   text-align: center;
   opacity: 0;
-  transition: opacity 0.25s;
+  transition: opacity 0.25s steps(3, end);
   pointer-events: none;
   max-width: 90vw;
 }
@@ -1236,8 +1567,9 @@ body.touch.portrait #rotate {
 }
 #prompt p {
   margin: 0 0 6px;
-  font-family: Cinzel, Georgia, serif;
+  font-family: var(--f-display);
   letter-spacing: 0.03em;
+  color: var(--gold3);
 }
 #prompt .opts {
   display: flex;
@@ -1251,24 +1583,26 @@ body.touch.portrait #rotate {
   gap: 6px;
 }
 #prompt .opt b {
-  font-size: 12px;
-  padding: 1px 6px;
-  border: 1px solid #8a7254;
-  border-radius: 3px;
-  color: #f0d9b4;
+  font-size: calc(var(--t) * 12px);
+  padding: 0 calc(var(--u) * 4);
+  background: var(--glass2);
+  box-shadow:
+    0 0 0 var(--u) var(--gold2),
+    0 0 0 calc(var(--u) * 2) var(--out);
+  color: var(--gold4);
 }
 #prompt .opt svg {
-  width: 26px;
-  height: 26px;
+  width: calc(var(--t) * 26px);
+  height: calc(var(--t) * 26px);
 }
 #prompt i {
-  color: #9a8a70;
+  color: var(--glass4);
 }
 #prompt small {
   display: block;
   margin-top: 6px;
-  color: #9a8a70;
-  font-size: 12px;
+  color: #8f97b8;
+  font-size: calc(var(--t) * 12px);
 }
 #fade {
   position: fixed;
@@ -1288,8 +1622,7 @@ body.touch.portrait #rotate {
 body.daylight #hud {
   display: none;
 }
-/* at the Vigil the run's parts of the HUD give way to what is kept: the Dust and the obols */
-/* the townspeople's talk, a panel along the bottom, the Vigil still showing above it */
+/* the townspeople's talk, a glass card along the bottom, the Vigil still showing above it */
 .screen.talk {
   align-items: flex-end;
   justify-content: center;
@@ -1308,7 +1641,7 @@ body.daylight #hud {
   display: flex;
   gap: 22px;
   align-items: flex-start;
-  padding: 20px 26px 18px;
+  padding: 14px 20px 12px;
   margin-bottom: 12px;
 }
 #talkIcon {
@@ -1316,8 +1649,11 @@ body.daylight #hud {
   height: 96px;
   flex: none;
   image-rendering: pixelated;
-  border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.25);
+  margin: calc(var(--u) * 2);
+  background: var(--glass0);
+  box-shadow:
+    0 0 0 var(--u) var(--gold2),
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 .talkText {
   flex: 1;
@@ -1325,10 +1661,10 @@ body.daylight #hud {
 }
 .talkText h3 {
   font-family: var(--f-display);
-  font-weight: 400;
-  font-size: 26px;
+  font-weight: 700;
+  font-size: 24px;
   margin: 0 0 6px;
-  color: var(--ink);
+  color: var(--gold3);
 }
 .card .talkText p#talkLine {
   font-size: 20px;
@@ -1348,41 +1684,46 @@ body.daylight #hud {
   font: 600 16px var(--f-ui);
   color: var(--ink-dim);
   padding: 3px 10px;
-  border-left: 2px solid transparent;
+  border-left: calc(var(--u) * 2) solid transparent;
   cursor: pointer;
 }
 #talkChoices li[aria-selected='true'] {
-  color: var(--ink);
-  border-left-color: #e2b070;
-  background: rgba(226, 176, 112, 0.08);
+  color: var(--gold4);
+  border-left-color: var(--gold3);
+  background: var(--glass2);
 }
 #talkChoices li b {
   margin-right: 8px;
-  color: #e2b070;
+  color: var(--gold3);
 }
 .talkText p.small {
   margin-top: 10px;
 }
+/* at the Vigil the run's parts of the HUD give way to what is kept: the Dust and the obols, on the dithered backing */
 #vigilHud {
   display: none;
   position: absolute;
-  left: calc(env(safe-area-inset-left, 0px) + 18px);
-  top: calc(env(safe-area-inset-top, 0px) + 122px);
+  left: calc(env(safe-area-inset-left, 0px) + var(--u) * 4);
+  top: calc(env(safe-area-inset-top, 0px) + var(--u) * 60);
   flex-direction: column;
-  gap: 4px;
-  font: 700 16px var(--f-ui);
-  color: #efe2c3;
-  text-shadow: 0 2px 2px #000;
+  gap: calc(var(--u) * 3);
+  padding: 0 calc(var(--u) * 2);
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  image-rendering: pixelated;
+  font: 800 calc(var(--t) * 15px) var(--f-ui);
+  color: var(--gold4);
+  text-shadow: var(--edge);
 }
 #vigilHud span {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: calc(var(--u) * 6);
 }
 #vigilHud small {
-  font: 600 12px var(--f-ui);
-  color: #b8a888;
-  letter-spacing: 0.06em;
+  font: 800 calc(var(--t) * 11px) var(--f-ui);
+  color: #aab0c8;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 #vigilHud b {
@@ -1404,19 +1745,11 @@ body.vigil #btnRestart {
 }
 @media (max-width: 700px) {
   .card {
-    padding: 20px;
+    padding: 14px;
   }
   .controls {
     font-size: 14px;
     gap: 4px 12px;
-  }
-  #minimap {
-    width: 120px;
-    height: 88px;
-  }
-  #hearts svg {
-    width: 24px;
-    height: 24px;
   }
 }
 @media (max-height: 480px) {
@@ -1435,9 +1768,22 @@ body.vigil #btnRestart {
   #banner,
   #bossbar,
   #hurt,
-  #lore {
+  #lore,
+  #toast,
+  #prompt,
+  #insight i {
     transition: none;
   }
+  #banner.on .t,
+  #hearts .ht,
+  #level.waits,
+  #mana i::before,
+  #mana i::after {
+    animation: none;
+  }
+  #level.waits {
+    background-position-x: calc(var(--u) * -28);
+  } /* (still lit while a choice waits: only the blink is dropped) */
 }
 /* dev menu (dev/menu.ts): a panel docked on the right, over the paused game */
 #dev {
@@ -1607,12 +1953,14 @@ body.vigil #btnRestart {
   cursor: pointer;
 }
 
-/* the inventory: tabs, the tiles of the chosen tab, and the panel describing the chosen tile */
+/* the inventory (and the laboratory's table, the waystone, the lectern): a glass card with tabs, the tiles of the chosen
+   tab as sunken sockets (tile.png; the chosen one gold, tile_on.png), and the panel describing the chosen tile on the
+   dithered backing */
 #scrInv,
 #scrLab,
 #scrStone {
   justify-content: center;
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(8, 8, 16, 0.66);
 }
 .card.inv {
   max-width: none;
@@ -1620,16 +1968,7 @@ body.vigil #btnRestart {
   height: min(640px, 88vh);
   display: flex;
   flex-direction: column;
-  padding: 20px 24px 14px;
-  background: rgba(14, 10, 8, 0.97);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme='dark']) .card.inv {
-    background: rgba(232, 221, 196, 0.98);
-  }
-}
-:root[data-theme='light'] .card.inv {
-  background: rgba(232, 221, 196, 0.98);
+  padding: 14px 18px 10px;
 }
 .invHead {
   display: flex;
@@ -1646,18 +1985,18 @@ body.vigil #btnRestart {
   flex-wrap: wrap;
 }
 .invTabs button {
-  font: 600 14px var(--f-ui);
-  padding: 7px 14px;
-  background: transparent;
-  border: 1px solid var(--line);
+  font: 700 14px var(--f-ui);
+  padding: 4px 12px;
+  border: calc(var(--u) * 4) solid transparent;
+  border-image: url(/assets/hud/button.png) 4 fill / calc(var(--u) * 4) stretch;
+  image-rendering: pixelated;
+  background: none;
   color: var(--ink-dim);
-  border-radius: 3px;
   cursor: pointer;
 }
 .invTabs button[aria-selected='true'] {
-  background: rgba(232, 166, 76, 0.16);
-  color: var(--ink);
-  border-color: var(--amber);
+  border-image-source: url(/assets/hud/button_on.png);
+  color: var(--gold4);
 }
 .invBody {
   flex: 1;
@@ -1679,10 +2018,10 @@ body.vigil #btnRestart {
 .invList .sec {
   grid-column: 1/-1;
   margin: 6px 0 0;
-  font: 500 12px var(--f-ui);
-  letter-spacing: 0.12em;
+  font: 800 12px var(--f-ui);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: var(--gold2);
 }
 .invList .sec:first-child {
   margin-top: 0;
@@ -1694,11 +2033,12 @@ body.vigil #btnRestart {
   display: grid;
   place-items: center;
   padding: 0;
-  background: #17110c;
-  border: 1px solid #3a2e22;
-  border-radius: 4px;
+  border: calc(var(--u) * 4) solid transparent;
+  border-image: url(/assets/hud/tile.png) 4 fill / calc(var(--u) * 4) stretch;
+  image-rendering: pixelated;
+  background: none;
   cursor: pointer;
-  color: #e8dcc2;
+  color: var(--ink);
 }
 .invList .tile svg {
   width: 48px;
@@ -1709,38 +2049,31 @@ body.vigil #btnRestart {
   height: 48px;
 }
 .invList .tile svg.focus {
-  outline: 1px solid var(--amber);
-  outline-offset: -1px;
+  box-shadow: 0 0 0 var(--u) var(--gold3);
 }
 .invList .tile svg.cursed {
-  box-shadow:
-    0 0 0 1px #b0201a,
-    0 0 8px rgba(200, 30, 20, 0.8);
-  border-radius: 3px;
+  box-shadow: 0 0 0 var(--u) #c42c1f;
 }
 .invList .tile[aria-selected='true'] {
-  border-color: var(--amber);
-  box-shadow:
-    0 0 0 1px var(--amber),
-    0 0 12px rgba(232, 166, 76, 0.35);
+  border-image-source: url(/assets/hud/tile_on.png);
 }
 .invList .tile.dim {
   opacity: 0.55;
 }
 .invList .tile .n {
   position: absolute;
-  right: 4px;
-  bottom: 2px;
-  font: 700 13px var(--f-ui);
-  color: #f0d9b4;
-  text-shadow: 0 1px 2px #000;
+  right: 2px;
+  bottom: 0;
+  font: 800 13px var(--f-ui);
+  color: var(--gold4);
+  text-shadow: var(--edge);
 }
 .invList .tile .k {
   position: absolute;
-  left: 4px;
-  top: 2px;
-  font: 700 11px var(--f-ui);
-  color: #a99b80;
+  left: 2px;
+  top: 0;
+  font: 800 11px var(--f-ui);
+  color: var(--glass4);
 }
 .invList.rows {
   grid-template-columns: 1fr;
@@ -1752,7 +2085,7 @@ body.vigil #btnRestart {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 4px 8px;
   text-align: left;
 }
 .invList.rows .tile .nm {
@@ -1764,11 +2097,14 @@ body.vigil #btnRestart {
 }
 .invDetail {
   overflow: auto;
-  padding: 16px 18px;
-  background: rgba(0, 0, 0, 0.18);
-  border: 1px solid var(--line);
-  border-radius: 3px;
+  padding: 8px 10px;
+  border: calc(var(--u) * 8) solid transparent;
+  border-image: url(/assets/hud/halo.png) 8 fill / calc(var(--u) * 8) stretch;
+  image-rendering: pixelated;
   color: var(--ink);
+}
+.invDetail * {
+  image-rendering: auto;
 }
 .invDetail .top {
   display: flex;
@@ -1776,41 +2112,42 @@ body.vigil #btnRestart {
   align-items: center;
   margin-bottom: 10px;
 }
-.invDetail .big svg {
-  width: 60px;
-  height: 60px;
-  padding: 6px;
-  border-radius: 4px;
-  background: #17110c;
-  filter: drop-shadow(0 0 6px rgba(255, 170, 60, 0.3));
-}
+.invDetail .big svg,
 .invDetail .big img {
-  width: 60px;
-  height: 60px;
+  display: block;
+  width: 48px;
+  height: 48px;
   padding: 6px;
-  border-radius: 4px;
-  background: #17110c;
+  box-sizing: content-box;
+  background: var(--glass0);
+  box-shadow:
+    0 0 0 var(--u) var(--glass3),
+    0 0 0 calc(var(--u) * 2) var(--out);
+  margin: calc(var(--u) * 2);
+  image-rendering: pixelated;
 }
 .invDetail .big svg.focus {
-  outline: 1px solid var(--amber);
-  outline-offset: -1px;
+  box-shadow:
+    0 0 0 var(--u) var(--gold3),
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 .invDetail .big svg.cursed {
   box-shadow:
-    0 0 0 1px #b0201a,
-    0 0 8px rgba(200, 30, 20, 0.8);
+    0 0 0 var(--u) #c42c1f,
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 .invDetail h3 {
   margin: 0;
   font-family: var(--f-display);
-  font-weight: 400;
-  font-size: 22px;
+  font-weight: 700;
+  font-size: 21px;
   line-height: 1.15;
+  color: var(--gold3);
 }
 .invDetail .kind {
   margin: 3px 0 0;
-  font: 500 12px var(--f-ui);
-  letter-spacing: 0.12em;
+  font: 800 11px var(--f-ui);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-dim);
 }
@@ -1829,19 +2166,19 @@ body.vigil #btnRestart {
   display: none;
 }
 .invDetail .chip {
-  font: 500 13px var(--f-ui);
-  padding: 3px 8px;
-  border-radius: 3px;
-  background: rgba(169, 155, 128, 0.14);
-  border: 1px solid rgba(169, 155, 128, 0.3);
+  font: 600 13px var(--f-ui);
+  padding: 1px 6px;
+  margin: var(--u);
+  background: var(--glass2);
+  box-shadow:
+    0 0 0 var(--u) var(--glass3),
+    0 0 0 calc(var(--u) * 2) var(--out);
 }
 .invDetail .chip.good {
   color: #9ed89a;
-  border-color: rgba(120, 200, 110, 0.45);
 }
 .invDetail .chip.bad {
   color: #f08a7a;
-  border-color: rgba(220, 90, 70, 0.5);
 }
 .invDetail .chip.st-burn {
   color: #ffa060;
@@ -1854,10 +2191,10 @@ body.vigil #btnRestart {
 }
 .invDetail .lbl {
   margin: 4px 0 6px;
-  font: 500 12px var(--f-ui);
-  letter-spacing: 0.12em;
+  font: 800 11px var(--f-ui);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: var(--gold2);
 }
 .invDetail .note {
   margin: 0 0 8px;
@@ -1878,6 +2215,7 @@ body.vigil #btnRestart {
   height: 1.4em;
   vertical-align: -0.35em;
   margin-right: 0.35em;
+  image-rendering: pixelated;
 }
 .invDetail .note.rune b,
 .pagePanel .note.rune b {
@@ -1885,14 +2223,12 @@ body.vigil #btnRestart {
 }
 .note.boon i {
   display: inline-block;
-  width: 0.62em;
-  height: 0.62em;
-  border-radius: 50%;
+  width: calc(var(--u) * 5);
+  height: calc(var(--u) * 5);
   margin-right: 0.4em;
-  vertical-align: 0.02em;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 0 6px var(--c);
+  vertical-align: 0.05em;
+  background: var(--c);
+  box-shadow: 0 0 0 var(--u) var(--out);
 }
 .invDetail .wheel {
   margin: 4px 0 10px;
@@ -1906,7 +2242,7 @@ body.vigil #btnRestart {
 .invDetail .lore {
   margin: 10px 0 0;
   padding-top: 10px;
-  border-top: 1px solid var(--line);
+  background: linear-gradient(var(--gold1) 0 0) top left / 100% var(--u) no-repeat;
   font: italic 15px/1.45 var(--f-serif);
   color: var(--ink-dim);
   max-width: none;
@@ -1925,7 +2261,8 @@ body.vigil #btnRestart {
   }
 }
 
-/* the panel over a grimoire page: the inventory's spell description, small, following the page on screen */
+/* the panel over a grimoire page (the inventory's spell description, small, following the page on screen) and over a
+   ware on the merchant's shelf: on the dithered backing */
 .pagePanel {
   --ink: #e8dcc2;
   --ink-dim: #a99b80;
@@ -1937,17 +2274,14 @@ body.vigil #btnRestart {
   width: min(300px, 42vw);
   max-height: none;
   overflow: hidden;
-  padding: 10px 12px 8px;
-  background: rgba(12, 9, 7, 0.9);
-  border: 1px solid #5e4d39;
-  border-top-color: #8a7254;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  padding: 2px 4px 0;
+  text-shadow: var(--edge);
   transform: translateX(-50%);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s steps(2, end);
   z-index: 3;
-} /* (always a dark card, whatever the page's colour scheme) */
+}
 .pagePanel.on {
   opacity: 1;
 }
@@ -1956,7 +2290,6 @@ body.vigil #btnRestart {
 }
 .warePanel .chip.price {
   color: #ffd77a;
-  border-color: #8a6a2a;
 }
 .warePanel .note.refuse {
   color: #ff9a8a;
@@ -1966,15 +2299,15 @@ body.vigil #btnRestart {
   gap: 10px;
 }
 .pagePanel .big svg {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   padding: 4px;
 }
-/* an artifact's 24 px of pixel art in whole steps (2×, as on the lore card and in the inventory), not the 30 px a spell's
+/* an artifact's 24 px of pixel art in whole steps (2x, as on the lore card and in the inventory), not the 30 px a spell's
    drawn icon fills */
 .pagePanel .big svg.art {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
 }
 .pagePanel h3 {
   font-size: 18px;
@@ -1992,7 +2325,8 @@ body.vigil #btnRestart {
 }
 .pagePanel .chip {
   font-size: 12px;
-  padding: 2px 6px;
+  padding: 0 5px;
+  text-shadow: none;
 }
 .pagePanel .note {
   font-size: 13px;
@@ -2018,8 +2352,9 @@ body.vigil #btnRestart {
 }
 #endHome h3 {
   margin: 0 0 0.3rem;
-  font-size: 1rem;
+  font: 700 1rem var(--f-display);
   letter-spacing: 0.04em;
+  color: var(--gold3);
 }
 #endHome .tally {
   list-style: none;
@@ -2036,9 +2371,12 @@ body.vigil #btnRestart {
 #endHome .tally li.sum {
   opacity: 1;
   font-weight: 600;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  background: linear-gradient(var(--gold1) 0 0) top left / 100% var(--u) no-repeat;
   margin-top: 0.15rem;
   padding-top: 0.2rem;
+}
+#endHome .tally li.sum b {
+  color: var(--gold4);
 }
 #endHome .struck {
   margin: 0.35rem 0 0;

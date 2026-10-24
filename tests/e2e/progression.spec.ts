@@ -148,7 +148,7 @@ test("attributes: a level's point spent on Vigor, Will, Arcana or Swiftness chan
     g.spend('vigor');
     g.spend('vigor');
     g.sim(0.1);
-    const hearts = [...document.querySelectorAll('#hearts svg:not(.soul)')].map((s) => s.classList.contains('half'));
+    const hearts = [...document.querySelectorAll('#hearts .ht:not(.soul)')].map((s) => s.classList.contains('half'));
     const mana0 = P.mana;
     g.spend('will');
     const will = { max: P.stats.maxMana, mana: P.mana - mana0, regen: P.stats.regenMul };

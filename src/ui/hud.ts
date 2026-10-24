@@ -6,7 +6,7 @@ import { CFG } from '../config';
 import { camera } from '../render/renderer';
 import { iconUrl } from '../assets/models';
 import { obolFace } from '../items/obolFace';
-import { HEART_PATH, coinIconBody, pixelHeart, pixelResIcon, soulSvg, spellIcon, spellIconSvg } from '../render/icons';
+import { HEART_PATH, coinIconBody, spellIcon, spellIconSvg } from '../render/icons';
 import { onPixelIcons, pixelIcon } from '../render/pixelIcons';
 import { spell } from '../magic/spellData';
 import { artifactIconUrl } from '../items/artifactIcons';
@@ -16,9 +16,9 @@ import { rune } from '../magic/runeData';
 import { $, clamp } from '../util';
 import { on } from '../events';
 
-/** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed); a pip for each place
-    in the slot's socket, in the colour of the rune carved there (hollow while empty), and Vein's half heart, shown while it
-    would pay. */
+/** The two spell slots, each an octagonal medallion: the spell's icon, its key and its mana cost (empty slots dimmed); a
+    pip for each place in the slot's socket, in the colour of the rune carved there (hollow while empty), and Vein's half
+    heart, shown while it would pay. */
 export function renderSpells() {
   const u = hudPixel();
   player.spells.forEach((id, i) => {
@@ -40,9 +40,17 @@ export function renderSpells() {
       : `<b>${key}</b>`; // (as its runes make it)
   });
 }
-/** The size of the HUD's pixel in screen pixels (art bible 4.6: its panels and icons are pixel art, at about the room's
-    pixel), as the CSS sets it (`--u`). */
+/** The size of the HUD's pixel in screen pixels (art bible 4.6: its panels and icons are pixel art, one HUD pixel a
+    screen pixel at 720 lines, two from `CFG.hud.tall`), and its text's scale beside it. */
 export const hudPixel = () => (innerHeight >= CFG.hud.tall ? CFG.hud.pixel[1] : CFG.hud.pixel[0]);
+const hudText = () => (innerHeight >= CFG.hud.tall ? CFG.hud.text[1] : CFG.hud.text[0]);
+/** The CSS's `--u` and `--t`, from CFG.hud alone (style.css reads them and holds no sizes of its own for them). */
+function setHudScale() {
+  const root = document.documentElement.style;
+  root.setProperty('--u', `${hudPixel()}px`);
+  root.setProperty('--t', String(hudText()));
+}
+setHudScale();
 /** A spell's icon made pixel art (render/pixelIcons.ts), or its drawn icon while that is being made. */
 function spellPixelIcon(id: string, u: number) {
   const def = spell(id),
@@ -53,19 +61,25 @@ function spellPixelIcon(id: string, u: number) {
 }
 onPixelIcons(() => renderSpells()); // (an icon made: the slots drawn again with it)
 addEventListener('resize', () => {
+  setHudScale();
   lastHearts = lastPurse = '';
+  lastMana = -1;
   renderSpells();
   renderHearts();
   renderPurse();
 }); // (the HUD's pixel follows the window's height)
 let lastMana = -1;
-/** Every frame: the mana bar, and each slot's cooldown and whether mana is short. */
+const cdWas = [0, 0];
+/** Every frame: the mana vial (filled in whole HUD pixels, its number beside it), and each slot's cooldown (draining in
+    steps, the medallion lit a moment as it comes ready) and whether mana is short. */
 function updateMagicHud() {
   const max = player.stats.maxMana,
     m = Math.round(player.mana);
   if (m !== lastMana) {
     lastMana = m;
-    el.manaFill.style.transform = `scaleX(${max ? player.mana / max : 0})`;
+    const fill = Math.round(CFG.hud.vial * (max ? clamp(player.mana / max, 0, 1) : 0));
+    el.manaFill.style.width = `calc(var(--u) * ${fill})`;
+    el.manaNum.textContent = String(m);
     el.mana.setAttribute('aria-valuemax', String(max));
     el.mana.setAttribute('aria-valuenow', String(m));
     el.mana.setAttribute('aria-label', STR.manaLabel(m, max));
@@ -74,8 +88,12 @@ function updateMagicHud() {
     if (!id) return;
     const slot = $(`slot${i}`),
       cd = slot.querySelector<HTMLElement>('.cd'),
-      def = slotDef(i)!;
-    if (cd) cd.style.height = `${Math.min(1, player.spellCd[i] / spellCooldown(def)) * 100}%`;
+      def = slotDef(i)!,
+      left = Math.min(1, player.spellCd[i] / spellCooldown(def)),
+      steps = CFG.hud.cdSteps;
+    if (cd) cd.style.height = `${(Math.ceil(left * steps) / steps) * 100}%`;
+    if (cdWas[i] > 0 && left <= 0) blink(slot, 'ready', CFG.hud.ready);
+    cdWas[i] = left;
     const cost = Math.round(spellCost(def)),
       small = slot.querySelector('small');
     if (small && small.textContent !== String(cost)) small.textContent = String(cost); // the Witch's Knot changes it
@@ -83,21 +101,22 @@ function updateMagicHud() {
     slot.classList.toggle('vein', payment(i) === 'vein'); // (Vein would pay in blood)
   });
 }
-/** A refused cast: the slot flashes red, and the mana bar too when mana was short. */
+/** Class `cls` on `e` for `sec` seconds (a held frame of the CSS's: a flash, a spell come ready). */
+function blink(e: Element, cls: string, sec: number) {
+  e.classList.add(cls);
+  setTimeout(() => e.classList.remove(cls), sec * 1000);
+}
+/** A refused cast: the slot flashes red, and the mana vial too when mana was short. */
 export function flashMana(slot: number, why: 'cooldown' | 'mana' | 'target') {
-  const s = $(`slot${slot}`);
-  s.classList.add('flash');
-  setTimeout(() => s.classList.remove('flash'), 220);
-  if (why === 'mana') {
-    el.mana.classList.add('flash');
-    setTimeout(() => el.mana.classList.remove('flash'), 260);
-  }
+  blink($(`slot${slot}`), 'flash', 0.22);
+  if (why === 'mana') blink(el.mana, 'flash', 0.26);
 }
 
 const el = {
   purse: $('purse'),
   mana: $('mana'),
   manaFill: $('mana').querySelector('i') as HTMLElement,
+  manaNum: $('manaNum'),
   hearts: $('hearts'),
   items: $('items'),
   bossbar: $('bossbar'),
@@ -112,22 +131,30 @@ const el = {
   heroInfo: $('heroInfo'),
 };
 
-let lastHearts = '';
+let lastHearts = '',
+  lastFill: number[] = [];
 export function resetHearts() {
   lastHearts = '';
+  lastFill = [];
 }
+/** The hearts as rubies in gold settings (`.ht`, style.css: a frame of public/assets/hud/hearts.png each), Vigor's half
+    container a half setting, the soul motes after them; a heart that lost blood since it was last drawn plays its crack. */
 export function renderHearts() {
-  const u = hudPixel(),
-    key = player.hp + '/' + player.maxHp + '/' + player.souls.join() + '/' + u;
+  const key = player.hp + '/' + player.maxHp + '/' + player.souls.join();
   if (key === lastHearts) return;
   lastHearts = key;
   let html = '';
+  const fill: number[] = [];
   for (let i = 0; i < player.maxHp / 2; i++) {
     const half = player.maxHp - i * 2 === 1,
-      v = clamp(player.hp - i * 2, 0, half ? 1 : 2); // (Vigor's half container, a half heart's outline)
-    html += pixelHeart(v, half, u);
+      v = clamp(player.hp - i * 2, 0, half ? 1 : 2), // (Vigor's half container holds one half)
+      was = lastFill[i],
+      crack = was !== undefined && v < was ? ` c${was}${v}` : ''; // (its five frames: style.css, `.ht.c21` and the rest)
+    fill.push(v);
+    html += `<i class="ht f${v}${half ? ' half' : ''}${crack}" aria-hidden="true"></i>`;
   }
-  for (const kind of player.souls) html += soulSvg(kind, u); // soul motes after the hearts, in the order taken
+  lastFill = fill;
+  for (const kind of player.souls) html += `<i class="ht soul ${kind}" aria-hidden="true"></i>`; // (in the order taken)
   el.hearts.innerHTML = html;
   el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2, player.souls.length));
 }
@@ -135,14 +162,13 @@ export function renderHearts() {
 let lastPurse = '';
 /** Obols, bone keys and blast glyphs carried, as icons and two-digit counts. */
 export function renderPurse() {
-  const u = hudPixel(),
-    key = `${player.coins}/${player.keys}/${player.glyphs}/${obolFace()}/${u}`;
+  const key = `${player.coins}/${player.keys}/${player.glyphs}/${obolFace()}`;
   if (key === lastPurse) return;
   lastPurse = key;
   el.purse.innerHTML = (['coins', 'keys', 'glyphs'] as const)
     .map(
       (k) =>
-        `<span class="${k}">${k === 'coins' ? `<svg viewBox="0 0 24 24" width="${CFG.hud.coin * u}" height="${CFG.hud.coin * u}" aria-hidden="true">${coinIconBody()}</svg>` : pixelResIcon(k, u)}<b>${String(player[k]).padStart(2, '0')}</b></span>`,
+        `<span class="${k}">${k === 'coins' ? `<svg viewBox="0 0 24 24" aria-hidden="true">${coinIconBody()}</svg>` : '<i aria-hidden="true"></i>'}<b>${String(player[k]).padStart(2, '0')}</b></span>`,
     )
     .join('');
   el.purse.setAttribute('aria-label', STR.purse(player.coins, player.keys, player.glyphs));
@@ -182,6 +208,10 @@ export function updateVision() {
 
 const mm = $<HTMLCanvasElement>('minimap'),
   mg = mm.getContext('2d')!;
+mm.width = CFG.hud.map.w; // (drawn a HUD pixel a canvas pixel, shown at --u: style.css)
+mm.height = CFG.hud.map.h;
+mm.style.width = `calc(var(--u) * ${CFG.hud.map.w})`;
+mm.style.height = `calc(var(--u) * ${CFG.hud.map.h})`;
 /** Rooms whose mark on the minimap says already whether they are done (a shop, an altar, a vault, a shrine, a library, a
     laboratory, a waystone room, the treasure room, an ordeal): the finished mark leaves them be. */
 const OWN_MARK = new Set([
@@ -218,14 +248,40 @@ function watchFinished(dt: number) {
     renderMinimap();
   }
 }
-/** The map of known rooms around the current one. Rooms are drawn cell by cell, joined where a room spans
-    several cells; corridors are drawn narrow. */
+/* The minimap's marks as pixel art at the HUD's pixel (art bible 4.6): a character a pixel, '.' clear, each letter a
+   colour the mark is drawn in. */
+const MARKS = {
+  boss: ['.rrrrr.', 'rrrrrrr', 'rkrrrkr', 'rrrrrrr', '.r.r.r.'],
+  ordeal: ['x...x', '.x.x.', '..x..', '.x.x.', 'x...x'],
+  altar: ['.aaa.', 'a...a', 'a...a', 'a...a'],
+  secret: ['.eee.', 'e.p.e', '.eee.'],
+  merchant: ['.ooo.', 'oodoo', '.ooo.'],
+  vault: ['.lll.', '.l.l.', 'lllll', 'lllll', 'lllll'],
+  shrine: ['.sss.', 's...s', 's.d.s', 's...s', '.sss.'],
+  library: ['bbdbb', 'bbdbb', 'bbdbb', '.bdb.'],
+  laboratory: ['.c.', '.f.', 'fff', 'fff'],
+  waystone: ['..s..', '.sgs.', '.sgs.', '.sss.'],
+  treasure: ['..t..', '.ttt.', 'ttttt', '.ttt.', '..t..'],
+  done: ['...t', '..t.', 't.t.', '.t..'],
+};
+/** Mark `rows` centred on (cx, cy), its letters coloured by `pal`. */
+function mark(rows: string[], cx: number, cy: number, pal: Record<string, string>) {
+  const x0 = Math.round(cx - rows[0].length / 2),
+    y0 = Math.round(cy - rows.length / 2);
+  rows.forEach((row, y) =>
+    [...row].forEach((ch, x) => {
+      if (ch === '.') return;
+      mg.fillStyle = pal[ch];
+      mg.fillRect(x0 + x, y0 + y, 1, 1);
+    }),
+  );
+}
+/** The map of known rooms around the current one, at the HUD's pixel: rooms drawn cell by cell, joined where a room
+    spans several cells, corridors narrow, each room's kind marked in pixels. */
 export function renderMinimap() {
   const W = mm.width,
     H = mm.height,
-    cw = 38,
-    ch = 24,
-    gap = 6,
+    [cw, ch, gap] = CFG.hud.map.cell,
     cur = G.room.current;
   mg.clearRect(0, 0, W, H);
   const mid = (r: typeof cur) => ({
@@ -233,180 +289,78 @@ export function renderMinimap() {
     gy: r.plan.cells.reduce((a, c) => a + c.gy, 0) / r.plan.cells.length,
   });
   const centre = mid(cur);
-  const px = (gx: number) => W / 2 + (gx - centre.gx) * (cw + gap),
-    py = (gy: number) => H / 2 + (gy - centre.gy) * (ch + gap);
+  const px = (gx: number) => Math.round(W / 2 + (gx - centre.gx) * (cw + gap)),
+    py = (gy: number) => Math.round(H / 2 + (gy - centre.gy) * (ch + gap));
   // the Grave Lantern shows the secret room before it's found
   const lantern = player.stats.effects.has('graveLantern');
   const shown = G.floor.rooms.filter((r) => r.visited || r.known || (lantern && r.type === 'secret'));
-  // rectangles for a room: its cells (corridors narrow) and the gaps between neighbouring cells
+  // rectangles for a room, in whole pixels: its cells (corridors narrow) and the gaps between neighbouring cells
   const rects = (r: typeof cur) => {
     const out: [number, number, number, number][] = [];
-    const nx = r.plan.shape === 'corridor_ns' ? cw * 0.36 : cw,
-      ny = r.plan.shape === 'corridor_ew' ? ch * 0.42 : ch;
+    const nx = r.plan.shape === 'corridor_ns' ? Math.round(cw * 0.36) : cw,
+      ny = r.plan.shape === 'corridor_ew' ? Math.round(ch * 0.42) : ch;
     const has = (gx: number, gy: number) => r.plan.cells.some((c) => c.gx === gx && c.gy === gy);
     for (const c of r.plan.cells) {
-      out.push([px(c.gx) - nx / 2, py(c.gy) - ny / 2, nx, ny]);
-      if (has(c.gx + 1, c.gy)) out.push([px(c.gx) + cw / 2 - 1, py(c.gy) - ch / 2, gap + 2, ch]);
-      if (has(c.gx, c.gy + 1)) out.push([px(c.gx) - cw / 2, py(c.gy) + ch / 2 - 1, cw, gap + 2]);
-      if (has(c.gx + 1, c.gy) && has(c.gx, c.gy + 1) && has(c.gx + 1, c.gy + 1))
-        out.push([px(c.gx) + cw / 2 - 1, py(c.gy) + ch / 2 - 1, gap + 2, gap + 2]);
+      const x = px(c.gx) - cw / 2,
+        y = py(c.gy) - ch / 2;
+      out.push([px(c.gx) - Math.round(nx / 2), py(c.gy) - Math.round(ny / 2), nx, ny]);
+      if (has(c.gx + 1, c.gy)) out.push([x + cw, y, gap, ch]);
+      if (has(c.gx, c.gy + 1)) out.push([x, y + ch, cw, gap]);
+      if (has(c.gx + 1, c.gy) && has(c.gx, c.gy + 1) && has(c.gx + 1, c.gy + 1)) out.push([x + cw, y + ch, gap, gap]);
     }
     return out;
   };
-  mg.fillStyle = 'rgba(0,0,0,.55)';
-  for (const r of shown) for (const [x, y, w, h] of rects(r)) mg.fillRect(x - 3, y - 3, w + 6, h + 6);
+  mg.fillStyle = '#120f18'; // (a closed outline round every room, art bible 4.4)
+  for (const r of shown) for (const [x, y, w, h] of rects(r)) mg.fillRect(x - 1, y - 1, w + 2, h + 2);
   for (const r of shown) {
     const done = roomFinished(r);
-    mg.fillStyle = r === cur ? '#efe2c3' : r.visited ? (done ? '#837660' : '#a2937a') : '#4d443a'; // (finished: a shade darker)
+    mg.fillStyle = r === cur ? '#f2d49a' : r.visited ? (done ? '#4f5677' : '#6a7396') : '#2b3047'; // (finished: darker)
     for (const [x, y, w, h] of rects(r)) mg.fillRect(x, y, w, h);
     const m = mid(r),
       cx = px(m.gx),
       cy = py(m.gy);
     if (done) {
       // a small tick in the corner of its last cell
-      const c = [...r.plan.cells].sort((a, b) => a.gy - b.gy || a.gx - b.gx).at(-1)!,
-        ex = px(c.gx) + cw / 2,
-        ey = py(c.gy) + ch / 2;
-      mg.strokeStyle = r === cur ? '#6a5a44' : '#4a3e30';
-      mg.lineWidth = 1.6;
-      mg.beginPath();
-      mg.moveTo(ex - 10, ey - 6);
-      mg.lineTo(ex - 7, ey - 3);
-      mg.lineTo(ex - 3, ey - 9);
-      mg.stroke();
+      const c = [...r.plan.cells].sort((a, b) => a.gy - b.gy || a.gx - b.gx).at(-1)!;
+      mark(MARKS.done, px(c.gx) + cw / 2 - 3, py(c.gy) + ch / 2 - 3, { t: r === cur ? '#6a5a44' : '#2b3047' });
     }
-    if (r.type === 'boss') {
-      mg.fillStyle = '#b3261a';
-      mg.beginPath();
-      mg.arc(cx, cy - 1, 7, 0, 7);
-      mg.fill();
-      mg.fillStyle = '#1a0806';
-      mg.fillRect(cx - 4, cy - 3, 3, 3);
-      mg.fillRect(cx + 1, cy - 3, 3, 3);
-    }
-    if (r.type === 'ordeal') {
-      // crossed blades, dimmed once passed
-      mg.strokeStyle = r.cleared ? '#5a5048' : '#2a2226';
-      mg.lineWidth = 3;
-      mg.beginPath();
-      mg.moveTo(cx - 6, cy - 6);
-      mg.lineTo(cx + 6, cy + 6);
-      mg.moveTo(cx + 6, cy - 6);
-      mg.lineTo(cx - 6, cy + 6);
-      mg.stroke();
-    }
-    if (r.type === 'altar') {
-      // an arch of bone, dimmed once paid
-      mg.strokeStyle = r.spots.some((s) => !s.taken) ? '#e8dcc0' : '#6a5a4a';
-      mg.lineWidth = 2.5;
-      mg.beginPath();
-      mg.arc(cx, cy + 3, 6, Math.PI, 0);
-      mg.moveTo(cx - 6, cy + 3);
-      mg.lineTo(cx - 6, cy + 7);
-      mg.moveTo(cx + 6, cy + 3);
-      mg.lineTo(cx + 6, cy + 7);
-      mg.stroke();
-    }
+    if (r.type === 'boss') mark(MARKS.boss, cx, cy, { r: '#d8392a', k: '#1a0806' });
+    if (r.type === 'ordeal') mark(MARKS.ordeal, cx, cy, { x: r.cleared ? '#8a8494' : '#1a1622' }); // (dimmed once passed)
+    if (r.type === 'altar') mark(MARKS.altar, cx, cy, { a: r.spots.some((s) => !s.taken) ? '#f0e4c8' : '#7a7068' }); // (dimmed once paid)
     if (r.type === 'secret') {
       // an eye of pale blue chalk, once found (fainter while only the Grave Lantern knows of it)
-      mg.strokeStyle = mg.fillStyle = r.found ? '#8ab8ff' : '#5a7aa8';
-      mg.lineWidth = 2;
-      mg.beginPath();
-      mg.ellipse(cx, cy, 7, 4, 0, 0, 7);
-      mg.stroke();
-      mg.beginPath();
-      mg.arc(cx, cy, 2, 0, 7);
-      mg.fill();
+      const c = r.found ? '#9fd0ff' : '#5a7aa8';
+      mark(MARKS.secret, cx, cy, { e: c, p: c });
     }
-    if (r.type === 'merchant') {
-      // an obol
-      mg.fillStyle = '#d8a848';
-      mg.beginPath();
-      mg.arc(cx, cy, 6, 0, 7);
-      mg.fill();
-      mg.fillStyle = '#5a3e14';
-      mg.beginPath();
-      mg.arc(cx, cy, 2.2, 0, 7);
-      mg.fill();
-    }
+    if (r.type === 'merchant') mark(MARKS.merchant, cx, cy, { o: '#e8b84a', d: '#5a3e14' }); // (an obol)
     if (r.type === 'vault') {
       // a padlock, pale blue while the ward holds, dimmed once the vault is emptied
       const sealed = r.doors.some((d) => d.seal?.sealed),
         empty = r.visited && r.cleared && !r.spots.some((s) => !s.taken);
-      mg.strokeStyle = mg.fillStyle = sealed ? '#8ab8ff' : empty ? '#5a5a62' : '#c8c8d4';
-      mg.lineWidth = 2;
-      mg.beginPath();
-      mg.arc(cx, cy - 2, 3.5, Math.PI, 0);
-      mg.stroke();
-      mg.fillRect(cx - 5.5, cy - 2, 11, 8);
+      mark(MARKS.vault, cx, cy, { l: sealed ? '#9fd0ff' : empty ? '#5a5a62' : '#d8d8e4' });
     }
     if (r.type === 'shrine') {
       // a circle of pale gold, dimmed while there's no curse to cleanse and no bargain waiting
-      mg.strokeStyle = mg.fillStyle =
+      const c =
         player.items.some((id) => artifact(id).curse && !player.cleansed.includes(id)) ||
         (r.bargain?.state ?? 'idle') !== 'kept'
-          ? '#c89a3a'
+          ? '#e0b048'
           : '#6a6250';
-      mg.lineWidth = 2;
-      mg.beginPath();
-      mg.arc(cx, cy, 6, 0, 7);
-      mg.stroke();
-      mg.beginPath();
-      mg.arc(cx, cy, 2, 0, 7);
-      mg.fill();
+      mark(MARKS.shrine, cx, cy, { s: c, d: c });
     }
     if (r.type === 'library') {
       // an open book, dimmed once its choice is made
-      mg.fillStyle = !r.visited || r.pages?.some((p) => p.set && !p.gone) ? '#e8d8b0' : '#6a6050';
-      mg.beginPath();
-      mg.moveTo(cx, cy - 3);
-      mg.lineTo(cx - 8, cy - 6);
-      mg.lineTo(cx - 8, cy + 4);
-      mg.lineTo(cx, cy + 7);
-      mg.lineTo(cx + 8, cy + 4);
-      mg.lineTo(cx + 8, cy - 6);
-      mg.fill();
-      mg.strokeStyle = '#3a2a1c';
-      mg.lineWidth = 1.5;
-      mg.beginPath();
-      mg.moveTo(cx, cy - 3);
-      mg.lineTo(cx, cy + 7);
-      mg.stroke();
+      const open = !r.visited || r.pages?.some((p) => p.set && !p.gone);
+      mark(MARKS.library, cx, cy, { b: open ? '#f0e0b8' : '#6a6050', d: '#3a2a1c' });
     }
-    if (r.type === 'laboratory') {
-      // a round flask of green jelly
-      mg.fillStyle = '#7ae070';
-      mg.beginPath();
-      mg.arc(cx, cy + 2, 5.5, 0, 7);
-      mg.fill();
-      mg.fillRect(cx - 1.8, cy - 7, 3.6, 6);
-      mg.fillStyle = '#c8ffb0';
-      mg.fillRect(cx - 3, cy - 8, 6, 2);
-    }
+    if (r.type === 'laboratory') mark(MARKS.laboratory, cx, cy, { f: '#7ae070', c: '#c8ffb0' }); // (a flask of green jelly)
     if (r.type === 'waystone') {
       // a standing stone with a gold rune, dimmed once it has given its rest
       const rested = !!r.waystone?.rested;
-      mg.fillStyle = rested ? '#5a5c62' : '#9a9ea8';
-      mg.beginPath();
-      mg.moveTo(cx - 4, cy + 7);
-      mg.lineTo(cx - 3.5, cy - 5);
-      mg.lineTo(cx, cy - 8);
-      mg.lineTo(cx + 3.5, cy - 5);
-      mg.lineTo(cx + 4, cy + 7);
-      mg.fill();
-      mg.fillStyle = rested ? '#7a6030' : '#ffbe3a';
-      mg.fillRect(cx - 1, cy - 4, 2, 7);
-      mg.fillRect(cx - 2.5, cy - 1, 5, 1.6);
+      mark(MARKS.waystone, cx, cy, { s: rested ? '#5a5c62' : '#b0b4be', g: rested ? '#7a6030' : '#ffbe3a' });
     }
-    if (r.type === 'treasure') {
-      mg.fillStyle = r.spots.some((s) => !s.taken) ? '#e8b04a' : '#6a5a3a';
-      mg.beginPath();
-      mg.moveTo(cx, cy - 8);
-      mg.lineTo(cx + 7, cy);
-      mg.lineTo(cx, cy + 8);
-      mg.lineTo(cx - 7, cy);
-      mg.fill();
-    }
+    if (r.type === 'treasure')
+      mark(MARKS.treasure, cx, cy, { t: r.spots.some((s) => !s.taken) ? '#f2c050' : '#6a5a3a' });
   }
 }
 

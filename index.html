@@ -13,26 +13,26 @@
 <div id="hurt"></div><div id="dim"></div><div id="chill"></div><div id="stone"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="halfclip"><rect x="0" y="0" width="12" height="24"/></clipPath></defs></svg>
 <div id="hud">
-  <!-- the framed panels (art bible 4.6): life and mana top left, the purse and the map top right, the spells and the belt
-       bottom centre -->
-  <div class="hpanel" id="pVitals">
+  <!-- the HUD (art bible 4.6): glass and gold for the hearts and the mana top left and for the spells bottom centre; the
+       purse, the map, the chips and the artifacts on a dithered dark backing -->
+  <div class="glass" id="pVitals">
     <div id="hearts" aria-label="Health"></div>
-    <div id="mana" role="meter" aria-valuemin="0"><i></i></div>
+    <div id="manaRow"><div id="mana" role="meter" aria-valuemin="0"><i></i></div><span id="manaNum" aria-hidden="true"></span></div>
     <div id="insight" role="meter" aria-valuemin="0"><i></i></div>
   </div>
   <div id="afflict" role="status" aria-live="polite"></div>
   <div id="items"></div>
-  <div class="hpanel" id="pBar">
-    <div id="spells"><div class="slot" id="slot0"></div><div class="slot" id="slot1"></div><div id="level" aria-hidden="true"></div></div>
+  <div id="pBar">
+    <div id="spells"><div class="slot" id="slot0"></div><div id="level" aria-hidden="true"></div><div class="slot" id="slot1"></div></div>
     <div id="belt" aria-label="Potion belt"></div>
   </div>
   <div id="pTop">
-    <div class="hpanel" id="pPurse"><div id="purse" role="status"></div></div>
-    <div class="hpanel" id="pMap"><canvas id="minimap" width="300" height="220"></canvas></div>
+    <div class="halo" id="pPurse"><div id="purse" role="status"></div></div>
+    <div class="halo" id="pMap"><canvas id="minimap"></canvas></div>
   </div>
   <div id="vigilHud" role="status"></div>
   <div id="bossbar"><div id="bossname"></div><div class="track"><div class="fill"></div></div></div>
-  <div id="banner"><div class="t"></div><div class="s"></div></div>
+  <div id="banner"><div class="t"></div><div class="s"></div><div class="rule" aria-hidden="true"></div></div>
   <aside id="pagePanel" class="invDetail pagePanel" aria-live="polite"></aside>
   <aside id="warePanel" class="invDetail pagePanel warePanel" aria-live="polite"></aside>
   <div id="lore" role="status" aria-live="polite">

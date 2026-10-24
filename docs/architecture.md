@@ -830,15 +830,27 @@ soundscape an entry in `data/music.json` or `data/ambience.json`; an effect an e
 ## UI
 
 HTML/CSS over the canvas (`index.html`, `src/style.css`).
-- The look (art bible 4.17): framed panels (`.hpanel` in `src/style.css`, `#pVitals`, `#pTop`, `#pBar`) and screen
-  cards wear nine-slices of pixel art (`public/assets/hud/`, made by `tools/art/hudframe.py`) through `border-image`,
-  each pixel `--u` screen pixels (`hudPixel()`, `CFG.hud`). Pixel icons: `pixelSvg`, `pixelHeart`, `soulSvg`,
-  `pixelResIcon` (render/icons.ts); the spells' drawn icons made pixel art when first asked for (`pixelIcon`,
-  render/pixelIcons.ts, `onPixelIcons` to draw again).
-- HUD `ui/hud.ts`: hearts, mana bar and slots (`renderSpells`), resources, soul motes, boss bar, banners,
-  `showPrompt`, the minimap (`renderMinimap`; finished rooms are drawn darker with a tick, `roomFinished`). The potion
-  belt `#belt` is `ui/belt.ts`; the insight strip and level badge `ui/insightHud.ts`; the Vigil's `#vigilHud`
-  `ui/vigilHud.ts`; the dawn flash `ui/dawn.ts`. The icons they draw are `render/icons.ts`.
+- The look (art bible 4.6, "arcane glass, held back"): glass and gold (`.glass`, `glass.png`) for the hearts and the
+  mana (`#pVitals`), the spells' octagonal medallions, the level gem and the belt's sockets (`#pBar`), the lore card and
+  a page's question; a dithered dark backing (`.halo`, `halo.png`) for the purse and the map (`#pTop`), the affliction
+  chips, the artifacts, the toast, the Vigil's tally and the detail panels; every screen's card the glass card
+  (`card.png`), buttons and tabs `button.png`/`button_on.png`, inventory tiles `tile.png`/`tile_on.png`. All of it is
+  pixel art drawn by `tools/hud/hudart.py` into `public/assets/hud/` (`python tools/hud/hudart.py public/assets/hud`),
+  shown through `border-image` and sprite sheets, each pixel `--u` screen pixels and HUD text scaled by `--t`: both set
+  on the root by `ui/hud.ts` (`setHudScale`, `hudPixel()`) from `CFG.hud` alone (1 px below 900 window rows, 2 from
+  there). Motion is held frames only (`steps()`), none under `prefers-reduced-motion`. `tools/hud/shots.ts` shoots
+  every screen at 1280 × 720 and 1920 × 1080 for comparing looks (`npx tsx tools/hud/shots.ts <dir>`). Pixel icons
+  elsewhere: `pixelSvg`, `soulSvg` (render/icons.ts); the spells' drawn icons made pixel art when first asked for
+  (`pixelIcon`, render/pixelIcons.ts, `onPixelIcons` to draw again).
+- HUD `ui/hud.ts`: hearts (`renderHearts`: a frame of `hearts.png` each, a heart that lost blood playing its five-frame
+  crack, `.ht.c21` and the like), the mana vial (filled in whole HUD pixels, `CFG.hud.vial`, its number beside it) and
+  the spell medallions (`renderSpells`; the cooldown drains in `CFG.hud.cdSteps` steps, a medallion lit a moment as it
+  comes ready), resources, soul motes, boss bar, banners, `showPrompt`, the minimap (`renderMinimap`, drawn a HUD pixel
+  a canvas pixel at `CFG.hud.map`, each room's kind a pixel mark in `MARKS`; finished rooms are drawn darker with a
+  tick, `roomFinished`). The potion belt `#belt` is `ui/belt.ts`; the insight thread and level gem
+  `ui/insightHud.ts`; the Vigil's `#vigilHud` `ui/vigilHud.ts`; the dawn flash `ui/dawn.ts`. The level-up's cards
+  (`ui/levelUp.ts`) stand in `.lvSlot`s that carry the crest and the chosen card's ring, so the mana surge keeps the
+  card itself.
 - Afflictions `ui/afflictions.ts`: chips beside the mana bar with a first-time line each (`STR.afflict`). A new
   affliction gets a chip, a colour and a line there.
 - Screens `ui/screens.ts`: title, pause, death, end (`showEndScreen`: obols found, level, "Replay this seed"), shown on

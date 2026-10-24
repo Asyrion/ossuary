@@ -11,8 +11,9 @@ export const SOUL_HUES = {
   black: ['#2a1640', '#a266ff', '#c8a0ff'],
   hallowed: ['#ffe39a', '#9a7a2a', '#fffbe8'],
 } as const;
-/* The HUD's icons as pixel art (art bible 4.6): bitmaps a character a pixel, each drawn with a closed outline one pixel
-   outside it (4.4), as SVG rectangles that stay sharp at any whole scale. */
+/* Icons as pixel art (art bible 4.6): bitmaps a character a pixel, each drawn with a closed outline one pixel outside it
+   (4.4), as SVG rectangles that stay sharp at any whole scale. (The HUD's hearts, motes, key and glyph are drawn by
+   tools/hud/hudart.py.) */
 const INK = '#0b0910';
 /** `rows` (a character a pixel, '.' clear) with a closed outline in `ink` round it, as SVG rectangles coloured by
     `pal`, one row's runs of a colour merged. The SVG is `scale` screen pixels a pixel. */
@@ -38,30 +39,6 @@ export function pixelSvg(rows: string[], pal: Record<string, string>, scale: num
   }
   return `<svg viewBox="0 0 ${w} ${h}" width="${w * scale}" height="${h * scale}" shape-rendering="crispEdges"${cls ? ` class="${cls}"` : ''} aria-hidden="true">${out}</svg>`;
 }
-/** The heart, 11 pixels across: r its blood, h the glint, d the shade below. */
-const HEART = [
-  '..rrr.rrr..',
-  '.rhhrrrrrr.',
-  'rhrrrrrrrrr',
-  'rhrrrrrrrrr',
-  'rrrrrrrrrrr',
-  '.rrrrrrrrd.',
-  '..rrrrrrd..',
-  '...rrrdd...',
-  '....rdd....',
-  '.....d.....',
-];
-const HEART_PAL = { r: '#c42c1f', h: '#ff8a70', d: '#7c1810', e: '#2a1210' };
-/** A heart in the HUD: `fill` 2 full, 1 half, 0 empty; `half`, Vigor's half container (its left half only). */
-export function pixelHeart(fill: number, half: boolean, scale: number) {
-  const rows = HEART.map((r) =>
-    [...r]
-      .map((c, x) => (c === '.' ? '.' : fill === 2 || (fill === 1 && x <= 5) ? c : 'e'))
-      .join('')
-      .slice(0, half ? 6 : undefined),
-  );
-  return pixelSvg(rows, HEART_PAL, scale, half ? 'half' : '');
-}
 /** A soul mote's flame, 9 pixels across: f its body, k the brighter core; its rim the outline. */
 const SOUL = [
   '....f....',
@@ -81,20 +58,6 @@ export const soulSvg = (kind: keyof typeof SOUL_HUES, scale = 2) => {
   const [fill, rim, core] = SOUL_HUES[kind];
   return pixelSvg(SOUL, { f: fill, k: core }, scale, `soul ${kind}`, rim);
 };
-/** The bone key and the glyph stone of the purse, as pixel art. */
-const KEY = ['.bbb........', 'b...b.......', 'b.w.bbbbbbbb', 'b...b....b.b', '.bbb.....b.b'];
-const GLYPH = Array.from({ length: 11 }, (_, y) =>
-  Array.from({ length: 11 }, (_, x) => {
-    const d = Math.hypot(x - 5, y - 5);
-    if (d > 5.3) return '.';
-    if (d > 4.3) return 'm';
-    return (Math.abs(x - 5) === Math.abs(y - 5) && d < 3.6) || (x === 5 && y === 5) ? 'a' : 's';
-  }).join(''),
-);
-export const pixelResIcon = (k: 'keys' | 'glyphs', scale: number) =>
-  k === 'keys'
-    ? pixelSvg(KEY, { b: '#e8dcc0', w: '#8ab8ff' }, scale)
-    : pixelSvg(GLYPH, { m: '#6b6158', s: '#2b2622', a: '#ffb04a' }, scale);
 export const HEART_PATH =
   'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
 /** How the drawn icons (spells, resources) stroke their lines. */

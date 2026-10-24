@@ -280,12 +280,12 @@ test("soul motes: they take hits before the hearts, a black one hexes the room, 
     g.drop('paleSoul', P.x, P.z);
     g.sim(0.8);
     const held = g.souls,
-      shown = document.querySelectorAll('#hearts svg.soul').length;
+      shown = document.querySelectorAll('#hearts .ht.soul').length;
     P.invuln = 0;
     const hp = P.hp;
     g.shoot(P.x, P.z - 2.5, 0, 1);
     g.sim(1);
-    return { held, shown, hurt: hp - P.hp, after: g.souls, left: document.querySelectorAll('#hearts svg.soul').length };
+    return { held, shown, hurt: hp - P.hp, after: g.souls, left: document.querySelectorAll('#hearts .ht.soul').length };
   });
   expect(pale).toEqual({ held: ['pale'], shown: 1, hurt: 0, after: [], left: 0 });
   // a black and a hallowed one: the hit takes the black (the hallowed goes last though taken later), which hexes every foe

@@ -196,6 +196,8 @@ export function chooseFor(i = 0, attr?: Attr) {
 }
 
 const L = () => STR.levels;
+/** A card's place on the page (style.css `.lvSlot`): the gold crest over it, and the chosen one standing up, ringed. */
+const slot = (k: number) => `<div class="lvSlot${k === chosen ? ' sel' : ''}"><span class="crest"></span>`;
 function render() {
   const bargain = mode === 'bargain';
   $('lvTitle').textContent = bargain ? STR.bargain.title : L().up(levelNow());
@@ -217,19 +219,21 @@ function render() {
           name = c.rank > 1 ? STR.boons.ranked(b.name) : b.name,
           kind = b.school ? STR.boons.kindOf(STR.schools[b.school]) : STR.boons.kindGeneral;
         return (
+          slot(k) +
           `<button type="button" class="lvCard" data-i="${k}" aria-selected="${k === chosen}" style="--c:${b.color}">${boonIconImg(c.id, c.rank)}` +
           `<b>${esc(name)}</b><small>${esc(kind)}</small><span>${esc(boonText(c.id, c.rank))}</span>` +
           (c.lean && b.school && !bargain ? `<em>${esc(STR.boons.lean(STR.schools[b.school]))}</em>` : '') +
           (bargain ? `<em class="lvPrice">${esc(STR.bargain.price)}</em>` : '') +
-          `<i>${esc(b.lore)}</i></button>`
+          `<i>${esc(b.lore)}</i></button></div>`
         );
       })
       .join('');
   } else {
     box.innerHTML = ATTRS.map(
       (a, k) =>
+        slot(k) +
         `<button type="button" class="lvCard lvAttr" data-i="${k}" aria-selected="${k === chosen}" style="--c:#${ATTR_COLOR[a].toString(16).padStart(6, '0')}">` +
-        `<b>${esc(STR.attrs[a].name)}</b><small>${esc(L().attrNow(G.run.attrs[a]))}</small><span>${esc(attrText(a))}</span></button>`,
+        `<b>${esc(STR.attrs[a].name)}</b><small>${esc(L().attrNow(G.run.attrs[a]))}</small><span>${esc(attrText(a))}</span></button></div>`,
     ).join('');
   }
   for (const el of box.querySelectorAll<HTMLButtonElement>('.lvCard'))

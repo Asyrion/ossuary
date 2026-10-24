@@ -29,7 +29,7 @@ These follow from the camera and the renderer. The look has to work inside them.
 | A prop | urn 0.6, pedestal 0.7, tomb 0.55 tall | 15 to 30 tall |
 | An artifact on its pedestal | 0.3 to 0.45 | 10 to 16 |
 | A coin | 0.5 across | 24 across |
-| An icon | | 28 (HUD), 44 (lore card) screen pixels |
+| An icon | | 24 HUD pixels (HUD), 48 or 72 screen pixels (lore card, level-up) |
 
 ## 2. Where the look is today (measured 2026-10-15)
 
@@ -139,15 +139,34 @@ At the 45° camera it lights heads, shoulders and the tops of things; south face
 - **A rim light on actors:** a bright edge at the top left of the mage and the foes, as Hades uses it. It lifts dark foes
   off a dark floor; today the Gloom Raven, the Mandrake, the Hex Imps and the Deep Angler are lost there.
 
-### 4.6 The HUD: framed (variant B)
+### 4.6 The HUD: arcane glass, held back (the owner, 2026-10-24)
 
-Small pixel-art panels with brass and stone frames, matching the diorama and the vault's materials (as in Moonlighter):
-- **Top left:** the hearts and the mana bar.
-- **Top right:** obols, keys and glyph stones.
-- **Bottom centre:** the spells.
-
-Panels stay small and appear only where something stands. Icons are pixel art with the hard outline. The panels and
-icons are built in R3 step 5.
+Chosen from three directions (`asset-previews/hud/`: A arcane glass, B grimoire, C minimal runic): **A, held back like
+C.** Dark glass in floor 1's shadow blue, a fine gold hairline lit from the top left and a gold jewel on each corner, but
+only for what counts: the hearts and the mana top left, the spells, the level and the belt bottom centre, the level-up's
+trait cards. The purse, the map, the affliction chips, the artifacts and the toasts float on C's stepped, dithered dark
+backing, without a frame.
+- **The HUD's pixel is half the old one** (it goes with the coming doubling of the game's pixel density): one HUD pixel a
+  screen pixel at 720 lines, two from 900 (`CFG.hud.pixel`, `tall`). Things are drawn bigger in HUD pixels so they stay
+  readable: a heart 28 × 26, the vial 176 × 18, a medallion 54 across, the icons 24 to 32.
+- **Hearts:** cut rubies in round gold settings; a hit plays a five-frame crack (cracked, the flash, shards out, sparks,
+  the heart as it is left). Soul motes are their flame in the same setting; Vigor's half container a half setting.
+- **Mana:** a glowing vial between gold caps, ticks at each quarter (C's segments), the liquid in the mana's four blues
+  filled in whole pixels, a stepped shimmer and two bubbles; its number beside it.
+- **Spells:** octagonal gold medallions, the key (Q, E) on a glass tab at the corner, the cost in mana blue, rune pips;
+  the cooldown a veil that drains in steps; the medallion lit a moment when the spell is ready, red when a cast is
+  refused. **The level** a jade gem between them, its setting blinking gold while a level's choice waits. **The belt**
+  gold-arched sockets.
+- **Banner and toast:** a floor's name in gold opening from the middle in steps over a gold rule between two flourishes;
+  a toast one line on the dithered backing between two small flourishes.
+- **Screens:** every screen's card is the glass card (a double gold hairline, the corner jewels): title, pause,
+  inventory, the laboratory's table, waystone, lectern, talk, end; their titles gold. Buttons and tabs are cut glass, gold
+  rimmed when primary, chosen or hovered; inventory tiles sunken sockets, gold when chosen; the detail panels (and the
+  panel over a grimoire page or a ware) on the dithered backing. The trait cards wear a gold crest with a mana gem, the
+  sigil in a medallion; the chosen card stands up, ringed in mana blue breathing in held frames, a glint running along
+  its top; the mana surge (Mana Infused Traits) rises through them as before.
+- Motion is held frames only (`steps()`), none under reduced motion; no blur, no soft shadows (text keeps a hard
+  one-pixel outline).
 
 **The artifact icons are drawn pixel art (2026-10-23, the owner's choice).** Each of the 61 artifacts shows an icon
 drawn in Aseprite at 24 pixels (the sources in `inspiration/icons/`, their prompts in `docs/art/icons/`; `tools/aseprite/`:
@@ -253,18 +272,18 @@ made chest's ward seal, still drawn in code, hovers flat over its lid and turns,
 chest's a pale gold: standing before the chest it read as a pale smudge, and pink over the gilded chest's red wood (the
 owner's "surprise me", 2026-10-21).
 
-### 4.17 The HUD and screens, step H (built 2026-10-21)
+### 4.17 The HUD and screens, step H (built 2026-10-21; rebuilt 2026-10-24, awaiting the owner)
 
-Variant B of 4.6 built: the HUD in small framed panels of brass and stone, drawn as pixel art at about the room's pixel
-(`--u`, two screen pixels a pixel, three from 900 window rows; `CFG.hud`) from nine-slices made by
-`tools/art/hudframe.py` (`public/assets/hud/`). Top left the hearts and the mana bar (two flat tones in a brass trough,
-the insight strip under it); top right the obols, keys and glyphs beside the framed map; bottom centre the spell slots,
-the level and the potion belt; the boss bar moved to the top. The hearts, soul motes, key and glyph are pixel bitmaps
-with the closed outline (`pixelSvg` in render/icons.ts); the spells' drawn icons are made pixel art when first shown
-(render/pixelIcons.ts: drawn small, their edge cut hard, outlined). The hint, the prompt, the lore card and every
-screen's card wear the same frame, dark whatever the system's theme (the cream cards of a light system are gone). From the
-closing sweep: the screens stand over the hint, and the hint shows at the top, under the panels, its text at the HUD's
-pixel (at the bottom it lay over a one-cell room's south door).
+First built as variant B (small framed panels of brass and stone, two or three screen pixels a pixel, nine-slices by
+`tools/art/hudframe.py`). **Rebuilt 2026-10-24 in the owner's chosen direction (4.6)**: every picture drawn pixel by
+pixel by `tools/hud/hudart.py` (`python tools/hud/hudart.py public/assets/hud`, reproducible): `glass.png` and
+`card.png` (nine-slices), `halo.png` (the dithered backing), `hearts.png` (the states, the motes, Vigor's half setting
+and the three cracks), `vial.png`, `medallion.png` with its lit and red frames, `levelgem.png`, `socket.png`,
+`button.png`, `tile.png` (each with its gold `_on`), `crest.png`, `wing.png`, `key.png`, `glyph.png`. The CSS reads the
+HUD's pixel (`--u`) and its text's scale (`--t`) from `CFG.hud` through variables `ui/hud.ts` sets on the root; it holds
+no sizes of its own for them. The minimap is drawn at the HUD's pixel, each room's kind a pixel mark. Every screen
+before and after, at 1280 × 720 and 1920 × 1080: `asset-previews/hud/built/before/` and `after/` (`tools/hud/shots.ts`).
+The old frames (`panel.png`, `slot.png`, `bar.png`, `tools/art/hudframe.py`) go once the owner accepts the new look.
 
 **The owner accepted floor 1 in the new look as a whole (2026-10-21): its rooms, actors, spells, items and HUD.**
 
